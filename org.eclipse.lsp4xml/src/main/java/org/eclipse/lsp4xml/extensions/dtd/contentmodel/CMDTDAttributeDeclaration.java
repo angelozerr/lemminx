@@ -13,6 +13,7 @@ package org.eclipse.lsp4xml.extensions.dtd.contentmodel;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 import org.apache.xerces.impl.dtd.XMLAttributeDecl;
 import org.apache.xerces.impl.dtd.XMLSimpleType;
@@ -23,6 +24,15 @@ import org.eclipse.lsp4xml.extensions.contentmodel.model.CMAttributeDeclaration;
  *
  */
 public class CMDTDAttributeDeclaration extends XMLAttributeDecl implements CMAttributeDeclaration {
+
+	private String documentation;
+	private final CMDTDDocument document;
+	private CMDTDElementDeclaration elementDecl;
+
+	public CMDTDAttributeDeclaration(CMDTDDocument document, CMDTDElementDeclaration elementDecl) {
+		this.document = document;
+		this.elementDecl = elementDecl;
+	}
 
 	@Override
 	public String getName() {
@@ -45,7 +55,14 @@ public class CMDTDAttributeDeclaration extends XMLAttributeDecl implements CMAtt
 
 	@Override
 	public String getDocumentation() {
-		return null;
+		if (documentation != null) {
+			return documentation;
+		}
+		Map<String, String> commentsMap = document.getCommentsMap();
+		if (commentsMap != null) {
+			documentation = commentsMap.get(elementDecl.getName() + ":" + getName());
+		}
+		return documentation;
 	}
 
 	@Override

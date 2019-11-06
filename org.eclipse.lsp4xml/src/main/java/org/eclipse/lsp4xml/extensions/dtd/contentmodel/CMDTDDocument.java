@@ -23,6 +23,7 @@ import java.util.Set;
 import org.apache.xerces.impl.dtd.DTDGrammar;
 import org.apache.xerces.impl.dtd.XMLDTDLoader;
 import org.apache.xerces.xni.Augmentations;
+import org.apache.xerces.xni.XMLString;
 import org.apache.xerces.xni.XNIException;
 import org.apache.xerces.xni.grammars.Grammar;
 import org.apache.xerces.xni.parser.XMLInputSource;
@@ -50,6 +51,8 @@ public class CMDTDDocument extends XMLDTDLoader implements CMDocument {
 	private DTDGrammar grammar;
 	private Set<String> hierarchies;
 	private FilesChangedTracker tracker;
+	private Map<String, String> commentsMap;
+	private String comment;
 
 	public CMDTDDocument() {
 		this(null);
@@ -124,6 +127,12 @@ public class CMDTDDocument extends XMLDTDLoader implements CMDocument {
 		if (hierarchiesMap == null) {
 			hierarchiesMap = new HashMap<>();
 		}
+		if (commentsMap == null) {
+			commentsMap = new HashMap<>();
+		}
+		if (comment != null) {
+			commentsMap.put(elementName, comment);
+		}
 		hierarchies = new LinkedHashSet<String>();
 		hierarchiesMap.put(elementName, hierarchies);
 		super.startContentModel(elementName, augs);
@@ -137,8 +146,34 @@ public class CMDTDDocument extends XMLDTDLoader implements CMDocument {
 
 	@Override
 	public void endContentModel(Augmentations augs) throws XNIException {
+		comment = null;
 		hierarchies = null;
 		super.endContentModel(augs);
+	}
+
+	@Override
+	public void startAttlist(String elementName, Augmentations augs) throws XNIException {
+		if (commentsMap == null) {
+			commentsMap = new HashMap<>();
+		}
+		super.startAttlist(elementName, augs);
+	}
+
+	@Override
+	public void attributeDecl(String elementName, String attributeName, String type, String[] enumeration,
+			String defaultType, XMLString defaultValue, XMLString nonNormalizedDefaultValue, Augmentations augs)
+			throws XNIException {
+		if (comment != null) {
+			commentsMap.put(elementName + ":" + attributeName, comment);
+		}
+		super.attributeDecl(elementName, attributeName, type, enumeration, defaultType, defaultValue, nonNormalizedDefaultValue,
+				augs);
+	}
+
+	@Override
+	public void endAttlist(Augmentations augs) throws XNIException {
+		comment = null;
+		super.endAttlist(augs);
 	}
 
 	@Override
@@ -164,6 +199,18 @@ public class CMDTDDocument extends XMLDTDLoader implements CMDocument {
 		fDTDScanner.scanDTDInternalSubset(true, false, systemId != null);
 	}
 
+	@Override
+	public void comment(XMLString text, Augmentations augs) throws XNIException {
+		if (text != null) {
+			comment = text.toString();
+		}
+		super.comment(text, augs);
+	}
+
+	public Map<String, String> getCommentsMap() {
+		return commentsMap;
+	}
+
 	void collectElementsDeclaration(String elementName, List<CMElementDeclaration> elements) {
 		if (hierarchiesMap == null) {
 			return;
@@ -184,7 +231,7 @@ public class CMDTDDocument extends XMLDTDLoader implements CMDocument {
 		int elementDeclIndex = grammar.getElementDeclIndex(elementDecl.name);
 		int index = grammar.getFirstAttributeDeclIndex(elementDeclIndex);
 		while (index != -1) {
-			CMDTDAttributeDeclaration attributeDecl = new CMDTDAttributeDeclaration();
+			CMDTDAttributeDeclaration attributeDecl = new CMDTDAttributeDeclaration(this, elementDecl);
 			grammar.getAttributeDecl(index, attributeDecl);
 			attributes.add(attributeDecl);
 			index = grammar.getNextAttributeDeclIndex(index);
