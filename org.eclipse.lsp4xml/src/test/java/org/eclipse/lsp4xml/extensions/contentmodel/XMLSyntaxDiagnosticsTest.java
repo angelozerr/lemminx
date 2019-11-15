@@ -255,9 +255,12 @@ public class XMLSyntaxDiagnosticsTest {
 	public void testMarkupEntityMismatch() throws Exception {
 		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n"
 				+ "<Document xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.001.001.03\">\r\n"
-				+ "<CstmrCdtTrfInitn>\r\n" + //
-				"</CstmrCdtTrfInitn>";
-		testDiagnosticsFor(xml, d(1, 1, 1, 9, XMLSyntaxErrorCode.MarkupEntityMismatch));
+				+ "<CstmrCdtTrfInitn>\r\n"
+				+ "</CstmrCdtTrfInitn>";
+		
+		Diagnostic d = d(1, 1, 1, 9, XMLSyntaxErrorCode.MarkupEntityMismatch);
+		testDiagnosticsFor(xml, d);
+		testCodeActionsFor(xml, d, ca(d, te(3, 0, 3, 0, "</Document>")));
 	}
 
 	@Test

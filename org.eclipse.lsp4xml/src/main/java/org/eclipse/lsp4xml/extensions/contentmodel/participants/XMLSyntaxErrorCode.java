@@ -23,6 +23,7 @@ import org.eclipse.lsp4xml.dom.DOMDocument;
 import org.eclipse.lsp4xml.dom.DOMDocumentType;
 import org.eclipse.lsp4xml.extensions.contentmodel.participants.codeactions.ElementUnterminatedCodeAction;
 import org.eclipse.lsp4xml.extensions.contentmodel.participants.codeactions.EqRequiredInAttributeCodeAction;
+import org.eclipse.lsp4xml.extensions.contentmodel.participants.codeactions.MarkupEntityMismatchCodeAction;
 import org.eclipse.lsp4xml.extensions.contentmodel.participants.codeactions.OpenQuoteExpectedCodeAction;
 import org.eclipse.lsp4xml.services.extensions.ICodeActionParticipant;
 import org.eclipse.lsp4xml.services.extensions.diagnostics.IXMLErrorCode;
@@ -211,5 +212,6 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 		codeActions.put(ElementUnterminated.getCode(), new ElementUnterminatedCodeAction());
 		codeActions.put(EqRequiredInAttribute.getCode(), new EqRequiredInAttributeCodeAction());
 		codeActions.put(OpenQuoteExpected.getCode(), new OpenQuoteExpectedCodeAction());
+		codeActions.put(MarkupEntityMismatch.getCode(), new MarkupEntityMismatchCodeAction());
 	}
 }
