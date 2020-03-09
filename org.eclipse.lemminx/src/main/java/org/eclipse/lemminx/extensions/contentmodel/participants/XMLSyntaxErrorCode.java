@@ -42,7 +42,8 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 
 	AttributeNotUnique, // https://wiki.xmldation.com/Support/Validator/AttributeNotUnique
 	AttributeNSNotUnique, // https://wiki.xmldation.com/Support/Validator/AttributeNSNotUnique
-	AttributePrefixUnbound, ContentIllegalInProlog, // https://wiki.xmldation.com/Support/Validator/ContentIllegalInProlog
+	AttributePrefixUnbound, //
+	ContentIllegalInProlog, // https://wiki.xmldation.com/Support/Validator/ContentIllegalInProlog
 	DashDashInComment, // https://wiki.xmldation.com/Support/Validator/DashDashInComment
 	ElementUnterminated, // https://wiki.xmldation.com/Support/Validator/ElementUnterminated
 	ElementPrefixUnbound, // https://wiki.xmldation.com/Support/Validator/ElementPrefixUnbound
@@ -55,7 +56,8 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 	LessthanInAttValue, MarkupEntityMismatch, MarkupNotRecognizedInContent, NameRequiredInReference, OpenQuoteExpected,
 	PITargetRequired, PseudoAttrNameExpected, QuoteRequiredInXMLDecl, RootElementTypeMustMatchDoctypedecl,
 	SDDeclInvalid, SpaceRequiredBeforeEncodingInXMLDecl, SpaceRequiredBeforeStandalone, SpaceRequiredInPI,
-	VersionInfoRequired, VersionNotSupported, XMLDeclUnterminated, CustomETag, PrematureEOF, DoctypeNotAllowed, NoMorePseudoAttributes;
+	VersionInfoRequired, VersionNotSupported, XMLDeclUnterminated, CustomETag, PrematureEOF, DoctypeNotAllowed,
+	NoMorePseudoAttributes;
 
 	private final String code;
 
@@ -167,8 +169,23 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 			return XMLPositionUtility.selectChildEndTag(tag, offset, document);
 		}
 		case ContentIllegalInProlog: {
-			int endOffset = document.getText().indexOf("<");
-			int startOffset = offset + 1;
+			int startOffset = 0;
+			int endOffset = 0;
+			int errorOffset = offset + 1;
+			String text = document.getText();
+			int startPrologOffset = text.indexOf("<");
+			if (errorOffset < startPrologOffset) {
+				// Invalid content given before prolog. Prolog should be the first thing in the
+				// file if given.
+				startOffset = errorOffset;
+				endOffset = startPrologOffset;
+			} else {
+				// Invalid content given after prolog. Either root tag or comment should be
+				// present
+				int firstStartTagOffset = text.indexOf("<", errorOffset);
+				startOffset = errorOffset;
+				endOffset = firstStartTagOffset != -1 ? firstStartTagOffset : text.length();
+			}
 			return XMLPositionUtility.createRange(startOffset, endOffset, document);
 		}
 		case DashDashInComment: {
@@ -189,7 +206,7 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 		}
 		case DoctypeNotAllowed:
 			DOMDocumentType docType = document.getDoctype();
-			return XMLPositionUtility.createRange(docType);		
+			return XMLPositionUtility.createRange(docType);
 		case PITargetRequired:
 			// Working
 			break;
