@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2018 Angelo ZERR
+ *  Copyright (c) 2018-2020 Angelo ZERR
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v2.0
  *  which accompanies this distribution, and is available at
@@ -318,6 +318,16 @@ public class XMLGenerator {
 			CMElementDeclaration ownerElement, IMarkupKindSupport support) {
 		String documentation = XMLGenerator.generateDocumentation(cmAttribute.getValueDocumentation(attributeValue),
 				ownerElement.getDocumentURI(), support.canSupportMarkupKind(MarkupKind.MARKDOWN));
+		if (documentation != null) {
+			return MarkupContentFactory.createMarkupContent(documentation, MarkupKind.MARKDOWN, support);
+		}
+		return null;
+	}
+
+	public static MarkupContent createMarkupContent(CMElementDeclaration ownerElement, String attributeValue,
+			IMarkupKindSupport support) {
+		String documentation = XMLGenerator.generateDocumentation("TODO", ownerElement.getDocumentURI(),
+				support.canSupportMarkupKind(MarkupKind.MARKDOWN));
 		if (documentation != null) {
 			return MarkupContentFactory.createMarkupContent(documentation, MarkupKind.MARKDOWN, support);
 		}

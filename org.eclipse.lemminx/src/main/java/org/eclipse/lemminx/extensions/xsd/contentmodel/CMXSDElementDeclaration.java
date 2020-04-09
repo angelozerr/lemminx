@@ -401,8 +401,14 @@ public class CMXSDElementDeclaration implements CMElementDeclaration {
 	@Override
 	public Collection<String> getEnumerationValues() {
 		XSTypeDefinition typeDefinition = elementDeclaration.getTypeDefinition();
-		if (typeDefinition != null && typeDefinition.getTypeCategory() == XSTypeDefinition.SIMPLE_TYPE) {
-			return CMXSDDocument.getEnumerationValues((XSSimpleTypeDefinition) typeDefinition);
+		if (typeDefinition != null) {
+			XSSimpleTypeDefinition simpleDefinition = null;
+			if (typeDefinition.getTypeCategory() == XSTypeDefinition.SIMPLE_TYPE) {
+				simpleDefinition = (XSSimpleTypeDefinition) typeDefinition;
+			} else if (typeDefinition.getTypeCategory() == XSTypeDefinition.COMPLEX_TYPE) {
+				simpleDefinition = ((XSComplexTypeDefinition) typeDefinition).getSimpleType();
+			}
+			return CMXSDDocument.getEnumerationValues(simpleDefinition);
 		}
 		return Collections.emptyList();
 	}

@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2018 Angelo ZERR
+ *  Copyright (c) 2018-2020 Angelo ZERR
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v2.0
  *  which accompanies this distribution, and is available at
@@ -334,4 +334,33 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 		}
 	}
 
+	@Override
+	public void onXMLContent(ICompletionRequest request, ICompletionResponse response) throws Exception {
+		try {
+			DOMDocument document = request.getXMLDocument();
+			ContentModelManager contentModelManager = request.getComponent(ContentModelManager.class);
+			DOMElement parentElement = request.getParentElement();
+			if (parentElement != null) {
+				CMElementDeclaration elementDeclaration = contentModelManager.findCMElement(parentElement);
+				if (elementDeclaration != null) {
+					Range fullRange = request.getReplaceRange();
+					elementDeclaration.getEnumerationValues().forEach(value -> {
+						CompletionItem item = new CompletionItem();
+						item.setLabel(value);
+						String insertText = request.getInsertAttrValue(value);
+						item.setLabel(value);
+						item.setKind(CompletionItemKind.Value);
+						item.setFilterText(insertText);
+						item.setTextEdit(new TextEdit(fullRange, insertText));
+						MarkupContent documentation = XMLGenerator.createMarkupContent(elementDeclaration, value,
+								request);
+						item.setDocumentation(documentation);
+						response.addCompletionItem(item);
+					});
+				}
+			}
+		} catch (CacheResourceDownloadingException e) {
+			// XML Schema, DTD is loading, ignore this error
+		}
+	}
 }
