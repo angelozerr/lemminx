@@ -86,9 +86,11 @@ class XSDAnnotationModel {
 
 			XSDAnnotationModel annotationModel = XSDAnnotationModel.load(annotation);
 			if (annotationModel != null) {
+				/* Ignore app info
 				if (annotationModel.getAppInfo() != null) {
 					doc.append(annotationModel.getAppInfo());
 				}
+				*/
 				if (annotationModel.getDocumentation() != null) {
 					doc.append(annotationModel.getDocumentation());
 				} else {
