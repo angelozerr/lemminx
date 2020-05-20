@@ -103,8 +103,6 @@ public class XMLAssert {
 
 	private static final String FILE_URI = "test.xml";
 
-	private static final List<String> DUPLICATE_LABELS = Arrays.asList("<?xml", "<!DOCTYPE", "<!ENTITY");
-
 	public static class SettingsSaveContext extends AbstractSaveContext {
 
 		public SettingsSaveContext(Object settings) {
@@ -188,7 +186,7 @@ public class XMLAssert {
 		List<String> labels = list.getItems().stream().map(i -> i.getLabel()).sorted().collect(Collectors.toList());
 		String previous = null;
 		for (String label : labels) {
-			if (expectedCount != null || isIgnoreDuplicateLabel(label)) {
+			if (expectedCount != null) {
 				continue;
 			}
 			assertNotEquals(previous, label, () -> {
@@ -206,17 +204,13 @@ public class XMLAssert {
 		}
 	}
 
-	private static boolean isIgnoreDuplicateLabel(String label) {
-		return DUPLICATE_LABELS.contains(label);
-	}
-
 	private static void assertCompletion(CompletionList completions, CompletionItem expected, TextDocument document,
 			int offset, Integer expectedCount) {
 		List<CompletionItem> matches = completions.getItems().stream().filter(completion -> {
 			return expected.getLabel().equals(completion.getLabel());
 		}).collect(Collectors.toList());
 
-		if (expectedCount != null | isIgnoreDuplicateLabel(expected.getLabel())) {
+		if (expectedCount != null) {
 			assertTrue(matches.size() >= 1, () -> {
 				return expected.getLabel() + " should only exist once: Actual: "
 						+ completions.getItems().stream().map(c -> c.getLabel()).collect(Collectors.joining(","));
