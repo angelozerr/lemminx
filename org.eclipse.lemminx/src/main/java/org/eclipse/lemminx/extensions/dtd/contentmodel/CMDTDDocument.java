@@ -170,7 +170,8 @@ public class CMDTDDocument extends XMLDTDLoader implements CMDocument {
 			char[] ch = scannedEntity.ch;
 			int wordIndex = entityName.length(); //
 			int startEntityNameIndex = -1;
-			// Loop for characters from the end of the entity (>) to search the entity name start offset
+			// Loop for characters from the end of the entity (>) to search the entity name
+			// start offset
 			// <!ENTITY name .....> |
 			for (int i = endEntityIndex; i >= 0; i--) {
 				char c = ch[i];
