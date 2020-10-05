@@ -142,32 +142,29 @@ public abstract class AbstractXML2GrammarGenerator<T extends FileContentGenerato
 			Node child = children.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
 				Element element = (Element) child;
-				if (element.getLocalName() != null) {
-					// Element has tag name.
-					ElementDeclaration elementDecl = getElementDecl(grammar, parent, flat, element);
-					// Update has text
-					if (!elementDecl.hasCharacterContent()) {
-						elementDecl.setHasCharacterContent(hasCharacterContent(element));
-					}
-					// Update element occurrences
-					elementDecl.incrementOccurrences();
-					// Collect attributes
-					NamedNodeMap attributes = element.getAttributes();
-					if (attributes != null) {
-						for (int j = 0; j < attributes.getLength(); j++) {
-							Attr attr = (Attr) attributes.item(j);
-							if (!isIgnore(attr)) {
-								// Attribute must be added in the grammar
-								AttributeDeclaration attributeDecl = elementDecl.getAttribute(attr.getName());
-								// Update attribute occurrences
-								attributeDecl.incrementOccurrences();
-								// Update attribute value
-								attributeDecl.addValue(attr.getValue());
-							}
+				ElementDeclaration elementDecl = getElementDecl(grammar, parent, flat, element);
+				// Update has text
+				if (!elementDecl.hasCharacterContent()) {
+					elementDecl.setHasCharacterContent(hasCharacterContent(element));
+				}
+				// Update element occurrences
+				elementDecl.incrementOccurrences();
+				// Collect attributes
+				NamedNodeMap attributes = element.getAttributes();
+				if (attributes != null) {
+					for (int j = 0; j < attributes.getLength(); j++) {
+						Attr attr = (Attr) attributes.item(j);
+						if (!isIgnore(attr)) {
+							// Attribute must be added in the grammar
+							AttributeDeclaration attributeDecl = elementDecl.getAttribute(attr.getName());
+							// Update attribute occurrences
+							attributeDecl.incrementOccurrences();
+							// Update attribute value
+							attributeDecl.addValue(attr.getValue());
 						}
 					}
-					fillElements(element, grammar, elementDecl, flat);
 				}
+				fillElements(element, grammar, elementDecl, flat);
 			}
 		}
 	}

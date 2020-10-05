@@ -16,7 +16,6 @@ import static org.eclipse.lemminx.utils.StringUtils.getString;
 import static org.eclipse.lemminx.utils.XMLPositionUtility.selectCurrentTagOffset;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.xerces.xni.QName;
@@ -207,7 +206,7 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 			 */
 			String text = document.getText();
 			char ch = text.charAt(offset);
-			while (Character.isWhitespace(ch)) {
+			while(Character.isWhitespace(ch)) {
 				offset--;
 				ch = text.charAt(offset);
 			}
@@ -217,28 +216,7 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 			return XMLPositionUtility.selectEndTagName(offset, document);
 		case ETagRequired: {
 			String tag = getString(arguments[0]);
-			DOMNode node = document.findNodeAt(offset);
-			DOMElement tagElement = null;
-			if (node != null && node.isElement()) {
-				DOMElement element = (DOMElement) node;
-				if (element.isOrphanEndTag()) {
-					// <foo></
-					tagElement = element.getParentElement();
-				} else if (element.isInEndTag(offset)) {
-					// search the element inside this element
-					// <foo>
-					// <bar>
-					// </foo>
-					tagElement = findTag(tag, element);
-					
-				}
-
-			}
-			if (tagElement != null) {
-				return XMLPositionUtility.createRange(tagElement.getStartTagOpenOffset(), offset, document);
-			}
-			// String tag = getString(arguments[0]);
-			// return XMLPositionUtility.selectChildEndTag(tag, offset, document);
+			return XMLPositionUtility.selectChildEndTag(tag, offset, document);
 		}
 		case SemicolonRequiredInReference: {
 			EntityReferenceRange range = XMLPositionUtility.selectEntityReference(offset + 1, document, false);
@@ -300,26 +278,6 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 
 		return null;
 
-	}
-
-	private static DOMElement findTag(String tag,  DOMElement element) {
-		List<DOMNode> children = element.getChildren();
-		for (int i = children.size() - 1; i >=0  ; i--) {
-			DOMNode child = children.get(i);
-			if (child.isElement()) {
-				DOMElement childElement = ((DOMElement) child);
-				if (childElement.isSameTag(tag)) {
-					return childElement;
-				}
-				else {
-					DOMElement tagElement = findTag(tag, childElement);
-					if (tagElement != null) {
-						return tagElement;
-					}
-				}
-			}
-		}
-		return null;
 	}
 
 	public static void registerCodeActionParticipants(Map<String, ICodeActionParticipant> codeActions,

@@ -153,6 +153,8 @@ public class XMLSyntaxDiagnosticsTest {
 		Diagnostic d = d(1, 11, 1, 16, XMLSyntaxErrorCode.ElementUnterminated);
 		testDiagnosticsFor(xml, d);
 		testCodeActionsFor(xml, d, //
+				ca(d, te(1, 16, 1, 16, "/>")), //
+				ca(d, te(1, 16, 1, 16, "></OrgId>")), //
 				ca(d, te(1, 16, 1, 16, ">")));
 	}
 
@@ -187,7 +189,8 @@ public class XMLSyntaxDiagnosticsTest {
 		testDiagnosticsFor(xml, d);
 		testCodeActionsFor(xml, d, //
 				ca(d, te(1, 13, 1, 13, "/>")), //
-				ca(d, te(1, 13, 1, 13, "></bar>")));
+				ca(d, te(1, 13, 1, 13, "></bar>")), //
+				ca(d, te(1, 13, 1, 13, ">")));
 	}
 
 	@Test
@@ -199,7 +202,19 @@ public class XMLSyntaxDiagnosticsTest {
 		testDiagnosticsFor(xml, d);
 		testCodeActionsFor(xml, d, //
 				ca(d, te(1, 13, 1, 13, "/>")), //
-				ca(d, te(1, 13, 1, 13, "></bar>")));
+				ca(d, te(1, 13, 1, 13, "></bar>")), //
+				ca(d, te(1, 13, 1, 13, ">")));
+	}
+
+	@Test
+	public void testETagRequiredWithReplace() throws Exception {
+		String xml = "<a>\r\n" + //
+				"	<b>\r\n" + //
+				"		</c>";
+		Diagnostic d = d(2, 4, 2, 5, XMLSyntaxErrorCode.ETagRequired);
+		testDiagnosticsFor(xml, d);
+		testCodeActionsFor(xml, d, //
+				ca(d, te(2, 4, 2, 5, "b")));
 	}
 
 	/**
@@ -261,7 +276,7 @@ public class XMLSyntaxDiagnosticsTest {
 				"  		<Nm>Name\r\n" + //
 				"		</UltmtDbtr> \r\n" + //
 				"			</Nm>  ";
-		Diagnostic d = d(1, 4, 2, 3, XMLSyntaxErrorCode.ETagRequired);
+		Diagnostic d = d(1, 5, 1, 7, XMLSyntaxErrorCode.ETagRequired);
 		testDiagnosticsFor(xml, d);
 		testCodeActionsFor(xml, d, ca(d, te(1, 12, 1, 12, "</Nm>")));
 	}
@@ -271,7 +286,7 @@ public class XMLSyntaxDiagnosticsTest {
 		String xml = "<UltmtDbtr>\r\n" + //
 				"  		Nm>Name</Nm>\r\n" + //
 				"		</UltmtDbtr>";
-		testDiagnosticsFor(xml, d(0, 0, 1, 12, XMLSyntaxErrorCode.ETagRequired));
+		testDiagnosticsFor(xml, d(1, 13, 1, 15, XMLSyntaxErrorCode.ETagRequired));
 	}
 
 	@Test
@@ -281,53 +296,9 @@ public class XMLSyntaxDiagnosticsTest {
 				"    <Ad>\r\n" + //
 				"    <Ph>\r\n" + //
 				"</UltmtDbtr>";
-		Diagnostic d = d(3, 4, 4, 1, XMLSyntaxErrorCode.ETagRequired);
+		Diagnostic d = d(3, 5, 3, 7, XMLSyntaxErrorCode.ETagRequired);
 		testDiagnosticsFor(xml, d);
 		testCodeActionsFor(xml, d, ca(d, te(3, 8, 3, 8, "</Ph>")));
-	}
-
-	@Test
-	public void testETagRequiredWithReplace() throws Exception {
-		String xml = "<a>\r\n" + //
-				"	<b>\r\n" + //
-				"		</c>";
-		Diagnostic d = d(1, 1, 2, 3, XMLSyntaxErrorCode.ETagRequired);
-		testDiagnosticsFor(xml, d);
-		testCodeActionsFor(xml, d, //
-				ca(d, te(2, 4, 2, 5, "b")), ca(d, te(2, 6, 2, 6, "\r\n	</b>")));
-	}
-
-	@Test
-	public void testETagRequiredWithText() throws Exception {
-		String xml = "<root>\r\n" + //
-				"<ABC>def\r\n" + //
-				"</root>";
-		Diagnostic d = d(1, 0, 2, 1, XMLSyntaxErrorCode.ETagRequired);
-		testDiagnosticsFor(xml, d);
-		testCodeActionsFor(xml, d, ca(d, te(1, 8, 1, 8, "</ABC>")));
-	}
-
-	@Test
-	public void testETagRequiredWithOrpheanEndTag() throws Exception {
-		String xml = "<root>\r\n" + //
-				"	<foo>\r\n" + //
-				"		</\r\n" + //
-				"</root>";
-		Diagnostic d = d(1, 1, 2, 3, XMLSyntaxErrorCode.ETagRequired);
-		testDiagnosticsFor(xml, d);
-		testCodeActionsFor(xml, d, ca(d, te(2, 2, 2, 4, "</foo>")));
-	}
-
-	@Test
-	public void testETagRequiredClosedWithOrpheanEndTag() throws Exception {
-		String xml = "<root>\r\n" + //
-				"	<foo>\r\n" + //
-				"		</\r\n" + //
-				"	</foo>\r\n" + //
-				"</root>";
-		Diagnostic d = d(1, 1, 2, 3, XMLSyntaxErrorCode.ETagRequired);
-		testDiagnosticsFor(xml, d);
-		testCodeActionsFor(xml, d, ca(d, te(2, 2, 2, 4, "")));
 	}
 
 	/**
@@ -395,6 +366,16 @@ public class XMLSyntaxDiagnosticsTest {
 	}
 
 	@Test
+	public void testETagRequiredWithText() throws Exception {
+		String xml = "<root>\r\n" + //
+				"<ABC>def\r\n" + //
+				"</root>";
+		Diagnostic d = d(1, 1, 1, 4, XMLSyntaxErrorCode.ETagRequired);
+		testDiagnosticsFor(xml, d);
+		testCodeActionsFor(xml, d, ca(d, te(1, 8, 1, 8, "</ABC>")));
+	}
+
+	@Test
 	public void testIllegalQName() throws Exception {
 		String xml = "<a Ccy:\"JPY\">100</a>";
 		testDiagnosticsFor(xml, d(0, 6, 0, 7, XMLSyntaxErrorCode.IllegalQName));
@@ -446,7 +427,8 @@ public class XMLSyntaxDiagnosticsTest {
 		testDiagnosticsFor(xml, d);
 		testCodeActionsFor(xml, d, //
 				ca(d, te(0, 4, 0, 4, "/>")), //
-				ca(d, te(0, 4, 0, 4, "></ABC>")));
+				ca(d, te(0, 4, 0, 4, "></ABC>")), //
+				ca(d, te(0, 4, 0, 4, ">")));
 	}
 
 	@Test
@@ -456,7 +438,8 @@ public class XMLSyntaxDiagnosticsTest {
 		testDiagnosticsFor(xml, d);
 		testCodeActionsFor(xml, d, //
 				ca(d, te(0, 4, 0, 4, "/>")), //
-				ca(d, te(0, 4, 0, 4, "></ABC>")));
+				ca(d, te(0, 4, 0, 4, "></ABC>")), //
+				ca(d, te(0, 4, 0, 4, ">")));
 	}
 
 	@Test
@@ -466,7 +449,8 @@ public class XMLSyntaxDiagnosticsTest {
 		testDiagnosticsFor(xml, d);
 		testCodeActionsFor(xml, d, //
 				ca(d, te(0, 4, 0, 4, "/>")), //
-				ca(d, te(0, 4, 0, 4, "></ABC>")));
+				ca(d, te(0, 4, 0, 4, "></ABC>")), //
+				ca(d, te(0, 4, 0, 4, ">")));
 	}
 
 	@Test
@@ -476,7 +460,8 @@ public class XMLSyntaxDiagnosticsTest {
 		testDiagnosticsFor(xml, d);
 		testCodeActionsFor(xml, d, //
 				ca(d, te(0, 9, 0, 9, "/>")), //
-				ca(d, te(0, 9, 0, 9, "></ABC>")));
+				ca(d, te(0, 9, 0, 9, "></ABC>")), //
+				ca(d, te(0, 9, 0, 9, ">")));
 	}
 
 	@Test
