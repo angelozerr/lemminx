@@ -21,8 +21,10 @@ import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.lemminx.services.IXMLCommandService;
 import org.eclipse.lemminx.services.IXMLDocumentProvider;
 import org.eclipse.lemminx.services.IXMLNotificationService;
+import org.eclipse.lemminx.services.IXMLValidationService;
 import org.eclipse.lemminx.services.extensions.codelens.ICodeLensParticipant;
 import org.eclipse.lemminx.services.extensions.diagnostics.IDiagnosticsParticipant;
 import org.eclipse.lemminx.services.extensions.format.IFormatterParticipant;
@@ -54,6 +56,8 @@ public class XMLExtensionsRegistry implements IComponentProvider {
 	private final List<IFormatterParticipant> formatterParticipants;
 	private final List<ISymbolsProviderParticipant> symbolsProviderParticipants;
 	private IXMLDocumentProvider documentProvider;
+	private IXMLValidationService validationService;
+	private IXMLCommandService commandService;
 
 	private InitializeParams params;
 
@@ -380,6 +384,42 @@ public class XMLExtensionsRegistry implements IComponentProvider {
 	 */
 	public void setNotificationService(IXMLNotificationService notificationService) {
 		this.notificationService = notificationService;
+	}
+	
+	/**
+	 * Returns the XML document validation service
+	 *  
+	 * @return the validation service
+	 */
+	public IXMLValidationService getValidationService() {
+		return validationService;
+	}
+
+	/**
+	 * Sets the XML document validation service
+	 * 
+	 * @param validationService
+	 */
+	public void setValidationService(IXMLValidationService validationService) {
+		this.validationService = validationService;
+	}
+
+	/**
+	 * Returns the LS command service
+	 * 
+	 * @return the command service
+	 */
+	public IXMLCommandService getCommandService() {
+		return commandService;
+	}
+
+	/**
+	 * Sets the LS command service
+	 * 
+	 * @param commandService
+	 */
+	public void setCommandService(IXMLCommandService commandService) {
+		this.commandService = commandService;
 	}
 
 }
