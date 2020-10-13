@@ -123,4 +123,7 @@ public class XMLCacheResolverExtension implements URIResolverExtension {
 		return cacheResourcesManager.isUseCache();
 	}
 
+	public void evictCache() throws IOException {
+		cacheResourcesManager.evictCache();
+	}
 }

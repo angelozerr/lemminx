@@ -38,6 +38,8 @@ import org.eclipse.lemminx.utils.URIUtils;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.io.MoreFiles;
+import com.google.common.io.RecursiveDeleteOption;
 
 /**
  * Cache resources manager.
@@ -96,7 +98,8 @@ public class CacheResourcesManager {
 		}
 
 		/**
-		 * @return The computed path in the lemmix cache that the resource will be stored at
+		 * @return The computed path in the lemmix cache that the resource will be
+		 *         stored at
 		 */
 		public Path getDeployedPath() throws IOException {
 			return FilesUtils.getDeployedPath(resourceCachePath);
@@ -266,5 +269,12 @@ public class CacheResourcesManager {
 	 */
 	public boolean isUseCache() {
 		return useCache;
+	}
+
+	public void evictCache() throws IOException {
+		Path cachePath = FilesUtils.getDeployedPath(Paths.get(CACHE_PATH));
+		if (Files.exists(cachePath)) {
+			MoreFiles.deleteDirectoryContents(cachePath, RecursiveDeleteOption.ALLOW_INSECURE);
+		}
 	}
 }

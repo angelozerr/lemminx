@@ -13,7 +13,9 @@
 package org.eclipse.lemminx.extensions.contentmodel.model;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -400,6 +402,36 @@ public class ContentModelManager {
 		if (!useCache) {
 			grammarPool.clear();
 		}
+	}
+
+	public void evictCacheFor(DOMDocument document) throws IOException {
+		Set<ReferencedGrammarInfo> referencedGrammarInfos = getReferencedGrammarInfos(document);
+		if (referencedGrammarInfos.isEmpty()) {
+			return;
+		}
+		int nbDeletedFiles = 0;
+		try {
+			for (ReferencedGrammarInfo referencedGrammarInfo : referencedGrammarInfos) {
+				if (referencedGrammarInfo.isInCache()) {
+					String resolvedURI = referencedGrammarInfo.getResolvedURIInfo().getResolvedURI();
+					Files.deleteIfExists(Paths.get(resolvedURI));
+					nbDeletedFiles++;
+				}
+			}
+		} finally {
+			if (nbDeletedFiles > 0) {
+				grammarPool.clear();
+			}
+		}
+	}
+
+	public void evictCache() throws IOException {
+		try {
+			cacheResolverExtension.evictCache();
+		} finally {
+			grammarPool.clear();
+		}
+
 	}
 
 	public void registerModelProvider(ContentModelProvider modelProvider) {
