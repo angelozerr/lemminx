@@ -39,12 +39,10 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
  * class generates several CodeLenses on the root of the DOM Document:
  * 
  * <ul>
- * <li>[Bind with XSD] : click on this Codelens open a file dialog to select the
- * XSD to bind.</li>
- * <li>[Bind with DTD] : click on this Codelens open a file dialog to select the
- * DTD to bind.</li>
- * <li>[Bind with xml-model] : click on this Codelens open a file dialog to
- * select the XSD, DTD to bind.</li>
+ * <li>[Bind with XSD/DTD] : click on this Codelens open a file dialog to select the
+ * XSD/DTD to bind with standard association (xsi/DOCTYPE).</li>
+ * <li>[Bind with xml-model] : click on this Codelens open a file dialog to select the
+ * XSD/DTD to bind with xml-model processing instruction.</li>
  * </ul>
  * 
  * <p>
@@ -85,8 +83,7 @@ public class ContentModelCodeLensParticipant implements ICodeLensParticipant {
 		String documentURI = document.getDocumentURI();
 		Range range = XMLPositionUtility.selectRootStartTag(document);
 
-		lenses.add(createAssociateLens(documentURI, "Bind with XSD", GrammarBindingType.XSD.getName(), range));
-		lenses.add(createAssociateLens(documentURI, "Bind with DTD", GrammarBindingType.DTD.getName(), range));
+		lenses.add(createAssociateLens(documentURI, "Bind with XSD/DTD", GrammarBindingType.STANDARD.getName(), range));
 		lenses.add(
 				createAssociateLens(documentURI, "Bind with xml-model", GrammarBindingType.XML_MODEL.getName(), range));
 	}

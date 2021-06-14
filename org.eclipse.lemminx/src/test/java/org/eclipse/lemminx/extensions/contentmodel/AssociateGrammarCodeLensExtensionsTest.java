@@ -34,8 +34,7 @@ public class AssociateGrammarCodeLensExtensionsTest {
 				"<foo />";
 		testCodeLensFor(xml, "test.xml", //
 				Collections.singletonList(CodeLensKind.Association), //
-				cl(r(1, 1, 1, 4), "Bind with XSD", SELECT_FILE), //
-				cl(r(1, 1, 1, 4), "Bind with DTD", SELECT_FILE), //
+				cl(r(1, 1, 1, 4), "Bind with XSD/DTD", SELECT_FILE), //
 				cl(r(1, 1, 1, 4), "Bind with xml-model", SELECT_FILE));
 	}
 

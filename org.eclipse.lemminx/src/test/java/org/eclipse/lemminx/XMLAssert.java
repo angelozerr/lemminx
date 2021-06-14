@@ -1112,6 +1112,7 @@ public class XMLAssert {
 			if (expectedCommand != null && actualCommand != null) {
 				assertEquals(expectedCommand.getTitle(), actualCommand.getTitle());
 				assertEquals(expectedCommand.getCommand(), actualCommand.getCommand());
+				assertEquals(expectedCommand.getArguments(), actualCommand.getArguments());
 			}
 			assertEquals(expected[i].getData(), actual.get(i).getData());
 		}

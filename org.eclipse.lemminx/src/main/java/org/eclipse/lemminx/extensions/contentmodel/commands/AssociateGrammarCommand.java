@@ -66,8 +66,7 @@ public class AssociateGrammarCommand extends AbstractDOMDocumentCommandHandler {
 
 	public enum GrammarBindingType {
 
-		XSD("xsd"), //
-		DTD("dtd"), //
+		STANDARD("standard"), //
 		XML_MODEL("xml-model");
 
 		private String name;
@@ -103,25 +102,34 @@ public class AssociateGrammarCommand extends AbstractDOMDocumentCommandHandler {
 		String bindingType = ArgumentsUtils.getArgAt(params, 2, String.class);
 		String grammarURI = getRelativeURI(fullPathGrammarURI, documentURI);
 
-		if (GrammarBindingType.XSD.getName().equals(bindingType)) {
-			// Check if XSD to bind declares a target namespace
-			String targetNamespace = getTargetNamespace(fullPathGrammarURI);
-			if (StringUtils.isEmpty(targetNamespace)) {
+		boolean isXSD = DOMUtils.isXSD(fullPathGrammarURI);
+
+		if (GrammarBindingType.STANDARD.getName().equals(bindingType)) {
+			if (isXSD) {
+				// XSD file
+				
+				// Check if XSD to bind declares a target namespace
+				String targetNamespace = getTargetNamespace(fullPathGrammarURI);
+				if (StringUtils.isEmpty(targetNamespace)) {
+					// Insert inside <foo /> ->
+					// xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance"
+					// xsi:noNamespaceSchemaLocation=\"xsd/tag.xsd\"
+					return NoGrammarConstraintsCodeAction.createXSINoNamespaceSchemaLocationEdit(grammarURI, document);
+				}
 				// Insert inside <foo /> ->
-				// xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance"
-				// xsi:noNamespaceSchemaLocation=\"xsd/tag.xsd\"
-				return NoGrammarConstraintsCodeAction.createXSINoNamespaceSchemaLocationEdit(grammarURI, document);
+				// xmlns="team_namespace"
+				// xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+				// xsi:schemaLocation="team_namespace xsd/team.xsd"
+				return NoGrammarConstraintsCodeAction.createXSISchemaLocationEdit(grammarURI, targetNamespace,
+						document);
+			} else {
+				// DTD file
+				
+				// Insert before <foo /> -> <!DOCTYPE foo SYSTEM "dtd/tag.dtd">
+				return NoGrammarConstraintsCodeAction.createDocTypeEdit(grammarURI, document, sharedSettings);
 			}
-			// Insert inside <foo /> ->
-			// xmlns="team_namespace"
-			// xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			// xsi:schemaLocation="team_namespace xsd/team.xsd"
-			return NoGrammarConstraintsCodeAction.createXSISchemaLocationEdit(grammarURI, targetNamespace, document);
-		} else if (GrammarBindingType.DTD.getName().equals(bindingType)) {
-			// Insert before <foo /> -> <!DOCTYPE foo SYSTEM "dtd/tag.dtd">
-			return NoGrammarConstraintsCodeAction.createDocTypeEdit(grammarURI, document, sharedSettings);
 		} else if (GrammarBindingType.XML_MODEL.getName().equals(bindingType)) {
-			String targetNamespace = DOMUtils.isXSD(fullPathGrammarURI) ? getTargetNamespace(fullPathGrammarURI) : null;
+			String targetNamespace = isXSD ? getTargetNamespace(fullPathGrammarURI) : null;
 			// Insert before <foo /> -> <?xml-model href=\"dtd/tag.dtd\"?>
 			return NoGrammarConstraintsCodeAction.createXmlModelEdit(grammarURI, targetNamespace, document,
 					sharedSettings);
