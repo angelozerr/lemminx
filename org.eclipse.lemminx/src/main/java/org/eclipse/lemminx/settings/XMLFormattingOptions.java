@@ -403,4 +403,8 @@ public class XMLFormattingOptions extends FormattingOptions {
 		this.putBoolean(XMLFormattingOptions.CLOSING_BRACKET_NEW_LINE, Boolean.valueOf(closingBracketNewLine));
 	}
 
+	public boolean isExperimental() {
+		return true;
+	}
+
 }
