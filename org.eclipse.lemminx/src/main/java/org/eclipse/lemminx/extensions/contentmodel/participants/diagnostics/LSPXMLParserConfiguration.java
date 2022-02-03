@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.xerces.impl.Constants;
+import org.apache.xerces.impl.XMLEntityManager;
 import org.apache.xerces.impl.dtd.XMLDTDValidator;
 import org.apache.xerces.util.SecurityManager;
 import org.apache.xerces.xni.XMLDocumentHandler;
@@ -57,7 +58,7 @@ class LSPXMLParserConfiguration extends XMLModelAwareParserConfiguration {
 
 	public LSPXMLParserConfiguration(XMLGrammarPool grammarPool, boolean disableDTDValidation,
 			LSPErrorReporterForXML reporterForXML, LSPErrorReporterForXML reporterForGrammar,
-			XMLValidationSettings validationSettings) {
+			XMLValidationSettings validationSettings, XMLEntityManager entityManager) {
 		super(null, grammarPool, reporterForGrammar);
 		this.disableDTDValidation = disableDTDValidation;
 		// Disable DOCTYPE declaration if settings is set to true.
@@ -68,6 +69,7 @@ class LSPXMLParserConfiguration extends XMLModelAwareParserConfiguration {
 				: false;
 		super.setFeature("http://xml.org/sax/features/external-general-entities", resolveExternalEntities);
 		super.setFeature("http://xml.org/sax/features/external-parameter-entities", resolveExternalEntities);
+		super.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", resolveExternalEntities);
 		// Security manager
 		SecurityManager securityManager = new SecurityManager();
 		securityManager.setEntityExpansionLimit(
@@ -76,6 +78,10 @@ class LSPXMLParserConfiguration extends XMLModelAwareParserConfiguration {
 				.setMaxOccurNodeLimit(getPropertyValue(MAX_OCCUR_LIMIT_PROPERTY_NAME, MAX_OCCUR_LIMIT_DEFAULT_VALUE));
 		super.setProperty(SECURITY_MANAGER, securityManager);
 		fErrorReporter = reporterForXML;
+		
+		fEntityManager = entityManager;
+		fProperties.put(ENTITY_MANAGER, entityManager);
+		addCommonComponent(fEntityManager);
 	}
 
 	@Override
@@ -85,7 +91,7 @@ class LSPXMLParserConfiguration extends XMLModelAwareParserConfiguration {
 			// reset again DTD validator by setting "http://xml.org/sax/features/validation"
 			// to false.
 			disableDTDValidation();
-		}
+		}		
 	}
 
 	private void disableDTDValidation() {

@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import org.apache.xerces.impl.XMLEntityManager;
 import org.apache.xerces.parsers.SAXParser;
 import org.apache.xerces.util.URI.MalformedURIException;
+import org.apache.xerces.xni.XNIException;
 import org.apache.xerces.xni.parser.XMLEntityResolver;
 import org.eclipse.lemminx.dom.DOMAttr;
 import org.eclipse.lemminx.dom.DOMDocument;
@@ -42,7 +43,7 @@ import org.eclipse.lemminx.extensions.contentmodel.settings.XMLSchemaSettings;
 import org.eclipse.lemminx.extensions.contentmodel.settings.XMLValidationSettings;
 import org.eclipse.lemminx.extensions.xerces.ReferencedGrammarDiagnosticsInfo;
 import org.eclipse.lemminx.services.extensions.diagnostics.LSPContentHandler;
-import org.eclipse.lemminx.uriresolver.CacheResourceDownloadingException;
+import org.eclipse.lemminx.uriresolver.CacheResourceException;
 import org.eclipse.lemminx.uriresolver.IExternalGrammarLocationProvider;
 import org.eclipse.lemminx.utils.StringUtils;
 import org.eclipse.lemminx.utils.XMLPositionUtility;
@@ -80,8 +81,21 @@ public class XMLValidator {
 				contentModelManager, validationSettings != null ? validationSettings.isRelatedInformation() : false,
 				referencedGrammarDiagnosticsInfoCache);
 		try {
+			XMLEntityManager entityManager = new XMLEntityManager() {
+
+				@Override
+				public void startEntity(String entityName, boolean literal) throws IOException, XNIException {
+					try {
+						super.startEntity(entityName, literal);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			};
+
 			LSPXMLParserConfiguration configuration = new LSPXMLParserConfiguration(grammarPool,
-					isDisableOnlyDTDValidation(document), reporterForXML, reporterForGrammar, validationSettings);
+					isDisableOnlyDTDValidation(document), reporterForXML, reporterForGrammar, validationSettings,
+					entityManager);
 
 			if (entityResolver != null) {
 				configuration.setProperty("http://apache.org/xml/properties/internal/entity-resolver", entityResolver); //$NON-NLS-1$
@@ -117,13 +131,20 @@ public class XMLValidator {
 			parser.setFeature("http://xml.org/sax/features/namespace-prefixes", namespacesValidationEnabled); //$NON-NLS-1$
 			parser.setFeature("http://xml.org/sax/features/namespaces", namespacesValidationEnabled); //$NON-NLS-1$
 
+			parser.setProperty("http://apache.org/xml/properties/internal/entity-manager", entityManager); //$NON-NLS-1$
+
 			// Parse XML
 			String content = document.getText();
 			String uri = document.getDocumentURI();
 			parseXML(content, uri, parser);
 		} catch (IOException | SAXException | CancellationException exception) {
+			Throwable cause = exception.getCause();
+			if (cause instanceof CacheResourceException) {
+				throw (CacheResourceException) cause;
+			}
+			exception.printStackTrace();
 			// ignore error
-		} catch (CacheResourceDownloadingException e) {
+		} catch (CacheResourceException e) {
 			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Unexpected XMLValidator error", e);
