@@ -24,9 +24,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.xerces.impl.XMLEntityManager;
+import org.apache.xerces.impl.XMLErrorReporter;
+import org.apache.xerces.impl.XMLEntityManager.Entity;
 import org.apache.xerces.parsers.SAXParser;
 import org.apache.xerces.util.URI.MalformedURIException;
+import org.apache.xerces.xni.XMLLocator;
+import org.apache.xerces.xni.XNIException;
 import org.apache.xerces.xni.parser.XMLEntityResolver;
+import org.apache.xerces.xni.parser.XMLInputSource;
 import org.eclipse.lemminx.dom.DOMAttr;
 import org.eclipse.lemminx.dom.DOMDocument;
 import org.eclipse.lemminx.dom.DOMDocumentType;
@@ -34,6 +39,7 @@ import org.eclipse.lemminx.dom.DOMElement;
 import org.eclipse.lemminx.dom.NoNamespaceSchemaLocation;
 import org.eclipse.lemminx.dom.SchemaLocationHint;
 import org.eclipse.lemminx.extensions.contentmodel.model.ContentModelManager;
+import org.eclipse.lemminx.extensions.contentmodel.participants.DTDErrorCode;
 import org.eclipse.lemminx.extensions.contentmodel.participants.XMLSyntaxErrorCode;
 import org.eclipse.lemminx.extensions.contentmodel.settings.NamespacesEnabled;
 import org.eclipse.lemminx.extensions.contentmodel.settings.SchemaEnabled;
@@ -41,8 +47,9 @@ import org.eclipse.lemminx.extensions.contentmodel.settings.XMLNamespacesSetting
 import org.eclipse.lemminx.extensions.contentmodel.settings.XMLSchemaSettings;
 import org.eclipse.lemminx.extensions.contentmodel.settings.XMLValidationSettings;
 import org.eclipse.lemminx.extensions.xerces.ReferencedGrammarDiagnosticsInfo;
+import org.eclipse.lemminx.extensions.xerces.xmlmodel.msg.XMLModelMessageFormatter;
 import org.eclipse.lemminx.services.extensions.diagnostics.LSPContentHandler;
-import org.eclipse.lemminx.uriresolver.CacheResourceDownloadingException;
+import org.eclipse.lemminx.uriresolver.CacheResourceException;
 import org.eclipse.lemminx.uriresolver.IExternalGrammarLocationProvider;
 import org.eclipse.lemminx.utils.StringUtils;
 import org.eclipse.lemminx.utils.XMLPositionUtility;
@@ -67,7 +74,9 @@ public class XMLValidator {
 	public static void doDiagnostics(DOMDocument document, XMLEntityResolver entityResolver,
 			List<Diagnostic> diagnostics, XMLValidationSettings validationSettings,
 			ContentModelManager contentModelManager, CancelChecker monitor) {
-		LSPXMLGrammarPool grammarPool = contentModelManager.getGrammarPool();
+		
+		LSPXMLGrammarPool pool = contentModelManager.getGrammarPool();
+		LSPXMLGrammarPoolWrapper grammarPool = pool != null ? new LSPXMLGrammarPoolWrapper(pool) : null;
 		Map<String, ReferencedGrammarDiagnosticsInfo> referencedGrammarDiagnosticsInfoCache = new HashMap<>();
 		final LSPErrorReporterForXML reporterForXML = new LSPErrorReporterForXML(document, diagnostics,
 				contentModelManager, validationSettings != null ? validationSettings.isRelatedInformation() : false,
@@ -79,9 +88,11 @@ public class XMLValidator {
 		final LSPErrorReporterForXML reporterForGrammar = new LSPErrorReporterForXML(document, diagnostics,
 				contentModelManager, validationSettings != null ? validationSettings.isRelatedInformation() : false,
 				referencedGrammarDiagnosticsInfoCache);
+		LSPXMLEntityManager entityManager = new LSPXMLEntityManager(reporterForXML, grammarPool);
 		try {
+			
 			LSPXMLParserConfiguration configuration = new LSPXMLParserConfiguration(grammarPool,
-					isDisableOnlyDTDValidation(document), reporterForXML, reporterForGrammar, validationSettings);
+					isDisableOnlyDTDValidation(document), reporterForXML, reporterForGrammar, entityManager, validationSettings);
 
 			if (entityResolver != null) {
 				configuration.setProperty("http://apache.org/xml/properties/internal/entity-resolver", entityResolver); //$NON-NLS-1$
@@ -117,19 +128,26 @@ public class XMLValidator {
 			parser.setFeature("http://xml.org/sax/features/namespace-prefixes", namespacesValidationEnabled); //$NON-NLS-1$
 			parser.setFeature("http://xml.org/sax/features/namespaces", namespacesValidationEnabled); //$NON-NLS-1$
 
+			//parser.setProperty("http://apache.org/xml/properties/internal/entity-manager", entityManager); //$NON-NLS-1$
+
 			// Parse XML
 			String content = document.getText();
 			String uri = document.getDocumentURI();
 			parseXML(content, uri, parser);
 		} catch (IOException | SAXException | CancellationException exception) {
+			Throwable cause = exception.getCause();
+			if (cause instanceof CacheResourceException) {
+				//throw (CacheResourceException) cause;
+			}			
 			// ignore error
-		} catch (CacheResourceDownloadingException e) {
+		} catch (CacheResourceException e) {
 			throw e;
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Unexpected XMLValidator error", e);
 		} finally {
 			reporterForXML.endReport();
 			reporterForGrammar.endReport();
+			entityManager.dispose();
 		}
 	}
 

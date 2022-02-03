@@ -12,6 +12,7 @@
 package org.eclipse.lemminx.extensions.contentmodel.participants.diagnostics;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -104,16 +105,16 @@ public class LSPSAXParser extends SAXParser {
 			String eid = grammarDesc.getExpandedSystemId();
 
 			try {
-				XMLInputSource input = entityManager.resolveEntity(grammarDesc);
-				String resolvedSystemId = input.getSystemId();
-				if (resolvedSystemId != null && resolvedSystemId.startsWith(FilesUtils.FILE_SCHEME)) {
-					// The resolved DTD is a file, check if the file exists.
-					if (!FilesUtils.toFile(resolvedSystemId).exists()) {
-						// The declared DTD file doesn't exist
-						// <!DOCTYPE root-element SYSTEM "./dtd-doesnt-exist.dtd" []>
-						throw new FileNotFoundException(resolvedSystemId);
-					}
-				}
+//				XMLInputSource input = entityManager.resolveEntity(grammarDesc);
+//				String resolvedSystemId = input.getSystemId();
+//				if (resolvedSystemId != null && resolvedSystemId.startsWith(FilesUtils.FILE_SCHEME)) {
+//					// The resolved DTD is a file, check if the file exists.
+//					if (!FilesUtils.toFile(resolvedSystemId).exists()) {
+//						// The declared DTD file doesn't exist
+//						// <!DOCTYPE root-element SYSTEM "./dtd-doesnt-exist.dtd" []>
+//						throw new FileNotFoundException(resolvedSystemId);
+//					}
+//				}
 
 				if (grammarPool != null) {
 					// FIX [BUG 2]
@@ -141,7 +142,7 @@ public class LSPSAXParser extends SAXParser {
 				ValidationManager fValidationManager = (ValidationManager) fConfiguration
 						.getProperty(VALIDATION_MANAGER);
 				if (fValidationManager != null) {
-					fValidationManager.setCachedDTD(true);
+					//fValidationManager.setCachedDTD(true);
 				}
 				
 				// As we don't throw an error when DTD content is downloaded, we need to remove
@@ -198,10 +199,29 @@ public class LSPSAXParser extends SAXParser {
 			@Override
 			public void setValues(String name, String publicId, String systemId, String baseSystemId, String notation,
 					String value, boolean isPE, boolean inExternal) {
-				if (inExternal) {
+				if (systemId != null) {
+		            if (notation != null) {
+		                entityManager.addUnparsedEntity(name, publicId, systemId, baseSystemId, notation);
+		            }
+		            else {
+		                try {
+							entityManager.addExternalEntity(name, publicId, systemId, 
+							                                 baseSystemId);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+		            }
+				} else {
+					entityManager.addInternalEntity(name, value);
+				}
+				
+				
+				
+				if (inExternal && value != null) {
 					// Only entities declared in the cached DTD grammar must be added in the XML
 					// entity manager.
-					entityManager.addInternalEntity(name, value);
+					//entityManager.addInternalEntity(name, value);
 				}
 			};
 		};

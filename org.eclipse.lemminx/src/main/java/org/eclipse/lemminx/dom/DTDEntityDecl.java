@@ -135,6 +135,10 @@ public class DTDEntityDecl extends DTDDeclNode implements Entity {
 		systemId = addNewParameter(start, end);
 	}
 
+	public DTDDeclParameter getSystemIdNode() {
+		return systemId;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 

@@ -10,7 +10,7 @@
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
  */
-package org.eclipse.lemminx.extensions.contentmodel.participants;
+package org.eclipse.lemminx.extensions.dtd.participants;
 
 import static org.eclipse.lemminx.utils.XMLPositionUtility.createDocumentLink;
 
@@ -43,32 +43,16 @@ import org.w3c.dom.NamedNodeMap;
  * @author Angelo ZERR
  *
  */
-public class ContentModelDocumentLinkParticipant implements IDocumentLinkParticipant {
+public class DTDDocumentLinkParticipant implements IDocumentLinkParticipant {
 
 	private final URIResolverExtensionManager resolverManager;
 
-	public ContentModelDocumentLinkParticipant(URIResolverExtensionManager resolverManager) {
+	public DTDDocumentLinkParticipant(URIResolverExtensionManager resolverManager) {
 		this.resolverManager = resolverManager;
 	}
 
 	@Override
 	public void findDocumentLinks(DOMDocument document, List<DocumentLink> links) {
-		// Document link for xsi:noNamespaceSchemaLocation
-		NoNamespaceSchemaLocation noNamespaceSchemaLocation = document.getNoNamespaceSchemaLocation();
-		if (noNamespaceSchemaLocation != null) {
-			try {
-				String location = resolverManager.resolve(document.getDocumentURI(), null,
-						noNamespaceSchemaLocation.getLocation());
-				if (location != null) {
-					DOMRange attrValue = noNamespaceSchemaLocation.getAttr().getNodeAttrValue();
-					if (attrValue != null) {
-						links.add(createDocumentLink(attrValue, location, true));
-					}
-				}
-			} catch (BadLocationException e) {
-				// Do nothing
-			}
-		}
 		// Document link for DTD
 		DOMDocumentType docType = document.getDoctype();
 		if (docType != null) {
@@ -100,37 +84,6 @@ public class ContentModelDocumentLinkParticipant implements IDocumentLinkPartici
 						// Do nothing
 					}
 				}
-			}
-		}
-		// Document link for xml-model/href
-		List<XMLModel> xmlModels = document.getXMLModels();
-		for (XMLModel xmlModel : xmlModels) {
-			String location = resolverManager.resolve(document.getDocumentURI(), null, xmlModel.getHref());
-			if (location != null) {
-				try {
-					DOMRange hrefRange = xmlModel.getHrefNode();
-					if (hrefRange != null) {
-						links.add(createDocumentLink(hrefRange, location, true));
-					}
-				} catch (BadLocationException e) {
-					// Do nothing
-				}
-			}
-		}
-		// Doc link for xsi:schemaLocation
-		SchemaLocation schemaLocation = document.getSchemaLocation();
-		if (schemaLocation != null) {
-			try {
-				Collection<SchemaLocationHint> schemaLocationHints = schemaLocation.getSchemaLocationHints();
-				String location;
-				for (SchemaLocationHint schemaLocationHint : schemaLocationHints) {
-					location = resolverManager.resolve(document.getDocumentURI(), null, schemaLocationHint.getHint());
-					if (location != null) {
-						links.add(createDocumentLink(schemaLocationHint, location, false));
-					}
-				}
-			} catch (BadLocationException e) {
-				// Do nothing
 			}
 		}
 	}
