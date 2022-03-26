@@ -12,7 +12,9 @@
 package org.eclipse.lemminx;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lemminx.customservice.ActionableNotification;
@@ -38,8 +40,11 @@ import org.eclipse.lsp4j.VersionedTextDocumentIdentifier;
  */
 public class MockXMLLanguageServer extends XMLLanguageServer {
 
+	private final Map<TextDocumentIdentifier /* file uri */, Integer> versions;
+
 	public MockXMLLanguageServer() {
 		super.setClient(new MockXMLLanguageClient());
+		this.versions = new HashMap<>();
 	}
 
 	public List<PublishDiagnosticsParams> getPublishDiagnostics() {
@@ -76,7 +81,7 @@ public class MockXMLLanguageServer extends XMLLanguageServer {
 	public TextDocumentIdentifier didOpen(String fileURI, String xml) {
 		TextDocumentIdentifier xmlIdentifier = new TextDocumentIdentifier(fileURI);
 		DidOpenTextDocumentParams params = new DidOpenTextDocumentParams(
-				new TextDocumentItem(xmlIdentifier.getUri(), "xml", 1, xml));
+				new TextDocumentItem(xmlIdentifier.getUri(), "xml", incrementAndGetVersion(xmlIdentifier), xml));
 		XMLTextDocumentService textDocumentService = (XMLTextDocumentService) super.getTextDocumentService();
 		textDocumentService.didOpen(params);
 		try {
@@ -91,7 +96,8 @@ public class MockXMLLanguageServer extends XMLLanguageServer {
 	public TextDocumentIdentifier didChange(String fileURI, List<TextDocumentContentChangeEvent> contentChanges) {
 		TextDocumentIdentifier xmlIdentifier = new TextDocumentIdentifier(fileURI);
 		DidChangeTextDocumentParams params = new DidChangeTextDocumentParams(
-				new VersionedTextDocumentIdentifier(xmlIdentifier.getUri(), 1), contentChanges);
+				new VersionedTextDocumentIdentifier(xmlIdentifier.getUri(), incrementAndGetVersion(xmlIdentifier)),
+				contentChanges);
 		XMLTextDocumentService textDocumentService = (XMLTextDocumentService) super.getTextDocumentService();
 		textDocumentService.didChange(params);
 		try {
@@ -110,7 +116,7 @@ public class MockXMLLanguageServer extends XMLLanguageServer {
 		textDocumentService.didClose(params);
 		return xmlIdentifier;
 	}
-	
+
 	public TextDocumentIdentifier didSave(String fileURI) {
 		TextDocumentIdentifier xmlIdentifier = new TextDocumentIdentifier(fileURI);
 		DidSaveTextDocumentParams params = new DidSaveTextDocumentParams(xmlIdentifier);
@@ -123,5 +129,13 @@ public class MockXMLLanguageServer extends XMLLanguageServer {
 			e.printStackTrace();
 		}
 		return xmlIdentifier;
+	}
+
+	private int incrementAndGetVersion(TextDocumentIdentifier xmlIdentifier) {
+		Integer version = versions.get(xmlIdentifier);
+		int newVersion = version == null ? 0 : version + 1;
+		versions.put(xmlIdentifier, newVersion);
+		return newVersion;
+
 	}
 }

@@ -59,8 +59,6 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
  */
 public class XMLLanguageService extends XMLExtensionsRegistry implements IXMLFullFormatter {
 
-	private static final String XML_DIAGNOSTIC_SOURCE = "xml";
-
 	private static final CancelChecker NULL_CHECKER = new CancelChecker() {
 
 		@Override
@@ -176,6 +174,7 @@ public class XMLLanguageService extends XMLExtensionsRegistry implements IXMLFul
 		cancelChecker.checkCanceled();
 		publishDiagnostics.accept(new PublishDiagnosticsParams(uri, diagnostics));
 
+		System.err.println(document);
 		List<CompletableFuture<?>> futures = diagnostics.getFutures();
 		if (!futures.isEmpty()) {
 			CompletableFuture<Void> allFutures = CompletableFuture
