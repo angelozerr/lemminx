@@ -93,6 +93,19 @@ public class XMLCompletionSettings {
 	}
 
 	/**
+	 * Returns <code>true</code> if the client support snippet and
+	 * <code>false</code> otherwise.
+	 *
+	 * @return <code>true</code> if the client support snippet and
+	 *         <code>false</code> otherwise.
+	 */
+	public boolean isCompletionResolveSupported() {
+		return completionCapabilities != null && completionCapabilities.getCompletionItem() != null
+				&& completionCapabilities.getCompletionItem().getResolveSupport() != null;
+				//&& completionCapabilities.getCompletionItem().getResolveSupport();
+	}
+	
+	/**
 	 * Merge only the given completion settings (and not the capability) in the
 	 * settings.
 	 *

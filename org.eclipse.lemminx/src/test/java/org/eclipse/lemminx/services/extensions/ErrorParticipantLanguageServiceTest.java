@@ -139,7 +139,7 @@ public class ErrorParticipantLanguageServiceTest {
 				}
 			});
 
-			this.registerCompletionParticipant(new ICompletionParticipant() {
+			this.registerCompletionParticipant(new CompletionParticipantAdapter() {
 
 				@Override
 				public void onTagOpen(ICompletionRequest completionRequest, ICompletionResponse completionResponse,
@@ -172,7 +172,7 @@ public class ErrorParticipantLanguageServiceTest {
 				}
 
 			});
-			this.registerCompletionParticipant(new ICompletionParticipant() {
+			this.registerCompletionParticipant(new CompletionParticipantAdapter() {
 
 				@Override
 				public void onTagOpen(ICompletionRequest completionRequest, ICompletionResponse completionResponse,

@@ -226,6 +226,13 @@ public class XMLTextDocumentService implements TextDocumentService {
 			return Either.forRight(list);
 		});
 	}
+	
+	@Override
+	public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem unresolved) {
+		return computeAsync((cancelChecker) -> {
+			return getXMLLanguageService().doResolveCompletionItem(unresolved, sharedSettings, cancelChecker);
+		});
+	}
 
 	@Override
 	public CompletableFuture<Hover> hover(HoverParams params) {

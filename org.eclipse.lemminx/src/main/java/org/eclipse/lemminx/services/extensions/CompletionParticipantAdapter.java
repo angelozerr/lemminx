@@ -12,6 +12,8 @@
  */
 package org.eclipse.lemminx.services.extensions;
 
+import org.eclipse.lemminx.settings.SharedSettings;
+import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 /**
@@ -21,32 +23,43 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 public class CompletionParticipantAdapter implements ICompletionParticipant {
 
 	@Override
-	public void onTagOpen(ICompletionRequest completionRequest, ICompletionResponse completionResponse, CancelChecker cancelChecker)
+	public void onTagOpen(ICompletionRequest completionRequest, ICompletionResponse completionResponse,
+			CancelChecker cancelChecker) throws Exception {
+		// Do nothing
+	}
+
+	@Override
+	public void onXMLContent(ICompletionRequest request, ICompletionResponse response, CancelChecker cancelChecker)
 			throws Exception {
 		// Do nothing
 	}
 
 	@Override
-	public void onXMLContent(ICompletionRequest request, ICompletionResponse response, CancelChecker cancelChecker) throws Exception {
+	public void onAttributeName(boolean generateValue, ICompletionRequest request, ICompletionResponse response,
+			CancelChecker cancelChecker) throws Exception {
 		// Do nothing
 	}
 
 	@Override
-	public void onAttributeName(boolean generateValue, ICompletionRequest request, ICompletionResponse response, CancelChecker cancelChecker)
-			throws Exception {
+	public void onAttributeValue(String valuePrefix, ICompletionRequest request, ICompletionResponse response,
+			CancelChecker cancelChecker) throws Exception {
 		// Do nothing
 	}
 
 	@Override
-	public void onAttributeValue(String valuePrefix, ICompletionRequest request, ICompletionResponse response, CancelChecker cancelChecker)
-			throws Exception {
+	public void onDTDSystemId(String valuePrefix, ICompletionRequest request, ICompletionResponse response,
+			CancelChecker cancelChecker) throws Exception {
 		// Do nothing
 	}
 
 	@Override
-	public void onDTDSystemId(String valuePrefix, ICompletionRequest request, ICompletionResponse response, CancelChecker cancelChecker)
-			throws Exception {
-		// Do nothing
+	public boolean isAdaptedFor(CompletionItem unresolved) {
+		return false;
 	}
 
+	@Override
+	public CompletionItem doResolveCompletionItem(CompletionItem unresolved, SharedSettings sharedSettings,
+			CancelChecker cancelChecker) {
+		return null;
+	}
 }

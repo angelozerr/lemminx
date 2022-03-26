@@ -34,6 +34,7 @@ import org.eclipse.lemminx.utils.XMLPositionUtility;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.CodeLens;
+import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DocumentHighlight;
@@ -59,8 +60,6 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
  *
  */
 public class XMLLanguageService extends XMLExtensionsRegistry implements IXMLFullFormatter {
-
-	private static final String XML_DIAGNOSTIC_SOURCE = "xml";
 
 	private static final CancelChecker NULL_CHECKER = new CancelChecker() {
 
@@ -150,6 +149,11 @@ public class XMLLanguageService extends XMLExtensionsRegistry implements IXMLFul
 	public CompletionList doComplete(DOMDocument xmlDocument, Position position, SharedSettings settings,
 			CancelChecker cancelChecker) {
 		return completions.doComplete(xmlDocument, position, settings, cancelChecker);
+	}
+
+	public CompletionItem doResolveCompletionItem(CompletionItem unresolved, SharedSettings sharedSettings,
+			CancelChecker cancelChecker) {
+		return completions.doResolveCompletionItem(unresolved, sharedSettings, cancelChecker);
 	}
 
 	public Hover doHover(DOMDocument xmlDocument, Position position, SharedSettings sharedSettings) {
@@ -283,4 +287,5 @@ public class XMLLanguageService extends XMLExtensionsRegistry implements IXMLFul
 			CancelChecker cancelChecker) {
 		return linkedEditing.findLinkedEditingRanges(xmlDocument, position, cancelChecker);
 	}
+
 }

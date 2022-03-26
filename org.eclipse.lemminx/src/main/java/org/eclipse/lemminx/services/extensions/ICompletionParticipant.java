@@ -12,6 +12,8 @@
  */
 package org.eclipse.lemminx.services.extensions;
 
+import org.eclipse.lemminx.settings.SharedSettings;
+import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 /**
@@ -51,5 +53,10 @@ public interface ICompletionParticipant {
 	 */
 	void onDTDSystemId(String valuePrefix, ICompletionRequest request, ICompletionResponse response, CancelChecker cancelChecker)
 			throws Exception;
+
+	boolean isAdaptedFor(CompletionItem unresolved);
+
+	CompletionItem doResolveCompletionItem(CompletionItem unresolved, SharedSettings sharedSettings,
+			CancelChecker cancelChecker);
 
 }
