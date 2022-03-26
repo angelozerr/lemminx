@@ -354,12 +354,15 @@ public class CMXSDDocument implements CMDocument, XSElementDeclHelper {
 			}
 			if (originAttribute != null) {
 				// find location of xs:attribute declaration
-				String attributeName = originAttribute.getName();
+				String attributeName = originAttribute.getLocalName();
 				CMXSDAttributeDeclaration attributeDeclaration = (CMXSDAttributeDeclaration) elementDeclaration
-						.findCMAttribute(attributeName);
+						.findCMAttribute(attributeName, originAttribute.getNamespaceURI());
 				if (attributeDeclaration != null) {
 					XSAttributeDeclaration attributeDecl = attributeDeclaration.getAttrDeclaration();
-					if (attributeDecl.getScope() == XSConstants.SCOPE_LOCAL) {
+					if (attributeDecl.getScope() == XSConstants.SCOPE_GLOBAL) {
+						// global xs:attribute
+						return findGlobalXSAttribute(originAttribute, targetSchema);
+					} else if (attributeDecl.getScope() == XSConstants.SCOPE_LOCAL) {
 						return findLocalXSAttribute(originAttribute, targetSchema,
 								attributeDecl.getEnclosingCTDefinition(), schemaGrammar);
 					}
@@ -529,7 +532,15 @@ public class CMXSDDocument implements CMDocument, XSElementDeclHelper {
 					"Error while retrieving mapped Xerces xs:element of '" + elementDeclaration.getName() + "'.", e);
 		}
 		return null;
+	}
 
+	private LocationLink findGlobalXSAttribute(DOMAttr originAttribute, DOMDocument targetSchema) {
+		// In global xs:attribute case, the xs:attribute are declared after the document
+		// element xs:schema.
+		// Here we just loop of children of xs:schema and return the location of
+		// xs:attribute/@name which matches the tag name of the origin XML element
+		NodeList children = targetSchema.getDocumentElement().getChildNodes();
+		return findXSAttribute(originAttribute, children, false);
 	}
 
 	/**

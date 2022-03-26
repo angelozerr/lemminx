@@ -95,9 +95,10 @@ public interface CMElementDeclaration {
 	 * Returns the declared attribute which match the given name and null otherwise.
 	 * 
 	 * @param attributeName
+	 * @param namespace
 	 * @return the declared attribute which match the given name and null otherwise.
 	 */
-	CMAttributeDeclaration findCMAttribute(String attributeName);
+	CMAttributeDeclaration findCMAttribute(String attributeName, String namespace);
 
 	/**
 	 * Returns formatted documentation of the declared element, according to

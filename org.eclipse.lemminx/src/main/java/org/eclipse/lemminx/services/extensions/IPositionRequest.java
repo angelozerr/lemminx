@@ -13,6 +13,7 @@
 package org.eclipse.lemminx.services.extensions;
 
 import org.eclipse.lemminx.commons.BadLocationException;
+import org.eclipse.lemminx.dom.DOMAttr;
 import org.eclipse.lemminx.dom.DOMDocument;
 import org.eclipse.lemminx.dom.DOMElement;
 import org.eclipse.lemminx.dom.DOMNode;
@@ -61,6 +62,13 @@ public interface IPositionRequest {
 	String getCurrentTag();
 
 	String getCurrentAttributeName();
+
+	/**
+	 * Returns the current attribute at the given offset and null otherwise.
+	 * 
+	 * @return the current attribute at the given offset and null otherwise.
+	 */
+	DOMAttr getCurrentAttribute();
 
 	/**
 	 * Returns the line indent information of the offset where completion was

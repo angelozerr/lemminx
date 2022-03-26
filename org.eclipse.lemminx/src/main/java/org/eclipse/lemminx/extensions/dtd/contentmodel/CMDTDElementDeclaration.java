@@ -26,6 +26,8 @@ import org.eclipse.lemminx.extensions.dtd.contentmodel.CMDTDDocument.DTDElementI
 import org.eclipse.lemminx.extensions.dtd.contentmodel.CMDTDDocument.DTDNodeInfo;
 import org.eclipse.lemminx.services.extensions.ISharedSettingsRequest;
 
+import com.google.common.base.Objects;
+
 /**
  * DTD element declaration.
  *
@@ -88,9 +90,9 @@ public class CMDTDElementDeclaration extends XMLElementDecl implements CMElement
 	}
 
 	@Override
-	public CMAttributeDeclaration findCMAttribute(String attributeName) {
+	public CMAttributeDeclaration findCMAttribute(String attributeName, String namespace) {
 		for (CMAttributeDeclaration cmAttribute : getAttributes()) {
-			if (cmAttribute.getName().equals(attributeName)) {
+			if (cmAttribute.getName().equals(attributeName) && Objects.equal(cmAttribute.getNamespace(), namespace)) {
 				return cmAttribute;
 			}
 		}

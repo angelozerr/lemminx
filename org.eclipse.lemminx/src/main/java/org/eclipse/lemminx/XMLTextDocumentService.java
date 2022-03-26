@@ -584,7 +584,8 @@ public class XMLTextDocumentService implements TextDocumentService {
 	private void triggerValidationFor(TextDocument document, TriggeredBy triggeredBy,
 			List<TextDocumentContentChangeEvent> changeEvents) {
 		((ModelTextDocument<DOMDocument>) document).getModel()//
-				.thenAcceptAsync(xmlDocument -> {
+				.thenAccept(xmlDocument -> {
+					System.err.println(xmlDocument.getText());
 					// Validate the DOM document
 					validate(xmlDocument);
 					// Manage didOpen, didChange document lifecycle participants

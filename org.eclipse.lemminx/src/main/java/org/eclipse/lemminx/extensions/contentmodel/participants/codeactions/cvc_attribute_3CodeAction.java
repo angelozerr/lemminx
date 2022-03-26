@@ -54,7 +54,7 @@ public class cvc_attribute_3CodeAction implements ICodeActionParticipant {
 				Collection<CMDocument> cmDocuments = contentModelManager.findCMDocument(element);
 				String attributeValue = attr.getValue();
 				for (CMDocument cmDocument : cmDocuments) {
-					CMAttributeDeclaration cmAttribute = cmDocument.findCMAttribute(element, attributeName);
+					CMAttributeDeclaration cmAttribute = cmDocument.findCMAttribute(element, attributeName, attr.getNamespaceURI());
 					if (cmAttribute != null) {
 						Range rangeValue = new Range(
 								new Position(diagnosticRange.getStart().getLine(),

@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.lemminx.commons.BadLocationException;
+import org.eclipse.lemminx.dom.DOMAttr;
 import org.eclipse.lemminx.dom.DOMDocument;
 import org.eclipse.lemminx.dom.DOMElement;
 import org.eclipse.lemminx.dom.DOMNode;
@@ -52,7 +53,8 @@ import org.w3c.dom.NodeList;
 public class ContentModelCompletionParticipant extends CompletionParticipantAdapter {
 
 	@Override
-	public void onTagOpen(ICompletionRequest request, ICompletionResponse response, CancelChecker cancelChecker) throws Exception {
+	public void onTagOpen(ICompletionRequest request, ICompletionResponse response, CancelChecker cancelChecker)
+			throws Exception {
 		try {
 			DOMDocument document = request.getXMLDocument();
 			ContentModelManager contentModelManager = request.getComponent(ContentModelManager.class);
@@ -264,8 +266,8 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 	}
 
 	@Override
-	public void onAttributeName(boolean generateValue, ICompletionRequest request, ICompletionResponse response, CancelChecker cancelChecker)
-			throws Exception {
+	public void onAttributeName(boolean generateValue, ICompletionRequest request, ICompletionResponse response,
+			CancelChecker cancelChecker) throws Exception {
 		// otherwise, manage completion based on XML Schema, DTD.
 		DOMElement parentElement = request.getNode().isElement() ? (DOMElement) request.getNode() : null;
 		if (parentElement == null) {
@@ -301,12 +303,15 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 			return;
 		}
 		for (CMAttributeDeclaration attributeDeclaration : attributes) {
-			String prefix = (parentElement != null ? parentElement.getPrefix(attributeDeclaration.getNamespace()) : null);
+			String prefix = (parentElement != null ? parentElement.getPrefix(attributeDeclaration.getNamespace())
+					: null);
 			String attrName = attributeDeclaration.getName(prefix);
 			if (!parentElement.hasAttribute(attrName)) {
 				CompletionItem item = new AttributeCompletionItem(attrName, canSupportSnippet, fullRange, generateValue,
-						attributeDeclaration.getDefaultValue(), attributeDeclaration.getEnumerationValues(), request.getSharedSettings());
-				MarkupContent documentation = XMLGenerator.createMarkupContent(attributeDeclaration, elementDeclaration, request);
+						attributeDeclaration.getDefaultValue(), attributeDeclaration.getEnumerationValues(),
+						request.getSharedSettings());
+				MarkupContent documentation = XMLGenerator.createMarkupContent(attributeDeclaration, elementDeclaration,
+						request);
 				item.setDocumentation(documentation);
 				response.addCompletionAttribute(item);
 			}
@@ -314,8 +319,8 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 	}
 
 	@Override
-	public void onAttributeValue(String valuePrefix, ICompletionRequest request, ICompletionResponse response, CancelChecker cancelChecker)
-			throws Exception {
+	public void onAttributeValue(String valuePrefix, ICompletionRequest request, ICompletionResponse response,
+			CancelChecker cancelChecker) throws Exception {
 		DOMElement parentElement = request.getNode().isElement() ? (DOMElement) request.getNode() : null;
 		if (parentElement == null) {
 			return;
@@ -340,8 +345,9 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 
 	private void fillAttributeValuesWithCMAttributeDeclarations(CMElementDeclaration cmElement,
 			ICompletionRequest request, ICompletionResponse response) {
-		String attributeName = request.getCurrentAttributeName();
-		CMAttributeDeclaration cmAttribute = cmElement.findCMAttribute(attributeName);
+		DOMAttr attribute = request.getCurrentAttribute();
+		CMAttributeDeclaration cmAttribute = cmElement.findCMAttribute(attribute.getName(),
+				attribute.getNamespaceURI());
 		if (cmAttribute != null) {
 			Range fullRange = request.getReplaceRange();
 			cmAttribute.getEnumerationValues().forEach(value -> {
@@ -360,7 +366,8 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 	}
 
 	@Override
-	public void onXMLContent(ICompletionRequest request, ICompletionResponse response, CancelChecker cancelChecker) throws Exception {
+	public void onXMLContent(ICompletionRequest request, ICompletionResponse response, CancelChecker cancelChecker)
+			throws Exception {
 		try {
 			ContentModelManager contentModelManager = request.getComponent(ContentModelManager.class);
 			DOMElement parentElement = request.getParentElement();

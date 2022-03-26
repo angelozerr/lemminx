@@ -67,9 +67,9 @@ public interface CMDocument {
 	 */
 	CMElementDeclaration findCMElement(DOMElement element, String namespace);
 
-	default CMAttributeDeclaration findCMAttribute(DOMElement element, String attributeName) {
+	default CMAttributeDeclaration findCMAttribute(DOMElement element, String attributeName, String namespace) {
 		CMElementDeclaration elementDeclaration = findCMElement(element);
-		return elementDeclaration != null ? elementDeclaration.findCMAttribute(attributeName) : null;
+		return elementDeclaration != null ? elementDeclaration.findCMAttribute(attributeName, namespace) : null;
 	}
 
 	/**

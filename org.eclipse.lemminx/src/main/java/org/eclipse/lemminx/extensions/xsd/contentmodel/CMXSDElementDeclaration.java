@@ -52,6 +52,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.google.common.base.Objects;
+
 /**
  * XSD element declaration implementation.
  *
@@ -389,9 +391,9 @@ public class CMXSDElementDeclaration implements CMElementDeclaration {
 	}
 
 	@Override
-	public CMAttributeDeclaration findCMAttribute(String attributeName) {
+	public CMAttributeDeclaration findCMAttribute(String attributeName, String namespace) {
 		for (CMAttributeDeclaration cmAttribute : getAttributes()) {
-			if (cmAttribute.getName().equals(attributeName)) {
+			if (cmAttribute.getName().equals(attributeName) && Objects.equal(cmAttribute.getNamespace(), namespace)) {
 				return cmAttribute;
 			}
 		}
