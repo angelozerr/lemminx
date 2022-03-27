@@ -102,7 +102,7 @@ public class EntitiesCompletionParticipant extends CompletionParticipantAdapter 
 	private static void collectExternalEntityProposals(DOMDocument document, Range entityRange, boolean markdown,
 			ICompletionRequest request, ICompletionResponse response) {
 		ContentModelManager contentModelManager = request.getComponent(ContentModelManager.class);
-		Collection<CMDocument> cmDocuments = contentModelManager.findCMDocument(document, null, false);
+		Collection<CMDocument> cmDocuments = contentModelManager.findCMDocument(document, null, true);
 		for (CMDocument cmDocument : cmDocuments) {
 			List<Entity> entities = cmDocument.getEntities();
 			for (Entity entity : entities) {
