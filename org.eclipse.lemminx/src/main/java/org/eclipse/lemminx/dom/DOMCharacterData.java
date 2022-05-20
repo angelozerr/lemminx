@@ -24,7 +24,7 @@ import org.w3c.dom.DOMException;
  * A CharacterData node.
  *
  */
-public abstract class DOMCharacterData extends DOMNode implements org.w3c.dom.CharacterData {
+public abstract class DOMCharacterData extends DOMParentNode implements org.w3c.dom.CharacterData {
 
 	private String data;
 

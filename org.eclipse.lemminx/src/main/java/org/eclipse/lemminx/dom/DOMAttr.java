@@ -13,6 +13,7 @@
 package org.eclipse.lemminx.dom;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.eclipse.lemminx.utils.StringUtils;
 import org.w3c.dom.DOMException;
@@ -27,60 +28,101 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 
 	private final String name;
 
-	private final DOMNode nodeAttrName;
+	private final AttrNameOrValue nodeAttrName;
 
-	private DOMNode nodeAttrValue;
-
-	private String quotelessValue;// Value without quotes
-
-	private String originalValue;// Exact value from document
+	private AttrNameOrValue nodeAttrValue;
 
 	private final DOMNode ownerElement;
 
 	private boolean hasDelimiter; // has '='
 
+	private String value;
+
 	public static final String XMLNS_ATTR = "xmlns";
 	public static final String XMLNS_NO_DEFAULT_ATTR = "xmlns:";
 
-	class AttrNameOrValue extends DOMNode {
+	private static class AttrNameOrValue implements DOMRange {
 
-		public AttrNameOrValue(int start, int end) {
-			super(start, end);
+		private final int start;
+
+		private final int end;
+
+		private final DOMAttr ownerAttr;
+
+		private String content;
+
+		private String lessContent;
+
+		public AttrNameOrValue(int start, int end, DOMAttr ownerAttr) {
+			this.start = start;
+			this.end = end;
+			this.ownerAttr = ownerAttr;
 		}
 
 		@Override
-		public String getNodeName() {
-			return null;
+		public int getStart() {
+			return start;
 		}
 
 		@Override
-		public short getNodeType() {
-			return -1;
+		public int getEnd() {
+			return end;
 		}
 
 		public DOMAttr getOwnerAttr() {
-			return DOMAttr.this;
-		}
-
-		@Override
-		public DOMNode getParentNode() {
-			return DOMAttr.this;
+			return ownerAttr;
 		}
 
 		@Override
 		public DOMDocument getOwnerDocument() {
 			return getOwnerAttr().getOwnerDocument();
 		}
+
+		public String getContent() {
+			if (content == null) {
+				content = getOwnerDocument().getTextDocument().getText().substring(getStart(), getEnd());
+			}
+			return content;
+		}
+
+		public String getQuotelessContent() {
+			if (lessContent == null) {
+				lessContent = StringUtils.convertToQuotelessValue(getContent());
+			}
+			return lessContent;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(end, ownerAttr, start);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			AttrNameOrValue other = (AttrNameOrValue) obj;
+			return end == other.end && Objects.equals(ownerAttr, other.ownerAttr) && start == other.start;
+		}
+
 	}
 
 	public DOMAttr(String name, DOMNode ownerElement) {
-		this(name, -1, -1, ownerElement);
+		this(name, NULL_VALUE, NULL_VALUE, ownerElement);
 	}
 
-	public DOMAttr(String name, int start, int end, DOMNode ownerElement) {
-		super(-1, -1);
+	public DOMAttr(int start, int end, DOMNode ownerElement) {
+		this(null, start, end, ownerElement);
+	}
+
+	private DOMAttr(String name, int start, int end, DOMNode ownerElement) {
+		super(NULL_VALUE, NULL_VALUE);
 		this.name = name;
-		this.nodeAttrName = start != -1 ? new AttrNameOrValue(start, end) : null;
+		this.nodeAttrName = start != NULL_VALUE ? new AttrNameOrValue(start, end, this) : null;
 		this.ownerElement = ownerElement;
 	}
 
@@ -111,7 +153,10 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 	 */
 	@Override
 	public String getName() {
-		return name;
+		if (name != null) {
+			return name;
+		}
+		return nodeAttrName != null ? nodeAttrName.getContent() : "";
 	}
 
 	@Override
@@ -121,6 +166,7 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 
 	@Override
 	public String getLocalName() {
+		String name = getName();
 		int colonIndex = name.indexOf(":");
 		if (colonIndex > 0) {
 			return name.substring(colonIndex + 1);
@@ -148,7 +194,10 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 	 */
 	@Override
 	public String getValue() {
-		return quotelessValue;
+		if (value != null) {
+			return value;
+		}
+		return nodeAttrValue != null ? nodeAttrValue.getQuotelessContent() : "";
 	}
 
 	/*
@@ -188,10 +237,10 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 	 */
 	@Override
 	public void setValue(String value) throws DOMException {
-		setValue(value, -1, -1);
+		this.value = value;
 	}
 
-	public DOMNode getNodeAttrName() {
+	public DOMRange getNodeAttrName() {
 		return nodeAttrName;
 	}
 
@@ -211,21 +260,15 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 	 * @return attribute value with quotations if it had them.
 	 */
 	public String getOriginalValue() {
-		return originalValue;
+		return nodeAttrValue != null ? nodeAttrValue.getContent() : null;
 	}
 
-	public void setValue(String value, int start, int end) {
-		this.originalValue = value;
-		this.quotelessValue = StringUtils.convertToQuotelessValue(value);
-		this.nodeAttrValue = start != -1 ? new AttrNameOrValue(start, end) : null;
+	public void setValue(int start, int end) {
+		this.nodeAttrValue = start != -1 ? new AttrNameOrValue(start, end, this) : null;
 	}
 
-	public DOMNode getNodeAttrValue() {
+	public DOMRange getNodeAttrValue() {
 		return nodeAttrValue;
-	}
-
-	public void setNodeAttrValue(DOMNode nodeAttrValue) {
-		this.nodeAttrValue = nodeAttrValue;
 	}
 
 	public boolean valueContainsOffset(int offset) {
@@ -273,7 +316,7 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 	 * @return true if attribute name is a xmlns attribute and false otherwise.
 	 */
 	public boolean isXmlns() {
-		return isXmlns(name);
+		return isXmlns(getName());
 	}
 
 	public static boolean isXmlns(String attributeName) {
@@ -289,7 +332,7 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 	 *         otherwise.
 	 */
 	public boolean isDefaultXmlns() {
-		return isDefaultXmlns(name);
+		return isDefaultXmlns(getName());
 	}
 
 	public static boolean isDefaultXmlns(String attributeName) {
@@ -297,6 +340,7 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 	}
 
 	public String extractPrefixFromXmlns() {
+		String name = getName();
 		if (isDefaultXmlns()) {
 			return name.substring(XMLNS_ATTR.length(), name.length());
 		}
@@ -313,6 +357,7 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 	 */
 	public String getPrefixIfMatchesURI(String uri) {
 		if (isXmlns()) {
+			String quotelessValue = getValue();
 			if (quotelessValue != null && quotelessValue.equals(uri)) {
 				if (isDefaultXmlns()) {
 					// xmlns="http://"
@@ -334,7 +379,7 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 	 *         otherwise.
 	 */
 	public boolean isNoDefaultXmlns() {
-		return isNoDefaultXmlns(name);
+		return isNoDefaultXmlns(getName());
 	}
 
 	public static boolean isNoDefaultXmlns(String attributeName) {
@@ -363,50 +408,30 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 
 	@Override
 	public int getStart() {
-		return nodeAttrName.start;
+		return nodeAttrName != null ? nodeAttrName.getStart() : NULL_VALUE;
 	}
 
 	@Override
 	public int getEnd() {
-		return nodeAttrValue != null ? nodeAttrValue.end : nodeAttrName.end;
+		return nodeAttrValue != null ? nodeAttrValue.getEnd()
+				: (nodeAttrName != null ? nodeAttrName.getEnd() : NULL_VALUE);
 	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((quotelessValue == null) ? 0 : quotelessValue.hashCode());
-		return result;
+		return Objects.hash(nodeAttrName, nodeAttrValue, ownerElement);
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) {
+		if (this == obj)
 			return true;
-		}
-		if (obj == null) {
+		if (obj == null)
 			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (getClass() != obj.getClass())
 			return false;
-		}
 		DOMAttr other = (DOMAttr) obj;
-		if (name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!name.equals(other.name)) {
-			return false;
-		}
-		if (quotelessValue == null) {
-			if (other.quotelessValue != null) {
-				return false;
-			}
-		} else if (!quotelessValue.equals(other.quotelessValue)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(getName(), other.getName()) && Objects.equals(getValue(), other.getValue());
 	}
 
 }

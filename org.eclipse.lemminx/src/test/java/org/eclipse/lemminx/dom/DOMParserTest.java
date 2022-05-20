@@ -169,8 +169,8 @@ public class DOMParserTest {
 	@Test
 	public void testAttributesInSelfClosingElement() {
 		DOMElement div = createElement("div", 0, null, 31, true);
-		insertIntoAttributes(div, "key", "\"value\"");
-		insertIntoAttributes(div, "key2", "\"value\"");
+		insertIntoAttributes(div, "key", "value");
+		insertIntoAttributes(div, "key2", "value");
 
 		assertDocument("<div key=\"value\" key2=\"value\"/>", div);
 	}
@@ -178,7 +178,7 @@ public class DOMParserTest {
 	@Test
 	public void testAttributeEmptyValue() {
 		DOMElement div = createElement("div", 0, 12, 18, true);
-		insertIntoAttributes(div, "key", "\"\"");
+		insertIntoAttributes(div, "key", "");
 
 		assertDocument("<div key=\"\"></div>", div);
 	}

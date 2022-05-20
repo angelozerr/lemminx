@@ -63,7 +63,6 @@ public abstract class DOMNode implements Node, DOMRange {
 	boolean closed = false;
 
 	private XMLNamedNodeMap<DOMAttr> attributeNodes;
-	private XMLNodeList<DOMNode> children;
 
 	final int start; // |<root> </root>
 	int end; // <root> </root>|
@@ -173,6 +172,17 @@ public abstract class DOMNode implements Node, DOMRange {
 		return null;
 	}
 
+	public DOMDocumentType getOwnerDocType() {
+		Node node = parent;
+		while (node != null) {
+			if (node.getNodeType() == Node.DOCUMENT_TYPE_NODE) {
+				return (DOMDocumentType) node;
+			}
+			node = node.getParentNode();
+		}
+		return null;
+	}
+
 	@Override
 	public String toString() {
 		return toString(0);
@@ -184,13 +194,14 @@ public abstract class DOMNode implements Node, DOMRange {
 			result.append("\t");
 		}
 		result.append("{start: ");
-		result.append(start);
+		result.append(getStart());
 		result.append(", end: ");
-		result.append(end);
+		result.append(getEnd());
 		result.append(", name: ");
 		result.append(getNodeName());
 		result.append(", closed: ");
-		result.append(closed);
+		result.append(isClosed());
+		List<DOMNode> children = getChildren();
 		if (children != null && children.size() > 0) {
 			result.append(", \n");
 			for (int i = 0; i < indent + 1; i++) {
@@ -410,7 +421,7 @@ public abstract class DOMNode implements Node, DOMRange {
 			attr = new DOMAttr(name, this);
 			setAttributeNode(attr);
 		}
-		attr.setValue(value, -1, -1);
+		attr.setValue(value);
 	}
 
 	public void setAttributeNode(DOMAttr attr) {
@@ -451,10 +462,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 * @return the node children.
 	 */
 	public List<DOMNode> getChildren() {
-		if (children == null) {
-			return Collections.emptyList();
-		}
-		return children;
+		return Collections.emptyList();
 	}
 
 	/**
@@ -463,11 +471,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 * @param child the node child to add.
 	 */
 	public void addChild(DOMNode child) {
-		child.parent = this;
-		if (children == null) {
-			children = new XMLNodeList<>();
-		}
-		getChildren().add(child);
+		throw new UnsupportedOperationException();
 	}
 
 	/**
@@ -601,7 +605,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	@Override
 	public DOMNode getFirstChild() {
-		return this.children != null && children.size() > 0 ? this.children.get(0) : null;
+		return null;
 	}
 
 	/*
@@ -611,7 +615,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	@Override
 	public DOMNode getLastChild() {
-		return this.children != null && this.children.size() > 0 ? this.children.get(this.children.size() - 1) : null;
+		return null;
 	}
 
 	/*
@@ -631,7 +635,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	@Override
 	public NodeList getChildNodes() {
-		return children != null ? children : EMPTY_CHILDREN;
+		return EMPTY_CHILDREN;
 	}
 
 	/*
@@ -774,7 +778,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	@Override
 	public boolean hasChildNodes() {
-		return children != null && !children.isEmpty();
+		return false;
 	}
 
 	@Override

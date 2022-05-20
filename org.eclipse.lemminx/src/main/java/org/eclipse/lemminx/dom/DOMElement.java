@@ -30,7 +30,7 @@ import org.w3c.dom.TypeInfo;
  * An Element node.
  *
  */
-public class DOMElement extends DOMNode implements org.w3c.dom.Element {
+public class DOMElement extends DOMParentNode implements org.w3c.dom.Element {
 
 	String tag;
 	boolean selfClosed;

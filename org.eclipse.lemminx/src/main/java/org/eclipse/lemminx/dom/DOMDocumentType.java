@@ -20,7 +20,7 @@ import org.w3c.dom.NamedNodeMap;
  * A doctype node.
  *
  */
-public class DOMDocumentType extends DTDDeclNode implements org.w3c.dom.DocumentType {
+public class DOMDocumentType extends DTDDeclParentNode implements org.w3c.dom.DocumentType {
 
 	public static enum DocumentTypeKind {
 		PUBLIC, SYSTEM, INVALID

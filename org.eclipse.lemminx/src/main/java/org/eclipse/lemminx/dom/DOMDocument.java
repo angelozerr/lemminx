@@ -48,7 +48,7 @@ import org.w3c.dom.NodeList;
  * XML document.
  *
  */
-public class DOMDocument extends DOMNode implements Document {
+public class DOMDocument extends DOMParentNode implements Document {
 
 	private SchemaLocation schemaLocation;
 	private NoNamespaceSchemaLocation noNamespaceSchemaLocation;

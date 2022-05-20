@@ -16,8 +16,6 @@ package org.eclipse.lemminx.dom;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.w3c.dom.Node;
-
 /**
  * DTDNode
  */
@@ -61,17 +59,6 @@ public class DTDDeclNode extends DOMNode {
 	public boolean isInNameParameter(int offset) {
 		DTDDeclParameter name = getNameParameter();
 		return DOMNode.isIncluded(name, offset);
-	}
-
-	public DOMDocumentType getOwnerDocType() {
-		Node node = parent;
-		while (node != null) {
-			if (node.getNodeType() == Node.DOCUMENT_TYPE_NODE) {
-				return (DOMDocumentType) node;
-			}
-			node = node.getParentNode();
-		}
-		return null;
 	}
 
 	/*
