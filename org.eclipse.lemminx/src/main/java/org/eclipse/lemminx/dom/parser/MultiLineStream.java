@@ -126,7 +126,7 @@ public class MultiLineStream {
 		return false;
 	}
 
-	public boolean advanceIfChars(int... ch) {
+	public boolean advanceIfChars(int[] ch) {
 		int i;
 		if (this.position + ch.length > this.len) {
 			return false;

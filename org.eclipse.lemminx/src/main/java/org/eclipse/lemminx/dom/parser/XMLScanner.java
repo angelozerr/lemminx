@@ -86,7 +86,12 @@ public class XMLScanner implements Scanner {
 		return !Character.isWhitespace(ch) && ch != _QMA && ch != _DQO && ch != _SIQ && ch != _LAN && ch != _RAN
 				&& ch != _FSL && ch != _EQS && !(ch >= 0x00 && ch <= 0x0F) && ch != 0x7F && !(ch >= 0x80 && ch <= 0x9F);
 	};
+
+	private static final int[] START_COMMENT = new int[] {_EXL, _MIN, _MIN};
 	
+	private static final int[] END_COMMENT = new int[] {_MIN, _MIN, _RAN};
+	
+	private static final int [] END_PROLOG = new int[] {_QMA, _RAN};
 	MultiLineStream stream;
 	ScannerState state;
 	int tokenOffset;
@@ -217,32 +222,33 @@ public class XMLScanner implements Scanner {
 
 		switch (state) {
 		case WithinComment:
-			if (stream.advanceIfChars(_MIN, _MIN, _RAN)) { // -->
+			if (stream.advanceIfChars(END_COMMENT)) { // -->
 				state = !isInsideDTDContent ? ScannerState.WithinContent : ScannerState.DTDWithinContent;
 				return finishToken(offset, TokenType.EndCommentTag);
 			}
-			stream.advanceUntilChars(_MIN, _MIN, _RAN); // -->
+			stream.advanceUntilChars(END_COMMENT); // -->
 			return finishToken(offset, TokenType.Comment);
 
 		case PrologOrPI:
-			if (stream.advanceIfChars(_QMA, _RAN)) { // ?>
+			if (stream.advanceIfChars(END_PROLOG)) { // ?>
 				state = getWithinContentState();
 				return finishToken(offset, TokenType.PIEnd);
 			}
 			if (stream.advanceUntilAnyOfChars(_NWL, _CAR, _WSP, _QMA, _RAN) || stream.eos()) { // \n or \r or ' ' or '?'
-				String name = getTokenTextFromOffset(offset);
-				if (PROLOG_NAME_OPTIONS.matcher(name).matches()) { // name eg: xml
-					state = ScannerState.WithinTag;
-					return finishToken(offset, TokenType.PrologName);
-				}
-				// if(PI_WITH_VARIABLES.matcher(name).matches()) { // name eg: xml-stylesheet
-				// 	state = ScannerState.WithinTag;
-				// 	return finishToken(offset, TokenType.PIName);
-				// }
-				if (ATTRIBUTE_NAME_REGEX.matcher(name).matches()) { // {name} eg: m2e
-					state = ScannerState.WithinPI;
-					return finishToken(offset, TokenType.PIName);
-				}
+				
+//				String name = getTokenTextFromOffset(offset);
+//				if (PROLOG_NAME_OPTIONS.matcher(name).matches()) { // name eg: xml
+//					state = ScannerState.WithinTag;
+//					return finishToken(offset, TokenType.PrologName);
+//				}
+//				// if(PI_WITH_VARIABLES.matcher(name).matches()) { // name eg: xml-stylesheet
+//				// 	state = ScannerState.WithinTag;
+//				// 	return finishToken(offset, TokenType.PIName);
+//				// }
+//				if (ATTRIBUTE_NAME_REGEX.matcher(name).matches()) { // {name} eg: m2e
+//					state = ScannerState.WithinPI;
+//					return finishToken(offset, TokenType.PIName);
+//				}
 			}
 			stream.advanceUntilCharsOrNewTag(_QMA, _RAN); // ?>
 			if (stream.peekChar() == _LAN) {
@@ -255,7 +261,7 @@ public class XMLScanner implements Scanner {
 				return finishToken(offset, TokenType.Whitespace);
 			}
 
-			if (stream.advanceIfChars(_QMA, _RAN)) {
+			if (stream.advanceIfChars(END_PROLOG)) {
 				state = getWithinContentState();
 				return finishToken(offset, TokenType.PIEnd);
 			}
@@ -263,7 +269,8 @@ public class XMLScanner implements Scanner {
 				if (stream.peekChar() == _LAN) {
 					state = getWithinContentState();
 				}
-				if (getTokenTextFromOffset(offset).length() == 0) {
+				if (offset == stream.pos()) {
+				//if (getTokenTextFromOffset(offset).length() == 0) {
 					return finishToken(offset, TokenType.PIEnd);
 				}
 			}
@@ -272,20 +279,20 @@ public class XMLScanner implements Scanner {
 		case WithinContent:
 			if (stream.advanceIfChar(_LAN)) { // <
 				if (!stream.eos() && stream.peekChar() == _EXL) { // !
-					if (stream.advanceIfChars(_EXL, _MIN, _MIN)) { // !--
+					if (stream.advanceIfChars(START_COMMENT)) { // !--
 						state = ScannerState.WithinComment;
 						return finishToken(offset, TokenType.StartCommentTag);
 					}
-					if (stream.advanceIfChars(_EXL, _OSB, _CVL, _DVL, _AVL, _TVL, _AVL, _OSB)) { // ![CDATA[
-						state = ScannerState.WithinCDATA;
-						return finishToken(offset, TokenType.CDATATagOpen);
-					}
-
-					if (stream.advanceIfChars(_EXL, _DVL, _OVL, _CVL, _TVL, _YVL, _PVL, _EVL)) { // !DOCTYPE
-						isDeclCompleted = false;
-						state = ScannerState.DTDWithinDoctype;
-						return finishToken(offset, TokenType.DTDStartDoctypeTag);
-					}
+//					if (stream.advanceIfChars(_EXL, _OSB, _CVL, _DVL, _AVL, _TVL, _AVL, _OSB)) { // ![CDATA[
+//						state = ScannerState.WithinCDATA;
+//						return finishToken(offset, TokenType.CDATATagOpen);
+//					}
+//
+//					if (stream.advanceIfChars(_EXL, _DVL, _OVL, _CVL, _TVL, _YVL, _PVL, _EVL)) { // !DOCTYPE
+//						isDeclCompleted = false;
+//						state = ScannerState.DTDWithinDoctype;
+//						return finishToken(offset, TokenType.DTDStartDoctypeTag);
+//					}
 
 				} else if (!stream.eos() && stream.advanceIfChar(_QMA)) { // ?
 					state = ScannerState.PrologOrPI;
@@ -302,10 +309,10 @@ public class XMLScanner implements Scanner {
 			return finishToken(offset, TokenType.Content);
 
 		case WithinCDATA:
-			if (stream.advanceIfChars(_CSB, _CSB, _RAN)) { // ]]>
-				state = ScannerState.WithinContent;
-				return finishToken(offset, TokenType.CDATATagClose);
-			}
+//			if (stream.advanceIfChars(_CSB, _CSB, _RAN)) { // ]]>
+//				state = ScannerState.WithinContent;
+//				return finishToken(offset, TokenType.CDATATagClose);
+//			}
 			stream.advanceUntilChars(_CSB, _CSB, _RAN); // ]]>
 			return finishToken(offset, TokenType.CDATAContent);
 
@@ -363,7 +370,7 @@ public class XMLScanner implements Scanner {
 			if (stream.skipWhitespace()) {
 				return finishToken(offset, TokenType.Whitespace);
 			}
-			if (stream.advanceIfChars(_QMA, _RAN)) { // ?>
+			if (stream.advanceIfChars(END_PROLOG)) { // ?>
 				state = getWithinContentState();
 				return finishToken(offset, TokenType.PrologEnd);
 			}
@@ -537,23 +544,23 @@ public class XMLScanner implements Scanner {
 				startsWithLessThanBracket = true;
 				if (!stream.eos() && stream.peekChar() == _EXL) { // !
 					isDeclCompleted = false;
-					if (stream.advanceIfChars(_EXL, _EVL, _LVL, _EVL, _MVL, _EVL, _NVL, _TVL)) { // !ELEMENT
-						state = ScannerState.DTDWithinElement;
-						return finishToken(offset, TokenType.DTDStartElement);
-					} else if (stream.advanceIfChars(_EXL, _AVL, _TVL, _TVL, _LVL, _IVL, _SVL, _TVL)) { // !ATTLIST
-						isInitialAttlistDeclCompleted = false;
-						state = ScannerState.DTDWithinAttlist;
-						return finishToken(offset, TokenType.DTDStartAttlist);
-					} else if (stream.advanceIfChars(_EXL, _EVL, _NVL, _TVL, _IVL, _TVL, _YVL)) { // !ENTITY
-						state = ScannerState.DTDWithinEntity;
-						return finishToken(offset, TokenType.DTDStartEntity);
-					} else if (stream.advanceIfChars(_EXL, _NVL, _OVL, _TVL, _AVL, _TVL, _IVL, _OVL, _NVL)) { // !NOTATION
-						state = ScannerState.DTDWithinNotation;
-						return finishToken(offset, TokenType.DTDStartNotation);
-					} else if (stream.advanceIfChars(_EXL, _MIN, _MIN)) { // !-- (for comment)
-						state = ScannerState.WithinComment;
-						return finishToken(offset, TokenType.StartCommentTag);
-					}
+//					if (stream.advanceIfChars(_EXL, _EVL, _LVL, _EVL, _MVL, _EVL, _NVL, _TVL)) { // !ELEMENT
+//						state = ScannerState.DTDWithinElement;
+//						return finishToken(offset, TokenType.DTDStartElement);
+//					} else if (stream.advanceIfChars(_EXL, _AVL, _TVL, _TVL, _LVL, _IVL, _SVL, _TVL)) { // !ATTLIST
+//						isInitialAttlistDeclCompleted = false;
+//						state = ScannerState.DTDWithinAttlist;
+//						return finishToken(offset, TokenType.DTDStartAttlist);
+//					} else if (stream.advanceIfChars(_EXL, _EVL, _NVL, _TVL, _IVL, _TVL, _YVL)) { // !ENTITY
+//						state = ScannerState.DTDWithinEntity;
+//						return finishToken(offset, TokenType.DTDStartEntity);
+//					} else if (stream.advanceIfChars(_EXL, _NVL, _OVL, _TVL, _AVL, _TVL, _IVL, _OVL, _NVL)) { // !NOTATION
+//						state = ScannerState.DTDWithinNotation;
+//						return finishToken(offset, TokenType.DTDStartNotation);
+//					} else if (stream.advanceIfChars(_EXL, _MIN, _MIN)) { // !-- (for comment)
+//						state = ScannerState.WithinComment;
+//						return finishToken(offset, TokenType.StartCommentTag);
+//					}
 				}
 			}
 			if(isDTDFile) {
