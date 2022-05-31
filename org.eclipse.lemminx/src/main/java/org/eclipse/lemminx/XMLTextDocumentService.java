@@ -92,7 +92,6 @@ import org.eclipse.lsp4j.SelectionRange;
 import org.eclipse.lsp4j.SelectionRangeParams;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.TextDocumentClientCapabilities;
-import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.TypeDefinitionParams;
@@ -181,7 +180,16 @@ public class XMLTextDocumentService implements TextDocumentService {
 		this.sharedSettings = new SharedSettings();
 		this.limitExceededWarner = null;
 		this.xmlValidatorDelayer = new ModelValidatorDelayer<DOMDocument>((document) -> {
-			validate(document, Collections.emptyMap());
+			DOMDocument xmlDocument = document.getModelSync();
+			validate(xmlDocument);
+			getXMLLanguageService().getDocumentLifecycleParticipants().forEach(participant -> {
+				try {
+					participant.didChange(xmlDocument);
+				} catch (Exception e) {
+					LOGGER.log(Level.SEVERE, "Error while processing didChange for the participant '"
+							+ participant.getClass().getName() + "'.", e);
+				}
+			});
 		});
 	}
 
@@ -370,7 +378,7 @@ public class XMLTextDocumentService implements TextDocumentService {
 	@Override
 	public void didChange(DidChangeTextDocumentParams params) {
 		TextDocument document = documents.onDidChangeTextDocument(params);
-		triggerValidationFor(document, TriggeredBy.didChange, params.getContentChanges());
+		triggerValidationFor(document, TriggeredBy.didChange);
 	}
 
 	@Override
@@ -574,7 +582,7 @@ public class XMLTextDocumentService implements TextDocumentService {
 			xmlLanguageServer.schedule(() -> {
 				documents.forEach(document -> {
 					try {
-						validate(document.getModel().getNow(null), false);
+						validate(document.getModel().getNow(null));
 					} catch (CancellationException e) {
 						// Ignore the error and continue to validate other documents
 					}
@@ -583,71 +591,61 @@ public class XMLTextDocumentService implements TextDocumentService {
 		}
 	}
 
-	private void triggerValidationFor(TextDocument document, TriggeredBy triggeredBy) {
-		triggerValidationFor(document, triggeredBy, null);
-	}
-
 	@SuppressWarnings("unchecked")
-	private void triggerValidationFor(TextDocument document, TriggeredBy triggeredBy,
-			List<TextDocumentContentChangeEvent> changeEvents) {
-		((ModelTextDocument<DOMDocument>) document).getModel()//
-				.thenAcceptAsync(xmlDocument -> {
-					// Validate the DOM document
-					// When validation is triggered by a didChange, we process the validation with
-					// delay to avoid
-					// reporting to many 'textDocument/publishDiagnostics' notifications on client
-					// side.
-					validate(xmlDocument, triggeredBy == TriggeredBy.didChange);
-					// Manage didOpen, didChange document lifecycle participants
-					switch (triggeredBy) {
-					case didOpen:
-						getXMLLanguageService().getDocumentLifecycleParticipants().forEach(participant -> {
-							try {
-								participant.didOpen(xmlDocument);
-							} catch (Exception e) {
-								LOGGER.log(Level.SEVERE, "Error while processing didOpen for the participant '"
-										+ participant.getClass().getName() + "'.", e);
-							}
-						});
-						break;
-					case didChange:
-						getXMLLanguageService().getDocumentLifecycleParticipants().forEach(participant -> {
-							try {
-								participant.didChange(xmlDocument);
-							} catch (Exception e) {
-								LOGGER.log(Level.SEVERE, "Error while processing didChange for the participant '"
-										+ participant.getClass().getName() + "'.", e);
-							}
-						});
-						break;
-					default:
-						// Do nothing
-					}
-				});
-	}
-
-	/**
-	 * Validate and publish diagnostics for the given DOM document.
-	 * 
-	 * @param xmlDocument the DOM document.
-	 * 
-	 * @throws CancellationException when the DOM document content changed and
-	 *                               diagnostics must be stopped.
-	 */
-	void validate(DOMDocument xmlDocument, boolean withDelay) throws CancellationException {
-		if (withDelay) {
-			xmlValidatorDelayer.validateWithDelay(xmlDocument.getDocumentURI(), xmlDocument);
+	private void triggerValidationFor(TextDocument document, TriggeredBy triggeredBy) {
+		if (triggeredBy == TriggeredBy.didChange) {
+			// Validate the DOM document
+			// When validation is triggered by a didChange, we process the validation with
+			// delay to avoid
+			// reporting to many 'textDocument/publishDiagnostics' notifications on client
+			// side.
+			xmlValidatorDelayer.validateWithDelay((ModelTextDocument<DOMDocument>) document);
 		} else {
-			validate(xmlDocument, Collections.emptyMap());
+			((ModelTextDocument<DOMDocument>) document).getModel()//
+					.thenAcceptAsync(xmlDocument -> {
+						// Validate the DOM document
+						// When validation is triggered by a didChange, we process the validation with
+						// delay to avoid
+						// reporting to many 'textDocument/publishDiagnostics' notifications on client
+						// side.
+						validate(xmlDocument);
+						// Manage didOpen, didChange document lifecycle participants
+						switch (triggeredBy) {
+						case didOpen:
+							getXMLLanguageService().getDocumentLifecycleParticipants().forEach(participant -> {
+								try {
+									participant.didOpen(xmlDocument);
+								} catch (Exception e) {
+									LOGGER.log(Level.SEVERE, "Error while processing didOpen for the participant '"
+											+ participant.getClass().getName() + "'.", e);
+								}
+							});
+							break;
+						default:
+							// Do nothing
+						}
+					});
 		}
 	}
 
 	/**
 	 * Validate and publish diagnostics for the given DOM document.
-	 * 
+	 *
+	 * @param xmlDocument the DOM document.
+	 *
+	 * @throws CancellationException when the DOM document content changed and
+	 *                               diagnostics must be stopped.
+	 */
+	void validate(DOMDocument xmlDocument) throws CancellationException {
+		validate(xmlDocument, Collections.emptyMap());
+	}
+
+	/**
+	 * Validate and publish diagnostics for the given DOM document.
+	 *
 	 * @param xmlDocument    the DOM document.
 	 * @param validationArgs the validation arguments.
-	 * 
+	 *
 	 * @throws CancellationException when the DOM document content changed and
 	 *                               diagnostics must be stopped.
 	 */

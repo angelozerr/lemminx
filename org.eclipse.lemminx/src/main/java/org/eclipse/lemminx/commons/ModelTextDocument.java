@@ -55,26 +55,42 @@ public class ModelTextDocument<T> extends TextDocument {
 		if (model == null) {
 			int version = super.getVersion();
 			model = CompletableFutures.computeAsync((requestCancelChecker) -> {
-				long start = System.currentTimeMillis();
-				try {
-					LOGGER.fine("Start parsing of model with version '" + version);
-					// Stop of parse process can be done when completable future is canceled or when
-					// version of document changes
-					MultiCancelChecker cancelChecker = new MultiCancelChecker(requestCancelChecker,
-							new TextDocumentVersionChecker(this, version));
-					// parse the model
-					return parse.apply(this, cancelChecker);
-				} catch (CancellationException e) {
-					LOGGER.fine("Stop parsing parsing of model with version '" + version + "' in "
-							+ (System.currentTimeMillis() - start) + "ms");
-					throw e;
-				} finally {
-					LOGGER.fine("End parse of model with version '" + version + "' in "
-							+ (System.currentTimeMillis() - start) + "ms");
-				}
+				// Stop of parse process can be done when completable future is canceled or when
+				// version of document changes
+				MultiCancelChecker cancelChecker = new MultiCancelChecker(requestCancelChecker,
+						new TextDocumentVersionChecker(this, version));
+				return createModel(version, cancelChecker);
 			});
 		}
 		return model;
+	}
+
+	public T getModelSync() {
+		if (model != null && !model.isCancelled() && model.isDone()) {
+			T document = model.getNow(null);
+			if (document != null) {
+				return document;
+			}
+		}
+		int version = super.getVersion();
+		CancelChecker cancelChecker = new TextDocumentVersionChecker(this, version);
+		return createModel(version, cancelChecker);
+	}
+
+	private T createModel(int version, CancelChecker cancelChecker) {
+		long start = System.currentTimeMillis();
+		try {
+			LOGGER.fine("Start parsing of model with version '" + version);
+			return parse.apply(this, cancelChecker);
+		} catch (CancellationException e) {
+			LOGGER.fine("Stop parsing parsing of model with version '" + version + "' in "
+					+ (System.currentTimeMillis() - start) + "ms");
+			throw e;
+		} finally {
+			LOGGER.fine("End parse of model with version '" + version + "' in " + (System.currentTimeMillis() - start)
+					+ "ms");
+		}
+
 	}
 
 	@Override
