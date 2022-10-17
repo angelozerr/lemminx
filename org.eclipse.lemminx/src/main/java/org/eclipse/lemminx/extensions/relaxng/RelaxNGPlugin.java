@@ -14,7 +14,7 @@ package org.eclipse.lemminx.extensions.relaxng;
 import org.eclipse.lemminx.dom.DOMDocument;
 import org.eclipse.lemminx.extensions.contentmodel.model.ContentModelManager;
 import org.eclipse.lemminx.extensions.contentmodel.model.ContentModelProvider;
-import org.eclipse.lemminx.extensions.relaxng.grammar.RelaxNGURIResolverExtension;
+import org.eclipse.lemminx.extensions.relaxng.grammar.rng.RelaxNGURIResolverExtension;
 import org.eclipse.lemminx.extensions.relaxng.xml.contentmodel.CMRelaxNGContentModelProvider;
 import org.eclipse.lemminx.services.extensions.IXMLExtension;
 import org.eclipse.lemminx.services.extensions.XMLExtensionsRegistry;
