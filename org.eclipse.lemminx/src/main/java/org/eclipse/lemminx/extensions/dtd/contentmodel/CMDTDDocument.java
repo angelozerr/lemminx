@@ -35,6 +35,7 @@ import org.apache.xerces.xni.XNIException;
 import org.apache.xerces.xni.grammars.Grammar;
 import org.apache.xerces.xni.parser.XMLEntityResolver;
 import org.apache.xerces.xni.parser.XMLInputSource;
+import org.eclipse.lemminx.dom.DOMAttr;
 import org.eclipse.lemminx.dom.DOMElement;
 import org.eclipse.lemminx.dom.DOMNode;
 import org.eclipse.lemminx.dom.DTDDeclParameter;
@@ -45,6 +46,7 @@ import org.eclipse.lemminx.extensions.contentmodel.model.CMElementDeclaration;
 import org.eclipse.lemminx.extensions.contentmodel.model.FilesChangedTracker;
 import org.eclipse.lemminx.extensions.dtd.participants.diagnostics.LSPXML11DTDProcessor;
 import org.eclipse.lemminx.extensions.dtd.utils.DTDUtils;
+import org.eclipse.lemminx.extensions.xsd.contentmodel.CMXSDElementDeclaration;
 import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
@@ -351,6 +353,7 @@ public class CMDTDDocument extends LSPXML11DTDProcessor implements CMDocument {
 	@Override
 	public void element(String elementName, Augmentations augs) throws XNIException {
 		hierarchies = dtdElementInfo.getHierarchies();
+		
 		hierarchies.add(elementName);
 		super.element(elementName, augs);
 	}
@@ -453,7 +456,25 @@ public class CMDTDDocument extends LSPXML11DTDProcessor implements CMDocument {
 	}
 
 	@Override
-	public LocationLink findTypeLocation(DOMNode node) {
+	public LocationLink findTypeLocation(DOMNode originNode) {
+		DOMElement originElement = null;
+		DOMAttr originAttribute = null;
+		if (originNode.isElement()) {
+			originElement = (DOMElement) originNode;
+		} else if (originNode.isAttribute()) {
+			originAttribute = (DOMAttr) originNode;
+			originElement = originAttribute.getOwnerElement();
+		}
+		if (originElement == null || originElement.getLocalName() == null) {
+			return null;
+		}
+		// Try to retrieve DTD element declaration from the given element.
+		CMDTDElementDeclaration elementDeclaration = (CMDTDElementDeclaration) findCMElement(originElement,
+				originElement.getNamespaceURI());
+		if (elementDeclaration == null) {
+			return null;
+		}
+
 		return null;
 	}
 
