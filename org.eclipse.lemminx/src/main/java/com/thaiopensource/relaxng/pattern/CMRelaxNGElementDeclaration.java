@@ -21,6 +21,7 @@ import org.eclipse.lemminx.dom.DOMAttr;
 import org.eclipse.lemminx.dom.DOMElement;
 import org.eclipse.lemminx.dom.DOMNode;
 import org.eclipse.lemminx.extensions.contentmodel.model.CMAttributeDeclaration;
+import org.eclipse.lemminx.extensions.contentmodel.model.CMDocument;
 import org.eclipse.lemminx.extensions.contentmodel.model.CMElementDeclaration;
 import org.eclipse.lemminx.services.extensions.ISharedSettingsRequest;
 import org.w3c.dom.Element;
@@ -90,6 +91,11 @@ public class CMRelaxNGElementDeclaration implements CMElementDeclaration {
 			return ((SimpleNameClass) nameClass).getName();
 		}
 		return null;
+	}
+
+	@Override
+	public CMDocument getOwnerDocument() {
+		return cmDocument;
 	}
 
 	@Override

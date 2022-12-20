@@ -64,6 +64,8 @@ public interface CMElementDeclaration {
 		return prefix + ":" + name;
 	}
 
+	CMDocument getOwnerDocument();
+	
 	/**
 	 * Returns the attributes of this declared element.
 	 * 

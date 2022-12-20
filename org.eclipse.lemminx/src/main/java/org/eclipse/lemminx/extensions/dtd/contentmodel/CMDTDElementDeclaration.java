@@ -21,6 +21,7 @@ import java.util.Map;
 import org.apache.xerces.impl.dtd.XMLElementDecl;
 import org.eclipse.lemminx.dom.DOMElement;
 import org.eclipse.lemminx.extensions.contentmodel.model.CMAttributeDeclaration;
+import org.eclipse.lemminx.extensions.contentmodel.model.CMDocument;
 import org.eclipse.lemminx.extensions.contentmodel.model.CMElementDeclaration;
 import org.eclipse.lemminx.extensions.dtd.contentmodel.CMDTDDocument.DTDElementInfo;
 import org.eclipse.lemminx.extensions.dtd.contentmodel.CMDTDDocument.DTDNodeInfo;
@@ -56,6 +57,11 @@ public class CMDTDElementDeclaration extends XMLElementDecl implements CMElement
 	@Override
 	public String getPrefix(String namespaceURI) {
 		return null;
+	}
+
+	@Override
+	public CMDocument getOwnerDocument() {
+		return document;
 	}
 
 	@Override

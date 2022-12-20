@@ -199,4 +199,15 @@ public class CMXSDAttributeDeclaration implements CMAttributeDeclaration {
 		}
 		return Collections.emptyList();
 	}
+
+	@Override
+	public boolean isID() {
+		return false;
+	}
+
+	@Override
+	public boolean isIDREF() {
+		return false;
+	}
+
 }

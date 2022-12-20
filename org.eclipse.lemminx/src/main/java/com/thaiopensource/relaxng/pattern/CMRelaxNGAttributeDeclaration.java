@@ -60,7 +60,7 @@ public class CMRelaxNGAttributeDeclaration implements CMAttributeDeclaration {
 	public CMElementDeclaration getOwnerElementDeclaration() {
 		return cmElement;
 	}
-	
+
 	Name getJingName() {
 		NameClass nameClass = pattern.getNameClass();
 		if (nameClass instanceof SimpleNameClass) {
@@ -107,6 +107,16 @@ public class CMRelaxNGAttributeDeclaration implements CMAttributeDeclaration {
 
 	void setRequired(boolean required) {
 		this.required = required;
+	}
+
+	@Override
+	public boolean isID() {
+		return false;
+	}
+
+	@Override
+	public boolean isIDREF() {
+		return false;
 	}
 
 	public AttributePattern getPattern() {

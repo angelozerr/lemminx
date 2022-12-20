@@ -79,6 +79,16 @@ public class CMDTDAttributeDeclaration extends XMLAttributeDecl implements CMAtt
 	}
 
 	@Override
+	public boolean isID() {
+		return super.simpleType.type == XMLSimpleType.TYPE_ID;
+	}
+
+	@Override
+	public boolean isIDREF() {
+		return super.simpleType.type == XMLSimpleType.TYPE_IDREF;
+	}
+
+	@Override
 	public String getAttributeValueDocumentation(String value, ISharedSettingsRequest request) {
 		return null;
 	}

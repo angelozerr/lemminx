@@ -44,6 +44,7 @@ import org.apache.xerces.xs.XSTypeDefinition;
 import org.apache.xerces.xs.XSWildcard;
 import org.eclipse.lemminx.dom.DOMElement;
 import org.eclipse.lemminx.extensions.contentmodel.model.CMAttributeDeclaration;
+import org.eclipse.lemminx.extensions.contentmodel.model.CMDocument;
 import org.eclipse.lemminx.extensions.contentmodel.model.CMElementDeclaration;
 import org.eclipse.lemminx.services.extensions.ISharedSettingsRequest;
 import org.eclipse.lemminx.settings.SchemaDocumentationType;
@@ -96,6 +97,11 @@ public class CMXSDElementDeclaration implements CMElementDeclaration {
 	public String getPrefix(String namespaceURI) {
 		// TODO : implement this method
 		return null;
+	}
+
+	@Override
+	public CMDocument getOwnerDocument() {
+		return document;
 	}
 
 	@Override

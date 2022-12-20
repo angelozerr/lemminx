@@ -116,4 +116,8 @@ public interface CMAttributeDeclaration {
 	 * @return true if the attribute is required and false otherwise.
 	 */
 	boolean isRequired();
+
+	boolean isID();
+
+	boolean isIDREF();
 }
