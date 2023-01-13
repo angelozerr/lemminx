@@ -16,6 +16,8 @@ import static org.eclipse.lemminx.XMLAssert.r;
 import static org.eclipse.lsp4j.DocumentHighlightKind.Read;
 import static org.eclipse.lsp4j.DocumentHighlightKind.Write;
 
+import java.io.File;
+
 import org.eclipse.lemminx.AbstractCacheBasedTest;
 import org.eclipse.lemminx.XMLAssert;
 import org.eclipse.lemminx.XMLAssert.SettingsSaveContext;
@@ -208,6 +210,60 @@ public class XMLReferencesHighlightingExtensionsTest extends AbstractCacheBasedT
 				hl(r(4, 18, 4, 28), Write), //
 				hl(r(8, 18, 8, 28), Read),
 				hl(r(12, 18, 12, 28), Read));
+	}
+
+	@Test
+	public void docbookWithoutIncludeInTo() throws BadLocationException {
+		String xml = "<docbook>\r\n"
+				+ "	<xref linkend=\"s1\" />\r\n"
+				+ "	<section id=\"s|1\" />\r\n"
+				+ "	<xref linkend=\"ch1\" />\r\n"
+				// + " <xi:include href=\"sub-book.xml\"
+				// xmlns:xi=\"http://www.w3.org/2001/XInclude\" />\r\n"
+				+ "</docbook>";
+		testHighlightsFor(xml, new File("src/test/resources/xml/docbook.xml").toURI().toString(), //
+				hl(r(2, 14, 2, 16), Write), //
+				hl(r(1, 16, 1, 18), Read));
+	}
+
+	@Test
+	public void docbookWithIncludeInTo() throws BadLocationException {
+		String xml = "<docbook>\r\n"
+				+ "	<xref linkend=\"s1\" />\r\n"
+				+ "	<section id=\"s|1\" />\r\n"
+				+ "	<xref linkend=\"ch1\" />\r\n"
+				+ "	<xi:include href=\"sub-book.xml\" xmlns:xi=\"http://www.w3.org/2001/XInclude\" />\r\n"
+				+ "</docbook>";
+		testHighlightsFor(xml, new File("src/test/resources/xml/docbook.xml").toURI().toString(), //
+				hl(r(2, 14, 2, 16), Write), //
+				hl(r(1, 16, 1, 18), Read));
+	}
+
+	@Test
+	public void docbookWithoutIncludeInFrom() throws BadLocationException {
+		String xml = "<docbook>\r\n"
+				+ "	<xref linkend=\"s|1\" />\r\n"
+				+ "	<section id=\"s1\" />\r\n"
+				+ "	<xref linkend=\"ch1\" />\r\n"
+				// + " <xi:include href=\"sub-book.xml\"
+				// xmlns:xi=\"http://www.w3.org/2001/XInclude\" />\r\n"
+				+ "</docbook>";
+		testHighlightsFor(xml, new File("src/test/resources/xml/docbook.xml").toURI().toString(), //
+				hl(r(2, 14, 2, 16), Write), //
+				hl(r(1, 16, 1, 18), Read));
+	}
+
+	@Test
+	public void docbookWithIncludeInFrom() throws BadLocationException {
+		String xml = "<docbook>\r\n"
+				+ "	<xref linkend=\"s|1\" />\r\n"
+				+ "	<section id=\"s1\" />\r\n"
+				+ "	<xref linkend=\"ch1\" />\r\n"
+				+ "	<xi:include href=\"sub-book.xml\" xmlns:xi=\"http://www.w3.org/2001/XInclude\" />\r\n"
+				+ "</docbook>";
+		testHighlightsFor(xml, new File("src/test/resources/xml/docbook.xml").toURI().toString(), //
+				hl(r(2, 14, 2, 16), Write), //
+				hl(r(1, 16, 1, 18), Read));
 	}
 
 	private static void testHighlightsFor(String value, String fileURI,
