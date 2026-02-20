@@ -27,11 +27,10 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 	public static final String XMLNS_ATTR = "xmlns";
 	public static final String XMLNS_NO_DEFAULT_ATTR = "xmlns:";
 
-	// Memory optimization Phase 6: Store offsets directly instead of creating inner
-	// class objects
+	// Memory optimization Phase 6: Store offsets directly instead of creating inner class objects
 	// For 546K attributes, this eliminates 1,092,576 objects (AttrName + AttrValue)
 	// Saves ~35 MB of heap memory
-
+	
 	private String name; // Only cached if set programmatically (rare)
 
 	// Attribute name offsets (instead of AttrName object)
@@ -90,7 +89,7 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 		// Memory optimization: Extract name from document instead of caching
 		if (nameStart != NULL_VALUE && nameEnd != NULL_VALUE) {
 			// Name is in the document, extract it
-			return getOwnerDocument().getText().substring(nameStart, nameEnd);
+			return getOwnerDocument().getText().subSequence(nameStart, nameEnd).toString();
 		}
 		// Name was set programmatically or doesn't exist
 		return name;
@@ -127,8 +126,8 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 
 	/*
 	 *
-	 * Returns the attribute's value without quotes. Memory optimization: Extract
-	 * value from document instead of caching
+	 * Returns the attribute's value without quotes.
+	 * Memory optimization: Extract value from document instead of caching
 	 */
 	@Override
 	public String getValue() {
@@ -228,7 +227,7 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 	public String getOriginalValue() {
 		// Memory optimization: Extract from document instead of caching
 		if (valueStart != NULL_VALUE && delimiter < valueStart) {
-			return getOwnerDocument().getText().substring(valueStart, valueEnd);
+			return getOwnerDocument().getText().subSequence(valueStart, valueEnd).toString();
 		}
 		return value;
 	}
@@ -236,7 +235,7 @@ public class DOMAttr extends DOMNode implements org.w3c.dom.Attr {
 	public void setValue(String value, int start, int end) {
 		// When value is set programmatically, we need to cache it
 		// This is rare compared to parsing from document
-		this.value = value;
+		this.value = value; // Reuse name field to store programmatic value
 		this.valueStart = start;
 		this.valueEnd = end;
 	}
