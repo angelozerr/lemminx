@@ -38,6 +38,12 @@ public class TextDocument extends TextDocumentItem {
 	private ILineTracker lineTracker;
 
 	private boolean incremental;
+	
+	// Memory-efficient storage for large files (>1MB)
+	// Uses segmented storage to reduce memory spikes during incremental updates
+	private SegmentedCharSequence segmentedText;
+	
+	private static final int SEGMENTED_THRESHOLD = 1_000_000; // 1MB
 
 	public TextDocument(TextDocumentItem document) {
 		this(document.getText(), document.getUri());
@@ -48,6 +54,10 @@ public class TextDocument extends TextDocumentItem {
 	public TextDocument(String text, String uri) {
 		super.setUri(uri);
 		super.setText(text);
+		// Initialize segmented storage for large files
+		if (text != null && text.length() > SEGMENTED_THRESHOLD) {
+			segmentedText = new SegmentedCharSequence(text);
+		}
 	}
 
 	public void setIncremental(boolean incremental) {
@@ -156,7 +166,7 @@ public class TextDocument extends TextDocumentItem {
 	/**
 	 * Update text of the document by using the changes and according the
 	 * incremental support.
-	 * 
+	 *
 	 * @param changes the text document changes.
 	 */
 	public void update(List<TextDocumentContentChangeEvent> changes) {
@@ -168,31 +178,77 @@ public class TextDocument extends TextDocumentItem {
 			try {
 				long start = System.currentTimeMillis();
 				synchronized (lock) {
-					// Initialize buffer and line tracker from the current text document
-					StringBuilder buffer = new StringBuilder(getText());
+					// Use segmented storage for large files to reduce memory spikes
+					boolean useSegmented = segmentedText != null;
+					
+					if (useSegmented) {
+						// Memory-efficient path: use SegmentedCharSequence
+						SegmentedCharSequence currentText = segmentedText;
+						
+						// Apply all changes to the segmented text
+						for (int i = 0; i < changes.size(); i++) {
+							TextDocumentContentChangeEvent changeEvent = changes.get(i);
+							Range range = changeEvent.getRange();
+							int length = 0;
 
-					// Loop for each changes and update the buffer
-					for (int i = 0; i < changes.size(); i++) {
-
-						TextDocumentContentChangeEvent changeEvent = changes.get(i);
-						Range range = changeEvent.getRange();
-						int length = 0;
-
-						if (range != null) {
-							Integer rangeLength = changeEvent.getRangeLength();
-							length = rangeLength != null ? rangeLength.intValue() : offsetAt(range.getEnd()) - offsetAt(range.getStart());
-						} else {
-							// range is optional and if not given, the whole file content is replaced
-							length = buffer.length();
-							range = new Range(positionAt(0), positionAt(length));
+							if (range != null) {
+								Integer rangeLength = changeEvent.getRangeLength();
+								length = rangeLength != null ? rangeLength.intValue() :
+									offsetAt(range.getEnd()) - offsetAt(range.getStart());
+							} else {
+								// range is optional and if not given, the whole file content is replaced
+								length = currentText.length();
+								range = new Range(positionAt(0), positionAt(length));
+							}
+							
+							String text = changeEvent.getText();
+							int startOffset = offsetAt(range.getStart());
+							
+							// Update segmented text (structural sharing, minimal memory allocation)
+							currentText = currentText.replace(startOffset, startOffset + length, text);
+							lineTracker.replace(startOffset, length, text);
 						}
-						String text = changeEvent.getText();
-						int startOffset = offsetAt(range.getStart());
-						buffer.replace(startOffset, startOffset + length, text);
-						lineTracker.replace(startOffset, length, text);
+						
+						// Update both segmented and String representations
+						segmentedText = currentText;
+						super.setText(currentText.toString());
+						
+					} else {
+						// Standard path for small files: use StringBuilder
+						StringBuilder buffer = new StringBuilder(getText());
+
+						// Loop for each changes and update the buffer
+						for (int i = 0; i < changes.size(); i++) {
+
+							TextDocumentContentChangeEvent changeEvent = changes.get(i);
+							Range range = changeEvent.getRange();
+							int length = 0;
+
+							if (range != null) {
+								Integer rangeLength = changeEvent.getRangeLength();
+								length = rangeLength != null ? rangeLength.intValue() :
+									offsetAt(range.getEnd()) - offsetAt(range.getStart());
+							} else {
+								// range is optional and if not given, the whole file content is replaced
+								length = buffer.length();
+								range = new Range(positionAt(0), positionAt(length));
+							}
+							String text = changeEvent.getText();
+							int startOffset = offsetAt(range.getStart());
+							buffer.replace(startOffset, startOffset + length, text);
+							lineTracker.replace(startOffset, length, text);
+						}
+						
+						// Update the new text content from the updated buffer
+						String newText = buffer.toString();
+						setText(newText);
+						
+						// Upgrade to segmented storage if file grew beyond threshold
+						if (newText.length() > SEGMENTED_THRESHOLD) {
+							segmentedText = new SegmentedCharSequence(newText);
+							LOGGER.fine("Upgraded to segmented storage (size: " + newText.length() + ")");
+						}
 					}
-					// Update the new text content from the updated buffer
-					setText(buffer.toString());
 				}
 				LOGGER.fine("Text document content updated in " + (System.currentTimeMillis() - start) + "ms");
 			} catch (BadLocationException e) {
