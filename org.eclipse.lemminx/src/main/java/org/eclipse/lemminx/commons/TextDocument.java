@@ -18,8 +18,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.lemminx.commons.text.CompositeCharSequence;
-import org.eclipse.lemminx.commons.text.ImmutableCharSequence;
+import org.eclipse.lemminx.commons.text2.ImmutableCharSequence;
 import org.eclipse.lemminx.commons.text.ImmutableCharSequenceImpl;
+import org.eclipse.lemminx.commons.text2.CharArrayUtil;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
@@ -35,8 +36,9 @@ import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 public class TextDocument {
 
 	private static final Logger LOGGER = Logger.getLogger(TextDocument.class.getName());
-	
-	// Consolidate CompositeCharSequence after this many updates to prevent deep nesting
+
+	// Consolidate CompositeCharSequence after this many updates to prevent deep
+	// nesting
 	private static final int CONSOLIDATION_THRESHOLD = 100;
 
 	/**
@@ -61,8 +63,8 @@ public class TextDocument {
 	 * The content of the opened text document.
 	 */
 	// CharSequence-based text storage for memory-efficient incremental updates
-	@NonNull
-	private ImmutableCharSequence text;
+	//@NonNull
+	//private ImmutableCharSequence text;
 
 	private final Object lock = new Object();
 
@@ -71,9 +73,11 @@ public class TextDocument {
 	private ILineTracker lineTracker;
 
 	private boolean incremental;
-	
+
 	// Counter for tracking when to consolidate CompositeCharSequence
 	private int updatesSinceConsolidation = 0;
+
+	private org.eclipse.lemminx.commons.text2.ImmutableCharSequence myText;
 
 	public TextDocument(TextDocumentItem document) {
 		this(document.getText(), document.getUri());
@@ -83,7 +87,7 @@ public class TextDocument {
 
 	public TextDocument(String text, String uri) {
 		this.setUri(uri);
-		this.text = ImmutableCharSequenceImpl.fromString(text);
+		setText(text); 
 	}
 
 	public void setIncremental(boolean incremental) {
@@ -217,7 +221,7 @@ public class TextDocument {
 							Integer rangeLength = changeEvent.getRangeLength();
 							int startOffset = offsetAt(range.getStart());
 							int length;
-							
+
 							if (rangeLength != null) {
 								// Use rangeLength if provided (preferred)
 								length = rangeLength.intValue();
@@ -231,22 +235,17 @@ public class TextDocument {
 
 							// Use CompositeCharSequence for zero-copy update
 							// This avoids copying the entire document text
-							ImmutableCharSequence newText = CompositeCharSequence.replaceRange(currentText, startOffset,
-									startOffset + length, ImmutableCharSequenceImpl.fromString(text));
+							//ImmutableCharSequence newText = CompositeCharSequence.replaceRange(currentText, startOffset,
+							//		startOffset + length, ImmutableCharSequenceImpl.fromString(text));
 
 							lineTracker.replace(startOffset, length, text);
-							setText(newText);
-							
+							replaceString(startOffset, startOffset + length, 0, text, -1, false);
+							//setText(newText);
+
 							// IMPORTANT: Update currentText for next iteration
-							currentText = newText;
-							
+							//currentText = newText;
+
 							// Periodically consolidate to prevent deep nesting
-							updatesSinceConsolidation++;
-							if (updatesSinceConsolidation >= CONSOLIDATION_THRESHOLD) {
-								consolidateText();
-								currentText = getTextSequence();
-								updatesSinceConsolidation = 0;
-							}
 						} else {
 							// Full replacement
 							setText(changeEvent.getText());
@@ -279,26 +278,9 @@ public class TextDocument {
 	 * @param text the new text content
 	 */
 	private void setText(String text) {
-		this.text = ImmutableCharSequenceImpl.fromString(text);
+		myText = CharArrayUtil.createImmutableCharSequence(text);
 	}
 
-	private void setText(ImmutableCharSequence text) {
-		this.text = text;
-	}
-	
-	/**
-	 * Consolidate the current text by converting CompositeCharSequence to a simple
-	 * ImmutableCharSequenceImpl. This prevents deep nesting of CompositeCharSequence
-	 * objects which can consume excessive memory.
-	 */
-	private void consolidateText() {
-		if (text instanceof CompositeCharSequence) {
-			// Convert to String and back to ImmutableCharSequenceImpl
-			// This flattens the structure
-			String textString = text.toString();
-			this.text = ImmutableCharSequenceImpl.fromString(textString);
-		}
-	}
 
 	public int getTextLength() {
 		return getTextSequence().length();
@@ -354,14 +336,120 @@ public class TextDocument {
 	 * The content of the opened text document.
 	 */
 	public CharSequence getTextSequence() {
-		return text;
+		return myText;
 	}
 
 	/**
 	 * The content of the opened text document.
 	 */
 	public String getText() {
-		return text.toString();
+		return myText.toString();
 	}
+
+	public void replaceString(int startOffset, int endOffset, int moveOffset, CharSequence s,
+			long newModificationStamp, boolean wholeTextReplaced) {
+		assertBounds(startOffset, endOffset);
+		
+		if (moveOffset != startOffset && startOffset != endOffset && s.length() != 0) {
+			throw new IllegalArgumentException(
+					"moveOffset != startOffset for a modification which is neither an insert nor deletion."
+							+ " startOffset: " + startOffset + "; endOffset: " + endOffset + ";" + "; moveOffset: "
+							+ moveOffset + ";");
+		}
+
+		int initialStartOffset = startOffset;
+		int initialOldLength = endOffset - startOffset;
+
+		int newStringLength = s.length();
+		CharSequence chars = myText;
+		int newStartInString = 0;
+		while (newStartInString < newStringLength && startOffset < endOffset
+				&& s.charAt(newStartInString) == chars.charAt(startOffset)) {
+			startOffset++;
+			newStartInString++;
+		}
+		if (newStartInString == newStringLength && startOffset == endOffset && !wholeTextReplaced) {
+			return;
+		}
+
+		int newEndInString = newStringLength;
+		while (endOffset > startOffset && newEndInString > newStartInString
+				&& s.charAt(newEndInString - 1) == chars.charAt(endOffset - 1)) {
+			newEndInString--;
+			endOffset--;
+		}
+
+		if (startOffset == 0 && endOffset == getTextLength()) {
+			wholeTextReplaced = true;
+		}
+
+		CharSequence changedPart = s.subSequence(newStartInString, newEndInString);
+		CharSequence sToDelete = myText.subtext(startOffset, endOffset);
+		/*boolean isForceIgnoreGuardsOnFullUpdate = getUserData(IGNORE_RANGE_GUARDS_ON_FULL_UPDATE) == Boolean.TRUE
+				&& wholeTextReplaced;
+		if (!isForceIgnoreGuardsOnFullUpdate) {
+			RangeMarker guard = getRangeGuard(startOffset, endOffset);
+			if (guard != null) {
+				throwGuardedFragment(guard, startOffset, sToDelete, changedPart);
+			}
+		}*/
+
+		ImmutableCharSequence newText;
+		if (wholeTextReplaced && s instanceof ImmutableCharSequence) {
+			newText = (ImmutableCharSequence) s;
+		} else {
+			newText = myText.replace(startOffset, endOffset, changedPart);
+			if (!(changedPart instanceof String)) {
+				changedPart = newText.subtext(startOffset, startOffset + changedPart.length());
+			}
+		}
+		boolean wasOptimized = initialStartOffset != startOffset || endOffset - startOffset != initialOldLength;
+		updateText(newText, startOffset, sToDelete, changedPart, wholeTextReplaced, newModificationStamp,
+				initialStartOffset, initialOldLength, wasOptimized ? startOffset : moveOffset);
+		//trimToSize();
+	}
+
+	private void assertBounds(int startOffset, int endOffset) {
+		if (startOffset < 0 || startOffset > getTextLength()) {
+			throw new IndexOutOfBoundsException(
+					"Wrong startOffset: " + startOffset + "; documentLength: " + getTextLength());
+		}
+		if (endOffset < 0 || endOffset > getTextLength()) {
+			throw new IndexOutOfBoundsException(
+					"Wrong endOffset: " + endOffset + "; documentLength: " + getTextLength());
+		}
+		if (endOffset < startOffset) {
+			throw new IllegalArgumentException("endOffset < startOffset: " + endOffset + " < " + startOffset
+					+ "; documentLength: " + getTextLength());
+		}
+	}
+	
+	private void updateText(ImmutableCharSequence newText, int offset, CharSequence oldString, CharSequence newString, boolean wholeTextReplaced, long newModificationStamp, int initialStartOffset, int initialOldLength, int moveOffset) {
+       
+
+       // if (LOG.isTraceEnabled()) {
+       //     LOG.trace("updating document " + this + ".\nNext string:'" + newString + "'\nOld string:'" + oldString + "'");
+       // }
+
+        //assert moveOffset >= 0 && moveOffset <= this.getTextLength() : "Invalid moveOffset: " + moveOffset;
+
+        /*this.assertNotNestedModification();
+        this.myChangeInProgress = true;
+        DelayedExceptions exceptions = new DelayedExceptions();
+
+        try {
+            DocumentEvent event = new DocumentEventImpl(this, offset, oldString, newString, this.myModificationStamp, wholeTextReplaced, initialStartOffset, initialOldLength, moveOffset);
+            this.beforeChangedUpdate(event, exceptions);
+            this.myTextString = null;
+            ImmutableCharSequence prevText = this.myText;*/
+            this.myText = newText;
+/*            this.sequence.incrementAndGet();
+            this.changedUpdate(event, newModificationStamp, prevText, exceptions);
+        } finally {
+            this.myChangeInProgress = false;
+            exceptions.rethrowPCE();
+        }
+*/
+    }
 
 }
