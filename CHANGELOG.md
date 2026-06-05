@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.31.2](https://github.com/eclipse-lemminx/lemminx/milestone/50?closed=1) (June 8, 2026)
+
+### Bug Fixes
+ * Handle referencing schemas through UNC paths. See [#1782](https://github.com/eclipse-lemminx/lemminx/pull/1782).
+
 ## [0.31.1](https://github.com/eclipse-lemminx/lemminx/milestone/49?closed=1) (April 21, 2026)
 
 ### Enhancements
