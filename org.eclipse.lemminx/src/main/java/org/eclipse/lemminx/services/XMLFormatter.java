@@ -66,10 +66,9 @@ class XMLFormatter {
 			
 			// For large files, merge all TextEdits into a single one to avoid OutOfMemory
 			// This is more memory efficient as we don't keep thousands of TextEdit objects
-			if (shouldMergeEdits(result, xmlDocument)) {
+			if (range == null && shouldMergeEdits(result, xmlDocument)) {
 				String formatted = applyEdits(xmlDocument.getTextDocument(), result);
-				Range editRange = range != null ? range : getFullDocumentRange(xmlDocument);
-				return List.of(new TextEdit(editRange, formatted));
+				return List.of(new TextEdit(getFullDocumentRange(xmlDocument), formatted));
 			}
 			return result;
 		} catch (BadLocationException e) {

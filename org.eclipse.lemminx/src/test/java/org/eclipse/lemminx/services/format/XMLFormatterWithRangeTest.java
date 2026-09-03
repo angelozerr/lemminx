@@ -12,11 +12,21 @@
 package org.eclipse.lemminx.services.format;
 
 import static org.eclipse.lemminx.XMLAssert.te;
+import static org.eclipse.lemminx.utils.TextEditUtils.applyEdits;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
 
 import org.eclipse.lemminx.XMLAssert;
 import org.eclipse.lemminx.commons.BadLocationException;
+import org.eclipse.lemminx.commons.TextDocument;
+import org.eclipse.lemminx.dom.DOMDocument;
+import org.eclipse.lemminx.dom.DOMParser;
+import org.eclipse.lemminx.services.XMLLanguageService;
 import org.eclipse.lemminx.settings.SharedSettings;
 import org.eclipse.lemminx.settings.XMLFormattingOptions.SplitAttributes;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 import org.junit.jupiter.api.Test;
 
@@ -456,6 +466,59 @@ public class XMLFormatterWithRangeTest {
 				te(6, 27, 7, 1, "\n  "), te(7, 5, 7, 6, "\n      "), te(7, 15, 7, 16, "\n      "), te(7, 25, 7, 25, " "),
 				te(7, 27, 8, 1, "\n  "), te(8, 5, 8, 6, "\n      "), te(8, 15, 8, 16, "\n      "), te(8, 25, 8, 25, " ")
 				);
+	}
+
+	// https://github.com/eclipse-lemminx/lemminx/issues/1791
+	@Test
+	public void rangeFormatLargeFileShouldNotDuplicateContent() throws BadLocationException {
+		// Generate a large XML document (> 100KB) to trigger edit merging
+		StringBuilder sb = new StringBuilder();
+		sb.append("<list>\n");
+		sb.append("  <items>\n");
+		int itemCount = 2000;
+		for (int i = 0; i < itemCount; i++) {
+			sb.append("        <item id=\"item_").append(String.format("%04d", i)).append("\" _delta=\"define\">\n");
+			sb.append("            <rank>").append(i).append("</rank>\n");
+			sb.append("        </item>\n");
+		}
+		sb.append("  </items>\n");
+		sb.append("</list>");
+		String content = sb.toString();
+
+		// Format only a small range (the first item)
+		TextDocument document = new TextDocument(content, "test://test.xml");
+		document.setIncremental(true);
+		DOMDocument xmlDocument = DOMParser.getInstance().parse(document, null);
+
+		// Range covering the first <item> element
+		Position start = document.positionAt(content.indexOf("<item"));
+		Position end = document.positionAt(content.indexOf("</item>") + "</item>".length());
+		Range range = new Range(start, end);
+
+		XMLLanguageService languageService = new XMLLanguageService();
+		List<? extends TextEdit> edits = languageService.format(xmlDocument, range, new SharedSettings());
+
+		String formatted = applyEdits(document, new java.util.ArrayList<>(edits));
+		// The bug caused the entire file content to be duplicated at the paste range,
+		// roughly doubling the document size
+		assert formatted.length() < content.length() * 1.1 :
+				"Range formatting duplicated content: formatted length " + formatted.length()
+						+ " vs original " + content.length();
+		// Verify the document structure is preserved
+		assertEquals(1, countOccurrences(formatted, "<list>"),
+				"Document should contain exactly one <list> opening tag");
+		assertEquals(1, countOccurrences(formatted, "</list>"),
+				"Document should contain exactly one </list> closing tag");
+	}
+
+	private static int countOccurrences(String text, String substring) {
+		int count = 0;
+		int idx = 0;
+		while ((idx = text.indexOf(substring, idx)) != -1) {
+			count++;
+			idx += substring.length();
+		}
+		return count;
 	}
 
 	private static void assertFormat(String unformatted, String actual, TextEdit... expectedEdits)
