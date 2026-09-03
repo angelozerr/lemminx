@@ -452,7 +452,9 @@ public class MissingChildElementCodeActionTest extends AbstractCacheBasedTest {
 				ca(d, createData("test.xml", required_elements_missing_expectedCodeActionResolver.PARTICIPANT_ID,
 						"letter")),
 				ca(d, createData("test.xml", required_elements_missing_expectedCodeActionResolver.PARTICIPANT_ID,
-						"memo")), //
+						"memo")),
+				ca(d, createData("test.xml", required_elements_missing_expectedCodeActionResolver.PARTICIPANT_ID,
+						"slideshow")), //
 				// XML Minify
 				ca(null, createData("test.xml", MinifyCodeActionResolver.PARTICIPANT_ID, null)));
 
