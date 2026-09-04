@@ -658,6 +658,9 @@ public class XMLFormatterDocumentOld {
 	private static boolean formatDTD(DOMDocumentType doctype, int level, int end, XMLBuilder xmlBuilder) {
 		DOMNode previous = null;
 		for (DOMNode node : doctype.getChildren()) {
+			if (node.isText() && ((DOMText) node).isWhitespace()) {
+				continue;
+			}
 			if (previous != null) {
 				xmlBuilder.linefeed();
 			}
