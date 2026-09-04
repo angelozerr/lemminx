@@ -64,6 +64,18 @@ public class GreenDTDDeclNode extends GreenNode {
 	}
 
 	@Override
+	public int childrenStartRel() {
+		if (childCount() == 0) {
+			return 0;
+		}
+		int childrenWidth = 0;
+		for (GreenNode child : children()) {
+			childrenWidth += child.width();
+		}
+		return width() - childrenWidth;
+	}
+
+	@Override
 	public GreenNode[] children() {
 		return children;
 	}

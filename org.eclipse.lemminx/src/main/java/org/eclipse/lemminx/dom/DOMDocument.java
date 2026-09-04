@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import org.eclipse.lemminx.commons.BadLocationException;
 import org.eclipse.lemminx.commons.TextDocument;
+import org.eclipse.lemminx.dom.green.GreenDocument;
 import org.eclipse.lemminx.dom.parser.Constants;
 import org.eclipse.lemminx.uriresolver.URIResolverExtensionManager;
 import org.eclipse.lemminx.utils.DOMUtils;
@@ -65,6 +66,7 @@ public class DOMDocument extends DOMNode implements Document {
 	private String schemaPrefix;
 	private CancelChecker cancelChecker;
 	private String externalGrammarFromNamespaceURI;
+	private volatile GreenDocument greenDocument;
 
 	public DOMDocument(TextDocument textDocument, URIResolverExtensionManager resolverExtensionManager) {
 		super(0, textDocument.getText().length());
@@ -79,6 +81,14 @@ public class DOMDocument extends DOMNode implements Document {
 
 	public CancelChecker getCancelChecker() {
 		return cancelChecker;
+	}
+
+	public GreenDocument getGreenDocument() {
+		return greenDocument;
+	}
+
+	public void setGreenDocument(GreenDocument greenDocument) {
+		this.greenDocument = greenDocument;
 	}
 
 	public List<DOMNode> getRoots() {

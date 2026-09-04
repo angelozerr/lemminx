@@ -20,6 +20,7 @@ package org.eclipse.lemminx.dom;
 import org.eclipse.lemminx.commons.TextDocument;
 import org.eclipse.lemminx.dom.green.GreenDocument;
 import org.eclipse.lemminx.dom.green.GreenTreeBuilder;
+import org.eclipse.lemminx.dom.green.IncrementalParser;
 import org.eclipse.lemminx.uriresolver.URIResolverExtensionManager;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
@@ -62,8 +63,26 @@ public class DOMParser {
 		String text = document.getText();
 		String uri = document.getUri();
 		GreenDocument greenDoc = GreenTreeBuilder.parse(text, uri, monitor);
+		return buildDocument(greenDoc, document, resolverExtensionManager, ignoreWhitespaceContent, monitor);
+	}
+
+	public DOMDocument parseIncremental(TextDocument document,
+			GreenDocument previousGreenDoc, int editStart, int deleteLength, int insertLength,
+			URIResolverExtensionManager resolverExtensionManager,
+			boolean ignoreWhitespaceContent, CancelChecker monitor) {
+		String text = document.getText();
+		String uri = document.getUri();
+		GreenDocument greenDoc = IncrementalParser.incrementalParse(
+				previousGreenDoc, text, editStart, deleteLength, insertLength, uri, monitor);
+		return buildDocument(greenDoc, document, resolverExtensionManager, ignoreWhitespaceContent, monitor);
+	}
+
+	private static DOMDocument buildDocument(GreenDocument greenDoc, TextDocument document,
+			URIResolverExtensionManager resolverExtensionManager,
+			boolean ignoreWhitespaceContent, CancelChecker monitor) {
 		DOMDocument xmlDocument = RedTreeBuilder.build(greenDoc, document,
 				resolverExtensionManager, ignoreWhitespaceContent);
+		xmlDocument.setGreenDocument(greenDoc);
 		xmlDocument.setCancelChecker(monitor);
 		return xmlDocument;
 	}

@@ -86,6 +86,17 @@ public final class GreenElement extends GreenNode {
 	}
 
 	@Override
+	public int childrenStartRel() {
+		if (contentStartRel != NULL_VALUE) {
+			return contentStartRel;
+		}
+		if (startTagCloseRel != NULL_VALUE) {
+			return startTagCloseRel + 1;
+		}
+		return 0;
+	}
+
+	@Override
 	public GreenNode[] children() {
 		return children;
 	}
