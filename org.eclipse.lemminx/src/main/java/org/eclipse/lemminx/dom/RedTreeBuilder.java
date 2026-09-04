@@ -69,7 +69,7 @@ public final class RedTreeBuilder {
 			return;
 		}
 
-		int childrenStartRel = computeChildrenStartRel(greenParent);
+		int childrenStartRel = greenParent.childrenStartRel();
 		int childAbsStart = parentAbsStart + childrenStartRel;
 		boolean skipWhitespace = ignoreWhitespaceContent
 				&& (hasNonWhitespaceChild(children) || greenParent instanceof GreenDocumentType);
@@ -374,47 +374,6 @@ public final class RedTreeBuilder {
 			decl.setUnrecognized(absStart + green.unrecognized().startRel(),
 					absStart + green.unrecognized().endRel());
 		}
-	}
-
-	private static int computeChildrenStartRel(GreenNode greenParent) {
-		if (greenParent instanceof GreenDocument) {
-			return 0;
-		}
-		if (greenParent instanceof GreenElement) {
-			GreenElement elem = (GreenElement) greenParent;
-			if (elem.contentStartRel() != GreenElement.NULL_VALUE) {
-				return elem.contentStartRel();
-			}
-			if (elem.startTagCloseRel() != GreenElement.NULL_VALUE) {
-				return elem.startTagCloseRel() + 1;
-			}
-			return 0;
-		}
-		if (greenParent instanceof GreenDocumentType) {
-			GreenDocumentType dt = (GreenDocumentType) greenParent;
-			if (dt.internalSubset() != null) {
-				return dt.internalSubset().startRel() + 1;
-			}
-			if (dt.childCount() == 0) {
-				return 0;
-			}
-			int childrenWidth = 0;
-			for (GreenNode child : dt.children()) {
-				childrenWidth += child.width();
-			}
-			return dt.width() - childrenWidth;
-		}
-		if (greenParent instanceof GreenDTDDeclNode) {
-			if (greenParent.childCount() == 0) {
-				return 0;
-			}
-			int childrenWidth = 0;
-			for (GreenNode child : greenParent.children()) {
-				childrenWidth += child.width();
-			}
-			return greenParent.width() - childrenWidth;
-		}
-		return 0;
 	}
 
 	private static int abs(int relOffset, int absStart) {

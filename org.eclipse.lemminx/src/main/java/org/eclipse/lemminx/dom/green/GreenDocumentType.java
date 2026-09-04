@@ -58,6 +58,21 @@ public final class GreenDocumentType extends GreenDTDDeclNode {
 	}
 
 	@Override
+	public int childrenStartRel() {
+		if (internalSubset != null) {
+			return internalSubset.startRel() + 1;
+		}
+		if (childCount() == 0) {
+			return 0;
+		}
+		int childrenWidth = 0;
+		for (GreenNode child : children()) {
+			childrenWidth += child.width();
+		}
+		return width() - childrenWidth;
+	}
+
+	@Override
 	protected GreenNode replaceChildren(GreenNode[] newChildren, int newWidth) {
 		return new GreenDocumentType(newWidth, closed(), unrecognized(), declType(),
 				name(), parameters(), newChildren,

@@ -353,6 +353,140 @@ public class GreenTreeBuilderTest {
 				"Parse took too long: " + (elapsed / 1_000_000) + "ms");
 	}
 
+	@Test
+	public void deeplyNestedElements() {
+		StringBuilder open = new StringBuilder();
+		StringBuilder close = new StringBuilder();
+		for (int i = 0; i < 15; i++) {
+			open.append("<n").append(i).append(">");
+			close.insert(0, "</n" + i + ">");
+		}
+		String xml = open.toString() + "deep" + close.toString();
+		GreenDocument doc = GreenTreeBuilder.parse(xml, "test.xml", null);
+		assertEquals(xml.length(), doc.width());
+		assertChildrenWidthSum(doc);
+
+		GreenNode current = doc.child(0);
+		for (int i = 0; i < 14; i++) {
+			GreenElement elem = assertInstanceOf(GreenElement.class, current);
+			assertEquals("n" + i, elem.tag());
+			assertEquals(1, elem.childCount());
+			current = elem.child(0);
+		}
+		GreenElement innermost = assertInstanceOf(GreenElement.class, current);
+		assertEquals("n14", innermost.tag());
+		assertEquals(1, innermost.childCount());
+		assertInstanceOf(GreenText.class, innermost.child(0));
+	}
+
+	@Test
+	public void mixedContentTextAndElements() {
+		String xml = "<p>start<b>bold</b>mid<i>italic</i>end</p>";
+		GreenDocument doc = GreenTreeBuilder.parse(xml, "test.xml", null);
+		assertEquals(xml.length(), doc.width());
+		GreenElement p = assertInstanceOf(GreenElement.class, doc.child(0));
+		assertEquals(5, p.childCount());
+		assertInstanceOf(GreenText.class, p.child(0));
+		assertInstanceOf(GreenElement.class, p.child(1));
+		assertInstanceOf(GreenText.class, p.child(2));
+		assertInstanceOf(GreenElement.class, p.child(3));
+		assertInstanceOf(GreenText.class, p.child(4));
+	}
+
+	@Test
+	public void namespaceDeclarations() {
+		String xml = "<root xmlns:ns=\"http://example.com\"><ns:child/></root>";
+		GreenDocument doc = GreenTreeBuilder.parse(xml, "test.xml", null);
+		assertEquals(xml.length(), doc.width());
+		GreenElement root = assertInstanceOf(GreenElement.class, doc.child(0));
+		assertEquals(1, root.attributeCount());
+		assertEquals(1, root.childCount());
+		GreenElement child = assertInstanceOf(GreenElement.class, root.child(0));
+		assertEquals("ns:child", child.tag());
+	}
+
+	@Test
+	public void multipleProcessingInstructions() {
+		String xml = "<?xml version=\"1.0\"?><?pi1 data1?><?pi2 data2?><root/>";
+		GreenDocument doc = GreenTreeBuilder.parse(xml, "test.xml", null);
+		assertEquals(xml.length(), doc.width());
+		assertEquals(4, doc.childCount());
+		GreenProcessingInstruction pi0 = assertInstanceOf(GreenProcessingInstruction.class, doc.child(0));
+		assertTrue(pi0.prolog());
+		GreenProcessingInstruction pi1 = assertInstanceOf(GreenProcessingInstruction.class, doc.child(1));
+		assertEquals("pi1", pi1.target());
+		assertFalse(pi1.prolog());
+		GreenProcessingInstruction pi2 = assertInstanceOf(GreenProcessingInstruction.class, doc.child(2));
+		assertEquals("pi2", pi2.target());
+		assertInstanceOf(GreenElement.class, doc.child(3));
+	}
+
+	@Test
+	public void doctypePublicSystem() {
+		String xml = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0//EN\" \"http://www.w3.org/xhtml.dtd\"><html/>";
+		GreenDocument doc = GreenTreeBuilder.parse(xml, "test.xml", null);
+		assertEquals(xml.length(), doc.width());
+		GreenDocumentType dt = assertInstanceOf(GreenDocumentType.class, doc.child(0));
+		assertTrue(dt.closed());
+		assertChildrenWidthSum(doc);
+	}
+
+	@Test
+	public void parseRangeUnclosedElement() {
+		String text = "<a/><b><c/>";
+		GreenDocument rangeDoc = GreenTreeBuilder.parseRange(text, "test.xml", 4, 11, null);
+		assertEquals(7, rangeDoc.width());
+		GreenElement b = assertInstanceOf(GreenElement.class, rangeDoc.child(0));
+		assertEquals("b", b.tag());
+		assertFalse(b.closed());
+	}
+
+	@Test
+	public void withReplacedChildWidthAdjustment() {
+		String xml = "<root><a/><b/><c/></root>";
+		GreenDocument doc = GreenTreeBuilder.parse(xml, "test.xml", null);
+		GreenElement root = assertInstanceOf(GreenElement.class, doc.child(0));
+		int originalWidth = root.width();
+
+		GreenText wider = new GreenText(20, false);
+		GreenNode newRoot = root.withReplacedChild(1, wider);
+		assertEquals(originalWidth - 4 + 20, newRoot.width());
+
+		GreenText narrower = new GreenText(1, false);
+		GreenNode newRoot2 = root.withReplacedChild(1, narrower);
+		assertEquals(originalWidth - 4 + 1, newRoot2.width());
+	}
+
+	@Test
+	public void withReplacedChildFirst() {
+		String xml = "<root><a/><b/><c/></root>";
+		GreenDocument doc = GreenTreeBuilder.parse(xml, "test.xml", null);
+		GreenElement root = assertInstanceOf(GreenElement.class, doc.child(0));
+		GreenNode origB = root.child(1);
+		GreenNode origC = root.child(2);
+
+		GreenText replacement = new GreenText(5, false);
+		GreenElement newRoot = assertInstanceOf(GreenElement.class, root.withReplacedChild(0, replacement));
+		assertInstanceOf(GreenText.class, newRoot.child(0));
+		assertTrue(origB == newRoot.child(1));
+		assertTrue(origC == newRoot.child(2));
+	}
+
+	@Test
+	public void withReplacedChildLast() {
+		String xml = "<root><a/><b/><c/></root>";
+		GreenDocument doc = GreenTreeBuilder.parse(xml, "test.xml", null);
+		GreenElement root = assertInstanceOf(GreenElement.class, doc.child(0));
+		GreenNode origA = root.child(0);
+		GreenNode origB = root.child(1);
+
+		GreenText replacement = new GreenText(5, false);
+		GreenElement newRoot = assertInstanceOf(GreenElement.class, root.withReplacedChild(2, replacement));
+		assertTrue(origA == newRoot.child(0));
+		assertTrue(origB == newRoot.child(1));
+		assertInstanceOf(GreenText.class, newRoot.child(2));
+	}
+
 	private void assertTotalWidthConsistent(GreenNode node) {
 		GreenNode[] kids = node.children();
 		if (kids.length > 0) {

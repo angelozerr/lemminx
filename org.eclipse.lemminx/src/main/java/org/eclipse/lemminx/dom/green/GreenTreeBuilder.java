@@ -43,19 +43,19 @@ public final class GreenTreeBuilder {
 	 * @return the root green document node
 	 */
 	public static GreenDocument parse(String text, String uri, CancelChecker monitor) {
-		return parse(text, uri, true, monitor);
+		return parseRange(text, uri, 0, text.length(), monitor);
 	}
 
-	public static GreenDocument parse(String text, String uri,
-			boolean ignoreWhitespaceContent, CancelChecker monitor) {
+	public static GreenDocument parseRange(String text, String uri,
+			int rangeStart, int rangeEnd, CancelChecker monitor) {
 		boolean isDTD = DOMUtils.isDTD(uri);
-		Scanner scanner = XMLScanner.createScanner(text, 0, isDTD);
+		Scanner scanner = XMLScanner.createScanner(text, rangeStart, isDTD);
 
 		Deque<NodeBuilder> stack = new ArrayDeque<>();
 		List<GreenNode> rootChildren = new ArrayList<>();
 
 		if (isDTD) {
-			NodeBuilder dtdRoot = new NodeBuilder(NodeKind.DOCUMENT_TYPE, 0);
+			NodeBuilder dtdRoot = new NodeBuilder(NodeKind.DOCUMENT_TYPE, rangeStart);
 			dtdRoot.closed = true;
 			stack.push(dtdRoot);
 		}
@@ -67,12 +67,15 @@ public final class GreenTreeBuilder {
 		boolean inDTDInternalSubset = false;
 		GreenText tempWhitespaceContent = null;
 		int tempWhitespaceStart = -1;
-		int[] nextRootChildEnd = { 0 };
+		int[] nextRootChildEnd = { rangeStart };
 
 		NodeBuilder lastClosed = null;
 
 		TokenType token = scanner.scan();
 		while (token != TokenType.EOS) {
+			if (rangeEnd < text.length() && scanner.getTokenOffset() >= rangeEnd && stack.isEmpty()) {
+				break;
+			}
 			if (monitor != null) {
 				monitor.checkCanceled();
 			}
@@ -816,13 +819,14 @@ public final class GreenTreeBuilder {
 		// Flush remaining open nodes
 		while (!stack.isEmpty()) {
 			NodeBuilder top = stack.peek();
-			top.nodeEnd = text.length();
+			top.nodeEnd = rangeEnd;
 			GreenNode built = top.buildGreen();
 			stack.pop();
 			addChildToCurrentOrRoot(stack, rootChildren, nextRootChildEnd, built, top.nodeStart);
 		}
 
-		return new GreenDocument(text.length(),
+		int docWidth = rangeEnd - rangeStart;
+		return new GreenDocument(docWidth,
 				rootChildren.toArray(GreenNode.EMPTY_CHILDREN));
 	}
 

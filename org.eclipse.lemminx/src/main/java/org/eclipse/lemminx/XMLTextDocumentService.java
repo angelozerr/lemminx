@@ -202,6 +202,21 @@ public class XMLTextDocumentService implements TextDocumentService {
 		this.xmlLanguageServer = xmlLanguageServer;
 		DOMParser parser = DOMParser.getInstance();
 		this.documents = new ModelTextDocuments<DOMDocument>((document, cancelChecker) -> {
+			if (document instanceof ModelTextDocument) {
+				@SuppressWarnings("unchecked")
+				ModelTextDocument<DOMDocument> mtd = (ModelTextDocument<DOMDocument>) document;
+				DOMDocument prev = mtd.getPreviousModel();
+				ModelTextDocument.EditInfo editInfo = mtd.getPendingEdit();
+				if (prev != null && prev.getGreenDocument() != null && editInfo != null) {
+					return parser.parseIncremental(document,
+							prev.getGreenDocument(),
+							editInfo.getStartOffset(),
+							editInfo.getDeleteLength(),
+							editInfo.getInsertLength(),
+							getXMLLanguageService().getResolverExtensionManager(),
+							true, cancelChecker);
+				}
+			}
 			return parser.parse(document, getXMLLanguageService().getResolverExtensionManager(), true, cancelChecker);
 		});
 		this.sharedSettings = new SharedSettings();

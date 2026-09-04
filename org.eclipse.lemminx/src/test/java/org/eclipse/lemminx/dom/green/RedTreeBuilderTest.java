@@ -511,6 +511,29 @@ public class RedTreeBuilderTest {
 		assertRedTreeEquivalent("<root>\n  <a/>\r\n  <b/>\r  <c/>\n</root>");
 	}
 
+	@Test
+	public void deeplyNestedTenLevels() {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < 10; i++) {
+			sb.append("<n").append(i).append(">");
+		}
+		sb.append("deep");
+		for (int i = 9; i >= 0; i--) {
+			sb.append("</n").append(i).append(">");
+		}
+		assertRedTreeEquivalent(sb.toString());
+	}
+
+	@Test
+	public void piInsideElement() {
+		assertRedTreeEquivalent("<root><?target data?><child/></root>");
+	}
+
+	@Test
+	public void multiplePIsInsideElement() {
+		assertRedTreeEquivalent("<root><?pi1 a?><child/><?pi2 b?></root>");
+	}
+
 	private void assertRedTreeEquivalent(String xml) {
 		TextDocument textDoc = new TextDocument(xml, "test://test.xml");
 

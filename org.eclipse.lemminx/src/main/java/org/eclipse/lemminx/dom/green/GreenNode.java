@@ -66,5 +66,9 @@ public abstract class GreenNode {
 		return replaceChildren(copy, width + deltaWidth);
 	}
 
+	public int childrenStartRel() {
+		return 0;
+	}
+
 	protected abstract GreenNode replaceChildren(GreenNode[] newChildren, int newWidth);
 }
