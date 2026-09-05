@@ -41,19 +41,30 @@ import org.w3c.dom.Node;
 public final class RedTreeBuilder {
 
 	private final boolean ignoreWhitespaceContent;
+	private final boolean lazy;
 
-	private RedTreeBuilder(boolean ignoreWhitespaceContent) {
+	private RedTreeBuilder(boolean ignoreWhitespaceContent, boolean lazy) {
 		this.ignoreWhitespaceContent = ignoreWhitespaceContent;
+		this.lazy = lazy;
 	}
 
 	public static DOMDocument build(GreenDocument greenDoc, TextDocument textDocument,
 			URIResolverExtensionManager resolverExtensionManager) {
-		return new RedTreeBuilder(true).doBuild(greenDoc, textDocument, resolverExtensionManager);
+		return new RedTreeBuilder(true, false).doBuild(greenDoc, textDocument, resolverExtensionManager);
 	}
 
 	public static DOMDocument build(GreenDocument greenDoc, TextDocument textDocument,
 			URIResolverExtensionManager resolverExtensionManager, boolean ignoreWhitespaceContent) {
-		return new RedTreeBuilder(ignoreWhitespaceContent).doBuild(greenDoc, textDocument, resolverExtensionManager);
+		return new RedTreeBuilder(ignoreWhitespaceContent, false).doBuild(greenDoc, textDocument, resolverExtensionManager);
+	}
+
+	public static DOMDocument buildLazy(GreenDocument greenDoc, TextDocument textDocument,
+			URIResolverExtensionManager resolverExtensionManager) {
+		return new RedTreeBuilder(true, true).doBuild(greenDoc, textDocument, resolverExtensionManager);
+	}
+
+	static void expandLazy(DOMNode node, GreenNode green, int absStart) {
+		new RedTreeBuilder(true, true).addChildren(node, green, absStart);
 	}
 
 	private DOMDocument doBuild(GreenDocument greenDoc, TextDocument textDocument,
@@ -61,6 +72,15 @@ public final class RedTreeBuilder {
 		DOMDocument domDoc = new DOMDocument(textDocument, resolverExtensionManager);
 		addChildren(domDoc, greenDoc, 0);
 		return domDoc;
+	}
+
+	private void addChildrenOrDefer(DOMNode node, GreenNode green, int absStart) {
+		if (lazy && green.children().length > 0) {
+			node.lazyGreenNode = green;
+			node.lazyAbsStart = absStart;
+		} else {
+			addChildren(node, green, absStart);
+		}
 	}
 
 	private void addChildren(DOMNode parent, GreenNode greenParent, int parentAbsStart) {
@@ -155,7 +175,7 @@ public final class RedTreeBuilder {
 			elem.setAttributeNode(attr);
 		}
 
-		addChildren(elem, green, absStart);
+		addChildrenOrDefer(elem, green, absStart);
 		return elem;
 	}
 
@@ -244,7 +264,7 @@ public final class RedTreeBuilder {
 		}
 
 		setDTDUnrecognized(dt, green, absStart);
-		addChildren(dt, green, absStart);
+		addChildrenOrDefer(dt, green, absStart);
 		dt.end = absEnd;
 		return dt;
 	}
@@ -263,7 +283,7 @@ public final class RedTreeBuilder {
 					absStart + green.content().endRel());
 		}
 		setDTDUnrecognized(decl, green, absStart);
-		addChildren(decl, green, absStart);
+		addChildrenOrDefer(decl, green, absStart);
 		decl.end = absEnd;
 		return decl;
 	}
@@ -286,7 +306,7 @@ public final class RedTreeBuilder {
 					absStart + green.attributeValue().endRel());
 		}
 		setDTDUnrecognized(decl, green, absStart);
-		addChildren(decl, green, absStart);
+		addChildrenOrDefer(decl, green, absStart);
 		decl.end = absEnd;
 		return decl;
 	}
@@ -317,7 +337,7 @@ public final class RedTreeBuilder {
 					absStart + green.systemId().endRel());
 		}
 		setDTDUnrecognized(decl, green, absStart);
-		addChildren(decl, green, absStart);
+		addChildrenOrDefer(decl, green, absStart);
 		decl.end = absEnd;
 		return decl;
 	}
@@ -340,7 +360,7 @@ public final class RedTreeBuilder {
 					absStart + green.systemId().endRel());
 		}
 		setDTDUnrecognized(decl, green, absStart);
-		addChildren(decl, green, absStart);
+		addChildrenOrDefer(decl, green, absStart);
 		decl.end = absEnd;
 		return decl;
 	}
@@ -351,7 +371,7 @@ public final class RedTreeBuilder {
 		decl.setClosed(green.closed());
 		setDTDDeclFields(decl, green, absStart);
 		setDTDUnrecognized(decl, green, absStart);
-		addChildren(decl, green, absStart);
+		addChildrenOrDefer(decl, green, absStart);
 		decl.end = absEnd;
 		return decl;
 	}

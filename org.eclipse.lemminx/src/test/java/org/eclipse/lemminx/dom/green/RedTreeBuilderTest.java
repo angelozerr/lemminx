@@ -534,6 +534,80 @@ public class RedTreeBuilderTest {
 		assertRedTreeEquivalent("<root><?pi1 a?><child/><?pi2 b?></root>");
 	}
 
+	// --- Lazy building tests ---
+
+	@Test
+	public void lazyBuildProducesSameTree() {
+		String xml = "<root><a><b>text</b></a><c/></root>";
+		assertLazyTreeEquivalent(xml);
+	}
+
+	@Test
+	public void lazyBuildDeferredUntilAccess() {
+		String xml = "<root><a><b/></a><c><d/></c></root>";
+		TextDocument textDoc = new TextDocument(xml, "test://test.xml");
+		GreenDocument greenDoc = GreenTreeBuilder.parse(xml, "test://test.xml", null);
+		DOMDocument doc = RedTreeBuilder.buildLazy(greenDoc, textDoc, null);
+
+		DOMElement root = (DOMElement) doc.getFirstChild();
+		assertEquals("root", root.getTagName());
+
+		DOMElement a = (DOMElement) root.getFirstChild();
+		assertEquals("a", a.getTagName());
+		assertEquals(true, a.hasChildNodes());
+
+		DOMElement b = (DOMElement) a.getFirstChild();
+		assertEquals("b", b.getTagName());
+	}
+
+	@Test
+	public void lazyBuildComplexDocument() {
+		String xml = "<?xml version=\"1.0\"?>\n" +
+				"<project>\n" +
+				"  <dependencies>\n" +
+				"    <dependency>\n" +
+				"      <groupId>junit</groupId>\n" +
+				"    </dependency>\n" +
+				"  </dependencies>\n" +
+				"</project>";
+		assertLazyTreeEquivalent(xml);
+	}
+
+	@Test
+	public void lazyBuildFindNodeAt() {
+		String xml = "<root><a><b>text</b></a><c><d>deep</d></c></root>";
+		TextDocument textDoc = new TextDocument(xml, "test://test.xml");
+		GreenDocument greenDoc = GreenTreeBuilder.parse(xml, "test://test.xml", null);
+		DOMDocument doc = RedTreeBuilder.buildLazy(greenDoc, textDoc, null);
+		doc.setGreenDocument(greenDoc);
+
+		int offset = xml.indexOf("deep") + 1;
+		DOMNode found = doc.findNodeAt(offset);
+		assertEquals(true, found.isText());
+		assertEquals("deep", ((DOMText) found).getData());
+	}
+
+	@Test
+	public void lazyBuildLargeDocument() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("<root>\n");
+		for (int i = 0; i < 1000; i++) {
+			sb.append("  <item id=\"").append(i).append("\">value ").append(i).append("</item>\n");
+		}
+		sb.append("</root>");
+		assertLazyTreeEquivalent(sb.toString());
+	}
+
+	private void assertLazyTreeEquivalent(String xml) {
+		TextDocument textDoc = new TextDocument(xml, "test://test.xml");
+
+		GreenDocument greenDoc = GreenTreeBuilder.parse(xml, "test://test.xml", null);
+		DOMDocument eager = RedTreeBuilder.build(greenDoc, textDoc, null);
+		DOMDocument lazy = RedTreeBuilder.buildLazy(greenDoc, textDoc, null);
+
+		assertNodesEqual(eager, lazy, xml);
+	}
+
 	private void assertRedTreeEquivalent(String xml) {
 		TextDocument textDoc = new TextDocument(xml, "test://test.xml");
 

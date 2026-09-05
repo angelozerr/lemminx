@@ -74,7 +74,10 @@ public class DOMParser {
 		String uri = document.getUri();
 		GreenDocument greenDoc = IncrementalParser.incrementalParse(
 				previousGreenDoc, text, editStart, deleteLength, insertLength, uri, monitor);
-		return buildDocument(greenDoc, document, resolverExtensionManager, ignoreWhitespaceContent, monitor);
+		DOMDocument xmlDocument = RedTreeBuilder.buildLazy(greenDoc, document, resolverExtensionManager);
+		xmlDocument.setGreenDocument(greenDoc);
+		xmlDocument.setCancelChecker(monitor);
+		return xmlDocument;
 	}
 
 	private static DOMDocument buildDocument(GreenDocument greenDoc, TextDocument document,

@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
+import org.eclipse.lemminx.dom.green.GreenNode;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -73,10 +74,13 @@ public abstract class DOMNode implements Node, DOMRange {
 	int end; // <root> </root>|
 
 	DOMNode parent;
-	
+
 	// Cache the index in parent's children list to avoid O(n) indexOf() calls
 	// This is set to -1 when not cached, and updated when needed
 	int cachedIndexInParent = -1;
+
+	GreenNode lazyGreenNode;
+	int lazyAbsStart;
 
 	private static final NodeList EMPTY_CHILDREN = new NodeList() {
 
@@ -236,6 +240,7 @@ public abstract class DOMNode implements Node, DOMRange {
 		result.append(getNodeName());
 		result.append(", closed: ");
 		result.append(isClosed());
+		ensureChildren();
 		if (children != null && children.size() > 0) {
 			result.append(", \n");
 			for (int i = 0; i < indent + 1; i++) {
@@ -520,12 +525,22 @@ public abstract class DOMNode implements Node, DOMRange {
 		return result;
 	}
 
+	private void ensureChildren() {
+		if (lazyGreenNode != null) {
+			GreenNode green = lazyGreenNode;
+			int absStart = lazyAbsStart;
+			lazyGreenNode = null;
+			RedTreeBuilder.expandLazy(this, green, absStart);
+		}
+	}
+
 	/**
 	 * Returns the node children.
-	 * 
+	 *
 	 * @return the node children.
 	 */
 	public List<DOMNode> getChildren() {
+		ensureChildren();
 		if (children == null) {
 			return Collections.emptyList();
 		}
@@ -690,6 +705,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	@Override
 	public DOMNode getFirstChild() {
+		ensureChildren();
 		return this.children != null && children.size() > 0 ? this.children.get(0) : null;
 	}
 
@@ -700,6 +716,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	@Override
 	public DOMNode getLastChild() {
+		ensureChildren();
 		return this.children != null && this.children.size() > 0 ? this.children.get(this.children.size() - 1) : null;
 	}
 
@@ -720,6 +737,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	@Override
 	public NodeList getChildNodes() {
+		ensureChildren();
 		return children != null ? children : EMPTY_CHILDREN;
 	}
 
@@ -921,6 +939,7 @@ public abstract class DOMNode implements Node, DOMRange {
 			return null;
 		// concatenation of the textContent attribute value of every child node
 		default:
+			ensureChildren();
 			if (this.children != null && children.size() > 0) {
 				final StringBuilder builder = new StringBuilder();
 				for (DOMNode child : children) {
@@ -953,6 +972,9 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	@Override
 	public boolean hasChildNodes() {
+		if (lazyGreenNode != null) {
+			return true;
+		}
 		return children != null && !children.isEmpty();
 	}
 
