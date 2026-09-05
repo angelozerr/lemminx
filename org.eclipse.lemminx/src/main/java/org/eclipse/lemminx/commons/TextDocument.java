@@ -66,6 +66,7 @@ public class TextDocument extends TextDocumentItem {
 			}
 			if (textBuffer != null) {
 				cachedText = textBuffer.toString();
+				textBuffer = null;
 				super.setText(cachedText);
 				return cachedText;
 			}
