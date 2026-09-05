@@ -1223,7 +1223,7 @@ public class DOMParserTest {
 			int endTagOpenRel = endTagStart != null ? endTagStart - n.start : GreenElement.NULL_VALUE;
 			elem.greenElement = new GreenElement(width, closed, tag, false,
 					GreenElement.NULL_VALUE, endTagOpenRel, GreenElement.NULL_VALUE,
-					GreenElement.NULL_VALUE, null, null);
+					null, null);
 			boolean isOrphanEndTag = endTagOpenRel == 0;
 			elem.startTagOpenOffset = isOrphanEndTag ? DOMNode.NULL_VALUE : n.start;
 		} else if (n instanceof DOMProcessingInstruction) {

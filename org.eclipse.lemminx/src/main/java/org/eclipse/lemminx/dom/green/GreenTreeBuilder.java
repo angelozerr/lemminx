@@ -120,7 +120,7 @@ public final class GreenTreeBuilder {
 					GreenElement fakeEndTag = new GreenElement(
 							2, false, null, false,
 							GreenElement.NULL_VALUE, 0, GreenElement.NULL_VALUE,
-							GreenElement.NULL_VALUE, null, null);
+							null, null);
 					addChildToCurrentOrRoot(stack, rootChildren, nextRootChildEnd, fakeEndTag, endTagOpenOffset);
 				}
 			}
@@ -809,7 +809,7 @@ public final class GreenTreeBuilder {
 			GreenElement fakeEndTag = new GreenElement(
 					2, false, null, false,
 					GreenElement.NULL_VALUE, 0, GreenElement.NULL_VALUE,
-					GreenElement.NULL_VALUE, null, null);
+					null, null);
 			addChildToCurrentOrRoot(stack, rootChildren, nextRootChildEnd, fakeEndTag, endTagOpenOffset);
 		}
 
@@ -1052,14 +1052,9 @@ public final class GreenTreeBuilder {
 			GreenAttr[] attrs = attributes != null
 					? (attrCount == attributes.length ? attributes : Arrays.copyOf(attributes, attrCount))
 					: null;
-			int contentStart = firstChildAbsStart != GreenElement.NULL_VALUE
-					? firstChildAbsStart - nodeStart
-					: (startTagCloseOffset != GreenElement.NULL_VALUE
-							? startTagCloseOffset + 1 - nodeStart
-							: GreenElement.NULL_VALUE);
 			return new GreenElement(width, closed, tag, selfClosed,
 					rel(startTagCloseOffset), rel(endTagOpenOffset),
-					rel(endTagCloseOffset), contentStart, attrs, kids);
+					rel(endTagCloseOffset), attrs, kids);
 		}
 
 		private GreenComment buildComment(int width) {

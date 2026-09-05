@@ -83,8 +83,9 @@ public class DOMParser {
 	private static DOMDocument buildDocument(GreenDocument greenDoc, TextDocument document,
 			URIResolverExtensionManager resolverExtensionManager,
 			boolean ignoreWhitespaceContent, CancelChecker monitor) {
-		DOMDocument xmlDocument = RedTreeBuilder.build(greenDoc, document,
-				resolverExtensionManager, ignoreWhitespaceContent);
+		DOMDocument xmlDocument = ignoreWhitespaceContent
+				? RedTreeBuilder.buildLazy(greenDoc, document, resolverExtensionManager)
+				: RedTreeBuilder.build(greenDoc, document, resolverExtensionManager, ignoreWhitespaceContent);
 		xmlDocument.setGreenDocument(greenDoc);
 		xmlDocument.setCancelChecker(monitor);
 		return xmlDocument;

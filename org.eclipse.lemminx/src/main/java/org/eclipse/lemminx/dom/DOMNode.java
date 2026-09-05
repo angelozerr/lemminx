@@ -938,9 +938,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	@Override
 	public boolean hasChildNodes() {
-		if (lazyGreenNode != null) {
-			return true;
-		}
+		ensureChildren();
 		return children != null && children.length > 0;
 	}
 

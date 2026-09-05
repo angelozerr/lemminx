@@ -119,6 +119,6 @@ public final class GreenElementBuilder {
 				: null;
 
 		return new GreenElement(width, closed, tag, selfClosed,
-				stcRel, etoRel, etcRel, GreenElement.NULL_VALUE, attrs, kids);
+				stcRel, etoRel, etcRel, attrs, kids);
 	}
 }

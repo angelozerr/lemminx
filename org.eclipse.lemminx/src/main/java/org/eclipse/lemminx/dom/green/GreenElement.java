@@ -28,20 +28,17 @@ public final class GreenElement extends GreenNode {
 	private final int startTagCloseRel;
 	private final int endTagOpenRel;
 	private final int endTagCloseRel;
-	private final int contentStartRel;
 	private final GreenAttr[] attributes;
 	private final GreenNode[] children;
 
 	public GreenElement(int width, boolean closed, String tag, boolean selfClosed,
 			int startTagCloseRel, int endTagOpenRel, int endTagCloseRel,
-			int contentStartRel,
 			GreenAttr[] attributes, GreenNode[] children) {
 		super(width, (closed ? CLOSED_FLAG : 0) | (selfClosed ? SUBCLASS_FLAG : 0));
 		this.tag = tag;
 		this.startTagCloseRel = startTagCloseRel;
 		this.endTagOpenRel = endTagOpenRel;
 		this.endTagCloseRel = endTagCloseRel;
-		this.contentStartRel = contentStartRel;
 		this.attributes = attributes != null ? attributes : EMPTY_ATTRS;
 		this.children = children != null ? children : EMPTY_CHILDREN;
 	}
@@ -71,10 +68,6 @@ public final class GreenElement extends GreenNode {
 		return endTagCloseRel;
 	}
 
-	public int contentStartRel() {
-		return contentStartRel;
-	}
-
 	public GreenAttr[] attributes() {
 		return attributes;
 	}
@@ -85,9 +78,6 @@ public final class GreenElement extends GreenNode {
 
 	@Override
 	public int childrenStartRel() {
-		if (contentStartRel != NULL_VALUE) {
-			return contentStartRel;
-		}
 		if (startTagCloseRel != NULL_VALUE) {
 			return startTagCloseRel + 1;
 		}
@@ -105,13 +95,13 @@ public final class GreenElement extends GreenNode {
 				startTagCloseRel,
 				endTagOpenRel != NULL_VALUE ? endTagOpenRel + widthDelta : NULL_VALUE,
 				endTagCloseRel != NULL_VALUE ? endTagCloseRel + widthDelta : NULL_VALUE,
-				contentStartRel, attributes, newChildren);
+				attributes, newChildren);
 	}
 
 	@Override
 	protected GreenNode replaceChildren(GreenNode[] newChildren, int newWidth) {
 		return new GreenElement(newWidth, closed(), tag, selfClosed(),
 				startTagCloseRel, endTagOpenRel, endTagCloseRel,
-				contentStartRel, attributes, newChildren);
+				attributes, newChildren);
 	}
 }

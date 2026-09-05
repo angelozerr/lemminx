@@ -65,6 +65,11 @@ public final class RedTreeBuilder {
 		return new RedTreeBuilder(true, true).doBuild(greenDoc, textDocument, resolverExtensionManager);
 	}
 
+	public static DOMDocument buildLazy(GreenDocument greenDoc, TextDocument textDocument,
+			URIResolverExtensionManager resolverExtensionManager, boolean ignoreWhitespaceContent) {
+		return new RedTreeBuilder(ignoreWhitespaceContent, true).doBuild(greenDoc, textDocument, resolverExtensionManager);
+	}
+
 	static void expandLazy(DOMNode node, GreenNode green, int absStart) {
 		new RedTreeBuilder(true, true).addChildren(node, green, absStart);
 	}

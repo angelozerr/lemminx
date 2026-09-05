@@ -181,6 +181,14 @@ public class ModelTextDocument<T> extends TextDocument {
 	}
 
 	/**
+	 * Clears the previous incremental data to allow early GC of the old
+	 * green tree after incremental parsing completes.
+	 */
+	public void clearPreviousIncrementalData() {
+		previousIncrementalData = null;
+	}
+
+	/**
 	 * Returns the pending edit info (offset, delete/insert lengths) for
 	 * the most recent single-change edit, or null if not available.
 	 *

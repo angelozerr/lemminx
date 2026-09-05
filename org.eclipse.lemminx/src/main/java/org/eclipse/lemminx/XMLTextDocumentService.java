@@ -209,13 +209,15 @@ public class XMLTextDocumentService implements TextDocumentService {
 				Object prevData = mtd.getPreviousIncrementalData();
 				ModelTextDocument.EditInfo editInfo = mtd.getPendingEdit();
 				if (prevData instanceof GreenDocument && editInfo != null) {
-					return parser.parseIncremental(document,
+					DOMDocument result = parser.parseIncremental(document,
 							(GreenDocument) prevData,
 							editInfo.getStartOffset(),
 							editInfo.getDeleteLength(),
 							editInfo.getInsertLength(),
 							getXMLLanguageService().getResolverExtensionManager(),
 							true, cancelChecker);
+					mtd.clearPreviousIncrementalData();
+					return result;
 				}
 			}
 			return parser.parse(document, getXMLLanguageService().getResolverExtensionManager(), true, cancelChecker);
