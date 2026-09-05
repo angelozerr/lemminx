@@ -45,14 +45,14 @@ public class ModelTextDocumentTest {
 	}
 
 	@Test
-	public void previousModelPreservedOnCancel() {
+	public void previousIncrementalDataPreservedOnCancel() {
 		ModelTextDocument<String> doc = createDoc("<root/>");
 		String firstModel = doc.getModel();
 		assertNotNull(firstModel);
 
 		doc.setText("<root>changed</root>");
 
-		String prev = doc.getPreviousModel();
+		Object prev = doc.getPreviousIncrementalData();
 		assertNotNull(prev);
 		assertEquals(firstModel, prev);
 	}
@@ -70,7 +70,7 @@ public class ModelTextDocumentTest {
 		doc.getModel();
 
 		assertNull(doc.getPendingEdit());
-		assertNull(doc.getPreviousModel());
+		assertNull(doc.getPreviousIncrementalData());
 	}
 
 	@Test
@@ -97,25 +97,69 @@ public class ModelTextDocumentTest {
 	}
 
 	@Test
-	public void doubleCancelModelPreservesFirstPreviousModel() {
+	public void doubleCancelModelPreservesFirstIncrementalData() {
 		ModelTextDocument<String> doc = createDoc("<root/>");
 		String firstModel = doc.getModel();
 		assertNotNull(firstModel);
 
 		doc.setText("<root>changed1</root>");
-		String prevAfterFirst = doc.getPreviousModel();
+		Object prevAfterFirst = doc.getPreviousIncrementalData();
 		assertEquals(firstModel, prevAfterFirst);
 
 		// Second setText without getModel() in between — model is already null,
-		// so cancelModel() does NOT overwrite previousModel
+		// so cancelModel() does NOT overwrite previousIncrementalData
 		doc.setText("<root>changed2</root>");
-		String prevAfterSecond = doc.getPreviousModel();
+		Object prevAfterSecond = doc.getPreviousIncrementalData();
 		assertEquals(firstModel, prevAfterSecond);
+	}
+
+	@Test
+	public void noExtractorMeansNoPreviousIncrementalData() {
+		ModelTextDocument<String> doc = new ModelTextDocument<>("<root/>", "test://test.xml",
+				(document, cancelChecker) -> document.getText());
+		doc.setIncremental(true);
+		String firstModel = doc.getModel();
+		assertNotNull(firstModel);
+
+		doc.setText("<root>changed</root>");
+
+		assertNull(doc.getPreviousIncrementalData());
+	}
+
+	@Test
+	public void customExtractorStoresTransformedData() {
+		ModelTextDocument<String> doc = new ModelTextDocument<>("<root/>", "test://test.xml",
+				(document, cancelChecker) -> document.getText(),
+				s -> s.length());
+		doc.setIncremental(true);
+		String firstModel = doc.getModel();
+		assertNotNull(firstModel);
+
+		doc.setText("<root>changed</root>");
+
+		Object prev = doc.getPreviousIncrementalData();
+		assertNotNull(prev);
+		assertEquals(firstModel.length(), prev);
+	}
+
+	@Test
+	public void doubleCancelWithoutExtractorRemainsNull() {
+		ModelTextDocument<String> doc = new ModelTextDocument<>("<root/>", "test://test.xml",
+				(document, cancelChecker) -> document.getText());
+		doc.setIncremental(true);
+		doc.getModel();
+
+		doc.setText("<root>changed1</root>");
+		assertNull(doc.getPreviousIncrementalData());
+
+		doc.setText("<root>changed2</root>");
+		assertNull(doc.getPreviousIncrementalData());
 	}
 
 	private ModelTextDocument<String> createDoc(String text) {
 		ModelTextDocument<String> doc = new ModelTextDocument<>(text, "test://test.xml",
-				(document, cancelChecker) -> document.getText());
+				(document, cancelChecker) -> document.getText(),
+				s -> s);
 		doc.setIncremental(true);
 		return doc;
 	}

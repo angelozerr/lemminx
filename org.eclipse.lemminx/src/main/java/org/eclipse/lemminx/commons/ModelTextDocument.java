@@ -14,6 +14,7 @@ package org.eclipse.lemminx.commons;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.eclipse.lsp4j.Range;
@@ -34,20 +35,34 @@ public class ModelTextDocument<T> extends TextDocument {
 
 	private final BiFunction<TextDocument, CancelChecker, T> parse;
 
+	private final Function<T, Object> incrementalDataExtractor;
+
 	private volatile T model;
 
-	private volatile T previousModel;
+	private volatile Object previousIncrementalData;
 
 	private volatile EditInfo pendingEdit;
 
 	public ModelTextDocument(TextDocumentItem document, BiFunction<TextDocument, CancelChecker, T> parse) {
+		this(document, parse, null);
+	}
+
+	public ModelTextDocument(TextDocumentItem document, BiFunction<TextDocument, CancelChecker, T> parse,
+			Function<T, Object> incrementalDataExtractor) {
 		super(document);
 		this.parse = parse;
+		this.incrementalDataExtractor = incrementalDataExtractor;
 	}
 
 	public ModelTextDocument(String text, String uri, BiFunction<TextDocument, CancelChecker, T> parse) {
+		this(text, uri, parse, null);
+	}
+
+	public ModelTextDocument(String text, String uri, BiFunction<TextDocument, CancelChecker, T> parse,
+			Function<T, Object> incrementalDataExtractor) {
 		super(text, uri);
 		this.parse = parse;
+		this.incrementalDataExtractor = incrementalDataExtractor;
 	}
 
 	/**
@@ -98,7 +113,7 @@ public class ModelTextDocument<T> extends TextDocument {
 					+ (System.currentTimeMillis() - start) + "ms");
 			throw e;
 		} finally {
-			previousModel = null;
+			previousIncrementalData = null;
 			pendingEdit = null;
 			LOGGER.fine("End parse of model with version '" + version + "' in " + (System.currentTimeMillis() - start)
 					+ "ms");
@@ -148,18 +163,21 @@ public class ModelTextDocument<T> extends TextDocument {
 	 */
 	private void cancelModel() {
 		if (model != null) {
-			previousModel = model;
+			if (incrementalDataExtractor != null) {
+				previousIncrementalData = incrementalDataExtractor.apply(model);
+			}
 		}
 		model = null;
 	}
 
 	/**
-	 * Returns the previous model (before the last edit) and null if not available.
+	 * Returns the data extracted from the previous model for incremental parsing,
+	 * or null if not available.
 	 *
-	 * @return the previous model or null
+	 * @return the incremental data or null
 	 */
-	public T getPreviousModel() {
-		return previousModel;
+	public Object getPreviousIncrementalData() {
+		return previousIncrementalData;
 	}
 
 	/**
