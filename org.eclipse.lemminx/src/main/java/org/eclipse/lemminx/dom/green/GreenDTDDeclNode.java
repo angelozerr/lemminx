@@ -34,7 +34,7 @@ public class GreenDTDDeclNode extends GreenNode {
 			GreenDTDParam unrecognized, GreenDTDParam declType,
 			GreenDTDParam name, GreenDTDParam[] parameters,
 			GreenNode[] children) {
-		super(width, closed);
+		super(width, closed ? CLOSED_FLAG : 0);
 		this.unrecognized = unrecognized;
 		this.declType = declType;
 		this.name = name;

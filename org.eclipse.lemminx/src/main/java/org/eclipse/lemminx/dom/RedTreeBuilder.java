@@ -71,6 +71,7 @@ public final class RedTreeBuilder {
 			URIResolverExtensionManager resolverExtensionManager) {
 		DOMDocument domDoc = new DOMDocument(textDocument, resolverExtensionManager);
 		addChildren(domDoc, greenDoc, 0);
+		domDoc.compactChildren();
 		return domDoc;
 	}
 
@@ -110,6 +111,7 @@ public final class RedTreeBuilder {
 			}
 			childAbsStart += greenChild.width();
 		}
+		parent.compactChildren();
 	}
 
 	private static boolean hasNonWhitespaceChild(GreenNode[] children) {
@@ -159,7 +161,7 @@ public final class RedTreeBuilder {
 	private DOMElement createElement(GreenElement green, int absStart, int absEnd) {
 		DOMElement elem = new DOMElement(absStart, absEnd);
 		elem.tag = green.tag();
-		elem.selfClosed = green.selfClosed();
+		elem.setSelfClosed(green.selfClosed());
 		boolean isOrphanEndTag = green.endTagOpenRel() != GreenElement.NULL_VALUE
 				&& green.endTagOpenRel() == 0
 				&& green.startTagCloseRel() == GreenElement.NULL_VALUE;

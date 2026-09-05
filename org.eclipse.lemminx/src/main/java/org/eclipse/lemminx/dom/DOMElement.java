@@ -33,7 +33,6 @@ import org.w3c.dom.TypeInfo;
 public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 
 	String tag;
-	boolean selfClosed;
 
 	// DomElement.start == startTagOpenOffset
 	int startTagOpenOffset = NULL_VALUE; // |<root>
@@ -235,7 +234,11 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 	}
 
 	public boolean isSelfClosed() {
-		return selfClosed;
+		return hasFlag(FLAG_SELF_CLOSED);
+	}
+
+	void setSelfClosed(boolean selfClosed) {
+		setFlag(FLAG_SELF_CLOSED, selfClosed);
 	}
 
 	/**

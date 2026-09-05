@@ -25,7 +25,6 @@ public final class GreenElement extends GreenNode {
 	public static final int NULL_VALUE = -1;
 
 	private final String tag;
-	private final boolean selfClosed;
 	private final int startTagCloseRel;
 	private final int endTagOpenRel;
 	private final int endTagCloseRel;
@@ -37,9 +36,8 @@ public final class GreenElement extends GreenNode {
 			int startTagCloseRel, int endTagOpenRel, int endTagCloseRel,
 			int contentStartRel,
 			GreenAttr[] attributes, GreenNode[] children) {
-		super(width, closed);
+		super(width, (closed ? CLOSED_FLAG : 0) | (selfClosed ? SUBCLASS_FLAG : 0));
 		this.tag = tag;
-		this.selfClosed = selfClosed;
 		this.startTagCloseRel = startTagCloseRel;
 		this.endTagOpenRel = endTagOpenRel;
 		this.endTagCloseRel = endTagCloseRel;
@@ -58,7 +56,7 @@ public final class GreenElement extends GreenNode {
 	}
 
 	public boolean selfClosed() {
-		return selfClosed;
+		return subclassFlag();
 	}
 
 	public int startTagCloseRel() {
@@ -103,7 +101,7 @@ public final class GreenElement extends GreenNode {
 
 	public GreenElement withNewChildren(GreenNode[] newChildren, int widthDelta) {
 		return new GreenElement(
-				width() + widthDelta, closed(), tag, selfClosed,
+				width() + widthDelta, closed(), tag, selfClosed(),
 				startTagCloseRel,
 				endTagOpenRel != NULL_VALUE ? endTagOpenRel + widthDelta : NULL_VALUE,
 				endTagCloseRel != NULL_VALUE ? endTagCloseRel + widthDelta : NULL_VALUE,
@@ -112,7 +110,7 @@ public final class GreenElement extends GreenNode {
 
 	@Override
 	protected GreenNode replaceChildren(GreenNode[] newChildren, int newWidth) {
-		return new GreenElement(newWidth, closed(), tag, selfClosed,
+		return new GreenElement(newWidth, closed(), tag, selfClosed(),
 				startTagCloseRel, endTagOpenRel, endTagCloseRel,
 				contentStartRel, attributes, newChildren);
 	}

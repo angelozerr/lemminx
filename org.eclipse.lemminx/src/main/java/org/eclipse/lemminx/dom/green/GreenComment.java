@@ -18,14 +18,12 @@ import org.w3c.dom.Node;
  */
 public final class GreenComment extends GreenNode {
 
-	private final boolean commentSameLineEndTag;
 	private final int startContentRel;
 	private final int endContentRel;
 
 	public GreenComment(int width, boolean closed, boolean commentSameLineEndTag,
 			int startContentRel, int endContentRel) {
-		super(width, closed);
-		this.commentSameLineEndTag = commentSameLineEndTag;
+		super(width, (closed ? CLOSED_FLAG : 0) | (commentSameLineEndTag ? SUBCLASS_FLAG : 0));
 		this.startContentRel = startContentRel;
 		this.endContentRel = endContentRel;
 	}
@@ -36,7 +34,7 @@ public final class GreenComment extends GreenNode {
 	}
 
 	public boolean commentSameLineEndTag() {
-		return commentSameLineEndTag;
+		return subclassFlag();
 	}
 
 	public int startContentRel() {
@@ -49,7 +47,7 @@ public final class GreenComment extends GreenNode {
 
 	@Override
 	protected GreenNode replaceChildren(GreenNode[] newChildren, int newWidth) {
-		return new GreenComment(newWidth, closed(), commentSameLineEndTag,
+		return new GreenComment(newWidth, closed(), commentSameLineEndTag(),
 				startContentRel, endContentRel);
 	}
 }

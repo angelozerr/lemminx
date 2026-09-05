@@ -24,7 +24,7 @@ public final class GreenDocument extends GreenNode {
 	private final GreenNode[] children;
 
 	public GreenDocument(int width, GreenNode[] children) {
-		super(width, true);
+		super(width, CLOSED_FLAG);
 		this.children = children != null ? children : EMPTY_CHILDREN;
 	}
 

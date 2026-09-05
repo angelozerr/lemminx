@@ -11,8 +11,7 @@
  *******************************************************************************/
 package org.eclipse.lemminx.dom.green;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 /**
  * Mutable builder for {@link GreenElement}.
@@ -31,8 +30,10 @@ public final class GreenElementBuilder {
 	private int startTagCloseOffset = GreenElement.NULL_VALUE;
 	private int endTagOpenOffset = GreenElement.NULL_VALUE;
 	private int endTagCloseOffset = GreenElement.NULL_VALUE;
-	private List<GreenAttr> attributes;
-	private List<GreenNode> children;
+	private GreenAttr[] attributes;
+	private int attrCount;
+	private GreenNode[] children;
+	private int childCount;
 
 	public GreenElementBuilder(int nodeStart) {
 		this.nodeStart = nodeStart;
@@ -81,16 +82,24 @@ public final class GreenElementBuilder {
 
 	public void addAttribute(GreenAttr attr) {
 		if (attributes == null) {
-			attributes = new ArrayList<>(4);
+			attributes = new GreenAttr[4];
+			attrCount = 0;
 		}
-		attributes.add(attr);
+		if (attrCount == attributes.length) {
+			attributes = Arrays.copyOf(attributes, attributes.length * 2);
+		}
+		attributes[attrCount++] = attr;
 	}
 
 	public void addChild(GreenNode child) {
 		if (children == null) {
-			children = new ArrayList<>(4);
+			children = new GreenNode[4];
+			childCount = 0;
 		}
-		children.add(child);
+		if (childCount == children.length) {
+			children = Arrays.copyOf(children, children.length * 2);
+		}
+		children[childCount++] = child;
 	}
 
 	public GreenElement build() {
@@ -103,9 +112,11 @@ public final class GreenElementBuilder {
 				? endTagCloseOffset - nodeStart : GreenElement.NULL_VALUE;
 
 		GreenAttr[] attrs = attributes != null
-				? attributes.toArray(GreenNode.EMPTY_ATTRS) : null;
+				? (attrCount == attributes.length ? attributes : Arrays.copyOf(attributes, attrCount))
+				: null;
 		GreenNode[] kids = children != null
-				? children.toArray(GreenNode.EMPTY_CHILDREN) : null;
+				? (childCount == children.length ? children : Arrays.copyOf(children, childCount))
+				: null;
 
 		return new GreenElement(width, closed, tag, selfClosed,
 				stcRel, etoRel, etcRel, GreenElement.NULL_VALUE, attrs, kids);

@@ -13,6 +13,7 @@ package org.eclipse.lemminx.dom.green;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
@@ -439,7 +440,7 @@ public final class GreenTreeBuilder {
 						break;
 					}
 
-					GreenText textNode = new GreenText(end - start, isBlank);
+					GreenText textNode = isBlank ? GreenText.whitespace(end - start) : new GreenText(end - start, false);
 					addChildToCurrentOrRoot(stack, rootChildren, nextRootChildEnd, textNode, start);
 					break;
 				}
@@ -831,8 +832,8 @@ public final class GreenTreeBuilder {
 	}
 
 	private static int lastParamEnd(NodeBuilder nb) {
-		if (nb.dtdParams != null && !nb.dtdParams.isEmpty()) {
-			return nb.dtdParams.get(nb.dtdParams.size() - 1)[1];
+		if (nb.dtdParams != null && nb.paramCount > 0) {
+			return nb.dtdParams[nb.paramCount - 1][1];
 		}
 		return nb.nodeEnd;
 	}
@@ -879,7 +880,7 @@ public final class GreenTreeBuilder {
 			stack.peek().addChild(child, childAbsStart);
 		} else {
 			if (childAbsStart > nextRootChildEnd[0]) {
-				rootChildren.add(new GreenText(childAbsStart - nextRootChildEnd[0], true));
+				rootChildren.add(GreenText.whitespace(childAbsStart - nextRootChildEnd[0]));
 			}
 			rootChildren.add(child);
 			nextRootChildEnd[0] = childAbsStart + child.width();
@@ -905,7 +906,8 @@ public final class GreenTreeBuilder {
 		int startTagCloseOffset = GreenElement.NULL_VALUE;
 		int endTagOpenOffset = GreenElement.NULL_VALUE;
 		int endTagCloseOffset = GreenElement.NULL_VALUE;
-		List<GreenAttr> attributes;
+		GreenAttr[] attributes;
+		int attrCount;
 
 		// PI fields
 		boolean startTagClose;
@@ -933,10 +935,12 @@ public final class GreenTreeBuilder {
 		int[] dtdPercentParam;
 		int[] dtdValueParam;
 		int[] dtdUnrecognizedParam;
-		List<int[]> dtdParams;
+		int[][] dtdParams;
+		int paramCount;
 
 		// Children
-		List<GreenNode> children;
+		GreenNode[] children;
+		int childCount;
 		int firstChildAbsStart = GreenElement.NULL_VALUE;
 		int nextChildAbsStart = GreenElement.NULL_VALUE;
 
@@ -948,29 +952,51 @@ public final class GreenTreeBuilder {
 
 		void addChild(GreenNode child, int childAbsStart) {
 			if (children == null) {
-				children = new ArrayList<>(4);
+				children = new GreenNode[4];
+				childCount = 0;
 				firstChildAbsStart = childAbsStart;
 				nextChildAbsStart = childAbsStart;
 			}
 			if (childAbsStart > nextChildAbsStart) {
-				children.add(new GreenText(childAbsStart - nextChildAbsStart, true));
+				appendChild(GreenText.whitespace(childAbsStart - nextChildAbsStart));
 			}
-			children.add(child);
+			appendChild(child);
 			nextChildAbsStart = childAbsStart + child.width();
+		}
+
+		private void appendChild(GreenNode child) {
+			if (childCount == children.length) {
+				GreenNode[] grown = new GreenNode[children.length * 2];
+				System.arraycopy(children, 0, grown, 0, childCount);
+				children = grown;
+			}
+			children[childCount++] = child;
 		}
 
 		void addAttribute(GreenAttr attr) {
 			if (attributes == null) {
-				attributes = new ArrayList<>(4);
+				attributes = new GreenAttr[4];
+				attrCount = 0;
 			}
-			attributes.add(attr);
+			if (attrCount == attributes.length) {
+				GreenAttr[] grown = new GreenAttr[attributes.length * 2];
+				System.arraycopy(attributes, 0, grown, 0, attrCount);
+				attributes = grown;
+			}
+			attributes[attrCount++] = attr;
 		}
 
 		void addParam(int start, int end) {
 			if (dtdParams == null) {
-				dtdParams = new ArrayList<>(4);
+				dtdParams = new int[4][];
+				paramCount = 0;
 			}
-			dtdParams.add(new int[] { start, end });
+			if (paramCount == dtdParams.length) {
+				int[][] grown = new int[dtdParams.length * 2][];
+				System.arraycopy(dtdParams, 0, grown, 0, paramCount);
+				dtdParams = grown;
+			}
+			dtdParams[paramCount++] = new int[] { start, end };
 		}
 
 		void addDeclType(int start, int end) {
@@ -978,20 +1004,20 @@ public final class GreenTreeBuilder {
 		}
 
 		int[] lastParam() {
-			return dtdParams.get(dtdParams.size() - 1);
+			return dtdParams[paramCount - 1];
 		}
 
 		void updateLastParamEnd(int end) {
-			if (dtdParams != null && !dtdParams.isEmpty()) {
-				int[] last = dtdParams.get(dtdParams.size() - 1);
-				last[1] = end;
+			if (dtdParams != null && paramCount > 0) {
+				dtdParams[paramCount - 1][1] = end;
 			}
 		}
 
 		GreenNode buildGreen() {
 			int width = nodeEnd - nodeStart;
 			GreenNode[] kids = children != null
-					? children.toArray(GreenNode.EMPTY_CHILDREN) : null;
+					? (childCount == children.length ? children : Arrays.copyOf(children, childCount))
+					: null;
 
 			switch (kind) {
 				case ELEMENT:
@@ -1021,7 +1047,8 @@ public final class GreenTreeBuilder {
 
 		private GreenElement buildElement(int width, GreenNode[] kids) {
 			GreenAttr[] attrs = attributes != null
-					? attributes.toArray(GreenNode.EMPTY_ATTRS) : null;
+					? (attrCount == attributes.length ? attributes : Arrays.copyOf(attributes, attrCount))
+					: null;
 			int contentStart = firstChildAbsStart != GreenElement.NULL_VALUE
 					? firstChildAbsStart - nodeStart
 					: (startTagCloseOffset != GreenElement.NULL_VALUE
@@ -1044,7 +1071,8 @@ public final class GreenTreeBuilder {
 
 		private GreenProcessingInstruction buildPI(int width) {
 			GreenAttr[] attrs = attributes != null
-					? attributes.toArray(GreenNode.EMPTY_ATTRS) : null;
+					? (attrCount == attributes.length ? attributes : Arrays.copyOf(attributes, attrCount))
+					: null;
 			return new GreenProcessingInstruction(width, closed, startTagClose,
 					target, prolog, processingInstruction,
 					rel(startContentOffset), rel(endContentOffset),
@@ -1076,7 +1104,7 @@ public final class GreenTreeBuilder {
 				return kids;
 			}
 			GreenNode[] padded = new GreenNode[kids.length + 1];
-			padded[0] = new GreenText(leadingGap, true);
+			padded[0] = GreenText.whitespace(leadingGap);
 			System.arraycopy(kids, 0, padded, 1, kids.length);
 			return padded;
 		}
@@ -1152,12 +1180,12 @@ public final class GreenTreeBuilder {
 		}
 
 		private GreenDTDParam[] buildDTDParams() {
-			if (dtdParams == null || dtdParams.isEmpty()) {
+			if (dtdParams == null || paramCount == 0) {
 				return null;
 			}
-			GreenDTDParam[] result = new GreenDTDParam[dtdParams.size()];
-			for (int i = 0; i < dtdParams.size(); i++) {
-				int[] p = dtdParams.get(i);
+			GreenDTDParam[] result = new GreenDTDParam[paramCount];
+			for (int i = 0; i < paramCount; i++) {
+				int[] p = dtdParams[i];
 				result[i] = new GreenDTDParam(p[0] - nodeStart, p[1] - nodeStart);
 			}
 			return result;

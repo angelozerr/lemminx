@@ -18,11 +18,23 @@ import org.w3c.dom.Node;
  */
 public final class GreenText extends GreenNode {
 
-	private final boolean whitespace;
+	private static final int CACHE_SIZE = 128;
+	private static final GreenText[] WHITESPACE_CACHE = new GreenText[CACHE_SIZE];
+	static {
+		for (int i = 0; i < CACHE_SIZE; i++) {
+			WHITESPACE_CACHE[i] = new GreenText(i, true);
+		}
+	}
 
 	public GreenText(int width, boolean whitespace) {
-		super(width, true);
-		this.whitespace = whitespace;
+		super(width, CLOSED_FLAG | (whitespace ? SUBCLASS_FLAG : 0));
+	}
+
+	public static GreenText whitespace(int width) {
+		if (width >= 0 && width < CACHE_SIZE) {
+			return WHITESPACE_CACHE[width];
+		}
+		return new GreenText(width, true);
 	}
 
 	@Override
@@ -31,11 +43,11 @@ public final class GreenText extends GreenNode {
 	}
 
 	public boolean whitespace() {
-		return whitespace;
+		return subclassFlag();
 	}
 
 	@Override
 	protected GreenNode replaceChildren(GreenNode[] newChildren, int newWidth) {
-		return new GreenText(newWidth, whitespace);
+		return whitespace() ? whitespace(newWidth) : new GreenText(newWidth, false);
 	}
 }

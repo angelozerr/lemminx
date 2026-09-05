@@ -32,7 +32,7 @@ public final class GreenProcessingInstruction extends GreenNode {
 			String target, boolean prolog, boolean processingInstruction,
 			int startContentRel, int endContentRel, int endTagOpenRel,
 			GreenAttr[] attributes) {
-		super(width, closed);
+		super(width, closed ? CLOSED_FLAG : 0);
 		this.startTagClose = startTagClose;
 		this.target = target;
 		this.prolog = prolog;

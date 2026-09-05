@@ -27,22 +27,28 @@ public abstract class GreenNode {
 	public static final GreenNode[] EMPTY_CHILDREN = new GreenNode[0];
 	public static final GreenAttr[] EMPTY_ATTRS = new GreenAttr[0];
 
-	private final int width;
-	private final boolean closed;
+	static final int CLOSED_FLAG = 1 << 31;
+	static final int SUBCLASS_FLAG = 1 << 30;
+	private static final int WIDTH_MASK = 0x3FFFFFFF;
 
-	protected GreenNode(int width, boolean closed) {
-		this.width = width;
-		this.closed = closed;
+	private final int widthAndFlags;
+
+	protected GreenNode(int width, int flags) {
+		this.widthAndFlags = width | flags;
 	}
 
 	public abstract short nodeType();
 
-	public int width() {
-		return width;
+	public final int width() {
+		return widthAndFlags & WIDTH_MASK;
 	}
 
-	public boolean closed() {
-		return closed;
+	public final boolean closed() {
+		return (widthAndFlags & CLOSED_FLAG) != 0;
+	}
+
+	protected final boolean subclassFlag() {
+		return (widthAndFlags & SUBCLASS_FLAG) != 0;
 	}
 
 	public GreenNode[] children() {
@@ -63,7 +69,7 @@ public abstract class GreenNode {
 		System.arraycopy(old, 0, copy, 0, old.length);
 		int deltaWidth = newChild.width() - old[index].width();
 		copy[index] = newChild;
-		return replaceChildren(copy, width + deltaWidth);
+		return replaceChildren(copy, width() + deltaWidth);
 	}
 
 	public int childrenStartRel() {

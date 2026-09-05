@@ -22,7 +22,7 @@ public final class GreenCDATA extends GreenNode {
 	private final int endContentRel;
 
 	public GreenCDATA(int width, boolean closed, int startContentRel, int endContentRel) {
-		super(width, closed);
+		super(width, closed ? CLOSED_FLAG : 0);
 		this.startContentRel = startContentRel;
 		this.endContentRel = endContentRel;
 	}

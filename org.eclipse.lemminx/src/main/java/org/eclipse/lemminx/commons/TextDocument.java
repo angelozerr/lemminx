@@ -148,7 +148,7 @@ public class TextDocument extends TextDocumentItem {
 		if (lineTracker != null) {
 			return lineTracker;
 		}
-		ILineTracker lineTracker = isIncremental() ? new TreeLineTracker(new ListLineTracker()) : new ListLineTracker();
+		ILineTracker lineTracker = isIncremental() ? new ArrayLineTracker() : new ListLineTracker();
 		lineTracker.set(super.getText());
 		return lineTracker;
 	}

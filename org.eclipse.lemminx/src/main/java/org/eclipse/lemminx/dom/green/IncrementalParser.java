@@ -227,7 +227,7 @@ public final class IncrementalParser {
 					i++;
 				}
 				result[j++] = (i - start == 1) ? nodes[start]
-						: new GreenText(w, allWhitespace);
+						: allWhitespace ? GreenText.whitespace(w) : new GreenText(w, false);
 			} else {
 				result[j++] = nodes[i++];
 			}
