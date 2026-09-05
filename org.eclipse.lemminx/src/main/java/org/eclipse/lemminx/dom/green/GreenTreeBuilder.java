@@ -15,7 +15,9 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.lemminx.dom.DOMNode;
 import org.eclipse.lemminx.dom.parser.Scanner;
@@ -61,6 +63,7 @@ public final class GreenTreeBuilder {
 			stack.push(dtdRoot);
 		}
 
+		Map<String, String> tagIntern = new HashMap<>();
 		GreenAttrBuilder currentAttr = null;
 		int endTagOpenOffset = -1;
 		boolean previousTokenWasEndTagOpen = false;
@@ -168,7 +171,7 @@ public final class GreenTreeBuilder {
 				case StartTag: {
 					if (!stack.isEmpty()) {
 						NodeBuilder top = stack.peek();
-						top.tag = scanner.getTokenText();
+						top.tag = tagIntern.computeIfAbsent(scanner.getTokenText(), k -> k);
 						top.nodeEnd = scanner.getTokenEnd();
 					}
 					break;
@@ -201,7 +204,7 @@ public final class GreenTreeBuilder {
 				}
 
 				case EndTag: {
-					String closeTag = scanner.getTokenText();
+					String closeTag = tagIntern.computeIfAbsent(scanner.getTokenText(), k -> k);
 					if (hasMatchingElement(stack, closeTag)) {
 						while (!stack.isEmpty()) {
 							NodeBuilder top = stack.peek();

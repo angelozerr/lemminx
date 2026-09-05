@@ -13,6 +13,7 @@
 package org.eclipse.lemminx.dom;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -67,7 +68,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	static final byte FLAG_WHITESPACE = 0x04;
 
 	private XMLNamedNodeMap<DOMAttr> attributeNodes;
-	private XMLNodeList<DOMNode> children;
+	DOMNode[] children;
 
 	final int start; // |<root> </root>
 	int end; // <root> </root>|
@@ -76,7 +77,7 @@ public abstract class DOMNode implements Node, DOMRange {
 
 	int cachedIndexInParent = -1;
 
-	GreenNode lazyGreenNode;
+	volatile GreenNode lazyGreenNode;
 	int lazyAbsStart;
 
 	private static final NodeList EMPTY_CHILDREN = new NodeList() {
@@ -92,24 +93,15 @@ public abstract class DOMNode implements Node, DOMRange {
 		}
 	};
 
-	static class XMLNodeList<T extends DOMNode> extends ArrayList<T> implements NodeList {
-
-		private static final long serialVersionUID = 1L;
-
-		XMLNodeList() {
-			super(2);
-		}
-
+	private static final class ArrayNodeList implements NodeList {
+		private final DOMNode[] nodes;
+		ArrayNodeList(DOMNode[] nodes) { this.nodes = nodes; }
 		@Override
-		public int getLength() {
-			return super.size();
-		}
-
+		public int getLength() { return nodes.length; }
 		@Override
-		public DOMNode item(int index) {
-			return super.get(index);
+		public Node item(int index) {
+			return index >= 0 && index < nodes.length ? nodes[index] : null;
 		}
-
 	}
 
 	static class XMLNamedNodeMap<T extends DOMNode> extends ArrayList<T> implements NamedNodeMap {
@@ -220,17 +212,17 @@ public abstract class DOMNode implements Node, DOMRange {
 		result.append(", closed: ");
 		result.append(isClosed());
 		ensureChildren();
-		if (children != null && children.size() > 0) {
+		if (children != null && children.length > 0) {
 			result.append(", \n");
 			for (int i = 0; i < indent + 1; i++) {
 				result.append("\t");
 			}
 			result.append("children:[");
-			for (int i = 0; i < children.size(); i++) {
-				DOMNode node = children.get(i);
+			for (int i = 0; i < children.length; i++) {
+				DOMNode node = children[i];
 				result.append("\n");
 				result.append(node.toString(indent + 2));
-				if (i < children.size() - 1) {
+				if (i < children.length - 1) {
 					result.append(",");
 				}
 			}
@@ -506,10 +498,14 @@ public abstract class DOMNode implements Node, DOMRange {
 
 	private void ensureChildren() {
 		if (lazyGreenNode != null) {
-			GreenNode green = lazyGreenNode;
-			int absStart = lazyAbsStart;
-			lazyGreenNode = null;
-			RedTreeBuilder.expandLazy(this, green, absStart);
+			synchronized (this) {
+				if (lazyGreenNode != null) {
+					GreenNode green = lazyGreenNode;
+					int absStart = lazyAbsStart;
+					lazyGreenNode = null;
+					RedTreeBuilder.expandLazy(this, green, absStart);
+				}
+			}
 		}
 	}
 
@@ -520,10 +516,10 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	public List<DOMNode> getChildren() {
 		ensureChildren();
-		if (children == null) {
+		if (children == null || children.length == 0) {
 			return Collections.emptyList();
 		}
-		return children;
+		return Arrays.asList(children);
 	}
 
 	/**
@@ -534,16 +530,15 @@ public abstract class DOMNode implements Node, DOMRange {
 	public void addChild(DOMNode child) {
 		child.parent = this;
 		if (children == null) {
-			children = new XMLNodeList<>();
+			children = new DOMNode[] { child };
+		} else {
+			children = Arrays.copyOf(children, children.length + 1);
+			children[children.length - 1] = child;
 		}
-		child.cachedIndexInParent = children.size();
-		children.add(child);
+		child.cachedIndexInParent = children.length - 1;
 	}
 
 	void compactChildren() {
-		if (children != null) {
-			children.trimToSize();
-		}
 		if (attributeNodes != null) {
 			attributeNodes.trimToSize();
 		}
@@ -685,7 +680,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	@Override
 	public DOMNode getFirstChild() {
 		ensureChildren();
-		return this.children != null && children.size() > 0 ? this.children.get(0) : null;
+		return children != null && children.length > 0 ? children[0] : null;
 	}
 
 	/*
@@ -696,7 +691,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	@Override
 	public DOMNode getLastChild() {
 		ensureChildren();
-		return this.children != null && this.children.size() > 0 ? this.children.get(this.children.size() - 1) : null;
+		return children != null && children.length > 0 ? children[children.length - 1] : null;
 	}
 
 	/*
@@ -717,7 +712,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	@Override
 	public NodeList getChildNodes() {
 		ensureChildren();
-		return children != null ? children : EMPTY_CHILDREN;
+		return children != null && children.length > 0 ? new ArrayNodeList(children) : EMPTY_CHILDREN;
 	}
 
 	/*
@@ -911,7 +906,7 @@ public abstract class DOMNode implements Node, DOMRange {
 		// concatenation of the textContent attribute value of every child node
 		default:
 			ensureChildren();
-			if (this.children != null && children.size() > 0) {
+			if (this.children != null && children.length > 0) {
 				final StringBuilder builder = new StringBuilder();
 				for (DOMNode child : children) {
 					short nodeType = child.getNodeType();
@@ -946,7 +941,7 @@ public abstract class DOMNode implements Node, DOMRange {
 		if (lazyGreenNode != null) {
 			return true;
 		}
-		return children != null && !children.isEmpty();
+		return children != null && children.length > 0;
 	}
 
 	@Override

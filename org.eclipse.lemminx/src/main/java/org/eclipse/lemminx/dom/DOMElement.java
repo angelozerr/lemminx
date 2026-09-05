@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import org.eclipse.lemminx.dom.green.GreenElement;
 import org.eclipse.lemminx.utils.StringUtils;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.NodeList;
@@ -32,15 +33,9 @@ import org.w3c.dom.TypeInfo;
  */
 public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 
-	String tag;
+	GreenElement greenElement;
 
-	// DomElement.start == startTagOpenOffset
 	int startTagOpenOffset = NULL_VALUE; // |<root>
-	int startTagCloseOffset = NULL_VALUE; // <root |>
-
-	int endTagOpenOffset = NULL_VALUE; // <root> |</root >
-	int endTagCloseOffset = NULL_VALUE;// <root> </root |>
-	// DomElement.end = <root> </root>| , is always scanner.getTokenEnd()
 
 	public DOMElement(int start, int end) {
 		super(start, end);
@@ -73,7 +68,7 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 	 */
 	@Override
 	public String getTagName() {
-		return tag;
+		return greenElement != null ? greenElement.tag() : null;
 	}
 
 	/**
@@ -84,7 +79,7 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 	 *         or '</').
 	 */
 	public boolean hasTagName() {
-		return tag != null;
+		return greenElement != null && greenElement.tag() != null;
 	}
 
 	/*
@@ -280,15 +275,16 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 	 *         otherwise.
 	 */
 	public boolean isSameTag(String tag) {
-		return Objects.equals(this.tag, tag);
+		return Objects.equals(getTagName(), tag);
 	}
 
 	public boolean isInStartTag(int offset) {
-		if (startTagOpenOffset == NULL_VALUE || startTagCloseOffset == NULL_VALUE) {
+		int stcOffset = getStartTagCloseOffset();
+		if (startTagOpenOffset == NULL_VALUE || stcOffset == NULL_VALUE) {
 			// case <|
 			return true;
 		}
-		if (offset > startTagOpenOffset && offset <= startTagCloseOffset) {
+		if (offset > startTagOpenOffset && offset <= stcOffset) {
 			// case <bean | >
 			return true;
 		}
@@ -300,11 +296,12 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 	}
 
 	public boolean isInEndTag(int offset, boolean afterBackSlash) {
-		if (endTagOpenOffset == NULL_VALUE) {
+		int etoOffset = getEndTagOpenOffset();
+		if (etoOffset == NULL_VALUE) {
 			// case >|
 			return false;
 		}
-		if (offset > endTagOpenOffset + (afterBackSlash ? 1 : 0) && offset < getEnd()) {
+		if (offset > etoOffset + (afterBackSlash ? 1 : 0) && offset < getEnd()) {
 			// case </bean | >
 			return true;
 		}
@@ -312,7 +309,7 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 	}
 
 	public boolean isInInsideStartEndTag(int offset) {
-		return offset > startTagCloseOffset && offset <= endTagOpenOffset;
+		return offset > getStartTagCloseOffset() && offset <= getEndTagOpenOffset();
 	}
 
 	/**
@@ -334,7 +331,9 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 	 *         doesn't exist.
 	 */
 	public int getStartTagCloseOffset() {
-		return startTagCloseOffset;
+		if (greenElement == null) return NULL_VALUE;
+		int rel = greenElement.startTagCloseRel();
+		return rel != GreenElement.NULL_VALUE ? start + rel : NULL_VALUE;
 	}
 
 	/**
@@ -345,7 +344,9 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 	 *         exist.
 	 */
 	public int getEndTagOpenOffset() {
-		return endTagOpenOffset;
+		if (greenElement == null) return NULL_VALUE;
+		int rel = greenElement.endTagOpenRel();
+		return rel != GreenElement.NULL_VALUE ? start + rel : NULL_VALUE;
 	}
 
 	/**
@@ -356,7 +357,9 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 	 *         exist.
 	 */
 	public int getEndTagCloseOffset() {
-		return endTagCloseOffset;
+		if (greenElement == null) return NULL_VALUE;
+		int rel = greenElement.endTagCloseRel();
+		return rel != GreenElement.NULL_VALUE ? start + rel : NULL_VALUE;
 	}
 
 	/**
@@ -627,7 +630,9 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 	 *         otherwise.
 	 */
 	public DOMText findTextAt(int offset) {
-		if (offset > startTagCloseOffset && startTagCloseOffset == endTagOpenOffset - 1) {
+		int stcOffset = getStartTagCloseOffset();
+		int etoOffset = getEndTagOpenOffset();
+		if (offset > stcOffset && stcOffset == etoOffset - 1) {
 			// <foo>|</foo>
 			// In this case, DOM text doesn't exists, create an empty DOM text
 			DOMText text = new DOMText(offset, offset);

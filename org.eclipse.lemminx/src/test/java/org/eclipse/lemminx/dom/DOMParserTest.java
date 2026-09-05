@@ -26,6 +26,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.eclipse.lemminx.dom.DOMDocumentType.DocumentTypeKind;
+import org.eclipse.lemminx.dom.green.GreenElement;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
@@ -1217,8 +1218,14 @@ public class DOMParserTest {
 
 	private static void setRestOfNode(DOMNode n, String tag, Integer endTagStart, boolean closed) {
 		if (n.isElement()) {
-			((DOMElement) n).tag = tag;
-			((DOMElement) n).endTagOpenOffset = endTagStart != null ? endTagStart : DOMNode.NULL_VALUE;
+			DOMElement elem = (DOMElement) n;
+			int width = n.end - n.start;
+			int endTagOpenRel = endTagStart != null ? endTagStart - n.start : GreenElement.NULL_VALUE;
+			elem.greenElement = new GreenElement(width, closed, tag, false,
+					GreenElement.NULL_VALUE, endTagOpenRel, GreenElement.NULL_VALUE,
+					GreenElement.NULL_VALUE, null, null);
+			boolean isOrphanEndTag = endTagOpenRel == 0;
+			elem.startTagOpenOffset = isOrphanEndTag ? DOMNode.NULL_VALUE : n.start;
 		} else if (n instanceof DOMProcessingInstruction) {
 			((DOMProcessingInstruction) n).target = tag;
 			((DOMProcessingInstruction) n).endTagOpenOffset = endTagStart != null ? endTagStart : DOMNode.NULL_VALUE;

@@ -11,6 +11,8 @@
  *******************************************************************************/
 package org.eclipse.lemminx.dom;
 
+import java.util.Arrays;
+
 import org.eclipse.lemminx.commons.TextDocument;
 import org.eclipse.lemminx.dom.green.GreenAttr;
 import org.eclipse.lemminx.dom.green.GreenCDATA;
@@ -85,17 +87,21 @@ public final class RedTreeBuilder {
 	}
 
 	private void addChildren(DOMNode parent, GreenNode greenParent, int parentAbsStart) {
-		GreenNode[] children = greenParent.children();
-		if (children.length == 0) {
+		GreenNode[] greenChildren = greenParent.children();
+		if (greenChildren.length == 0) {
+			parent.compactChildren();
 			return;
 		}
 
 		int childrenStartRel = greenParent.childrenStartRel();
 		int childAbsStart = parentAbsStart + childrenStartRel;
 		boolean skipWhitespace = ignoreWhitespaceContent
-				&& (hasNonWhitespaceChild(children) || greenParent instanceof GreenDocumentType);
+				&& (hasNonWhitespaceChild(greenChildren) || greenParent instanceof GreenDocumentType);
 
-		for (GreenNode greenChild : children) {
+		DOMNode[] redChildren = new DOMNode[greenChildren.length];
+		int idx = 0;
+
+		for (GreenNode greenChild : greenChildren) {
 			if (skipWhitespace && isWhitespaceText(greenChild)) {
 				childAbsStart += greenChild.width();
 				continue;
@@ -106,10 +112,16 @@ public final class RedTreeBuilder {
 					((DTDAttlistDecl) parent).addAdditionalAttDecl((DTDAttlistDecl) redChild);
 					redChild.parent = parent;
 				} else {
-					parent.addChild(redChild);
+					redChild.parent = parent;
+					redChild.cachedIndexInParent = idx;
+					redChildren[idx++] = redChild;
 				}
 			}
 			childAbsStart += greenChild.width();
+		}
+
+		if (idx > 0) {
+			parent.children = (idx == redChildren.length) ? redChildren : Arrays.copyOf(redChildren, idx);
 		}
 		parent.compactChildren();
 	}
@@ -160,15 +172,12 @@ public final class RedTreeBuilder {
 
 	private DOMElement createElement(GreenElement green, int absStart, int absEnd) {
 		DOMElement elem = new DOMElement(absStart, absEnd);
-		elem.tag = green.tag();
+		elem.greenElement = green;
 		elem.setSelfClosed(green.selfClosed());
 		boolean isOrphanEndTag = green.endTagOpenRel() != GreenElement.NULL_VALUE
 				&& green.endTagOpenRel() == 0
 				&& green.startTagCloseRel() == GreenElement.NULL_VALUE;
 		elem.startTagOpenOffset = isOrphanEndTag ? DOMNode.NULL_VALUE : absStart;
-		elem.startTagCloseOffset = abs(green.startTagCloseRel(), absStart);
-		elem.endTagOpenOffset = abs(green.endTagOpenRel(), absStart);
-		elem.endTagCloseOffset = abs(green.endTagCloseRel(), absStart);
 		elem.setClosed(green.closed());
 
 		GreenAttr[] greenAttrs = green.attributes();
