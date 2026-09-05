@@ -115,8 +115,7 @@ public class XMLFormatterDocumentOld {
 		this.startOffset = this.textDocument.offsetAt(startPosition);
 		this.endOffset = this.textDocument.offsetAt(endPosition);
 
-		String fullText = this.textDocument.getText();
-		String rangeText = fullText.substring(this.startOffset, this.endOffset);
+		String rangeText = this.textDocument.getTextSequence().subSequence(this.startOffset, this.endOffset).toString();
 
 		withinDTDContent = this.fullDomDocument.isWithinInternalDTD(startOffset);
 		String uri = this.textDocument.getUri();
@@ -127,7 +126,7 @@ public class XMLFormatterDocumentOld {
 
 		if (containsTextWithinStartTag()) {
 			adjustOffsetToStartTag();
-			rangeText = fullText.substring(this.startOffset, this.endOffset);
+			rangeText = this.textDocument.getTextSequence().subSequence(this.startOffset, this.endOffset).toString();
 			this.rangeDomDocument = DOMParser.getInstance().parse(rangeText, uri, null, false);
 		}
 
@@ -167,7 +166,7 @@ public class XMLFormatterDocumentOld {
 
 	private void setupFullFormatting(Range range) throws BadLocationException {
 		this.startOffset = 0;
-		this.endOffset = textDocument.getText().length();
+		this.endOffset = textDocument.getTextSequence().length();
 		this.rangeDomDocument = this.fullDomDocument;
 
 		Position startPosition = textDocument.positionAt(startOffset);
@@ -754,7 +753,7 @@ public class XMLFormatterDocumentOld {
 		List<TextEdit> edits = new ArrayList<>();
 
 		// check if format range reaches the end of the document
-		if (this.endOffset == this.textDocument.getText().length()) {
+		if (this.endOffset == this.textDocument.getTextSequence().length()) {
 
 			if (this.sharedSettings.getFormattingSettings().isTrimFinalNewlines()) {
 				this.xmlBuilder.trimFinalNewlines();

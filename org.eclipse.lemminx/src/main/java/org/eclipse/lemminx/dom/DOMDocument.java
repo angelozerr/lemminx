@@ -69,7 +69,7 @@ public class DOMDocument extends DOMNode implements Document {
 	private volatile GreenDocument greenDocument;
 
 	public DOMDocument(TextDocument textDocument, URIResolverExtensionManager resolverExtensionManager) {
-		super(0, textDocument.getText().length());
+		super(0, textDocument.getTextSequence().length());
 		this.textDocument = textDocument;
 		this.resolverExtensionManager = resolverExtensionManager;
 		resetGrammar();
@@ -142,12 +142,20 @@ public class DOMDocument extends DOMNode implements Document {
 	}
 
 	/**
-	 * Returns the text content of the XML document.
-	 * 
-	 * @return the text content of the XML document.
+	 * Returns the text content as a {@link String}. Prefer
+	 * {@link #getTextSequence()} which avoids costly string materialization.
 	 */
 	public String getText() {
 		return textDocument.getText();
+	}
+
+	/**
+	 * Returns the text content as a {@link CharSequence}, avoiding the
+	 * allocation of a full {@link String} copy when the document is backed
+	 * by a {@link StringBuilder}.
+	 */
+	public CharSequence getTextSequence() {
+		return textDocument.getTextSequence();
 	}
 
 	public TextDocument getTextDocument() {

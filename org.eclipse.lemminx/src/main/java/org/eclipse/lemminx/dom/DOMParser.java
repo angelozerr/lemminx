@@ -60,7 +60,7 @@ public class DOMParser {
 
 	public DOMDocument parse(TextDocument document, URIResolverExtensionManager resolverExtensionManager,
 			boolean ignoreWhitespaceContent, CancelChecker monitor) {
-		String text = document.getText();
+		CharSequence text = document.getTextSequence();
 		String uri = document.getUri();
 		GreenDocument greenDoc = GreenTreeBuilder.parse(text, uri, monitor);
 		return buildDocument(greenDoc, document, resolverExtensionManager, ignoreWhitespaceContent, monitor);
@@ -70,7 +70,7 @@ public class DOMParser {
 			GreenDocument previousGreenDoc, int editStart, int deleteLength, int insertLength,
 			URIResolverExtensionManager resolverExtensionManager,
 			boolean ignoreWhitespaceContent, CancelChecker monitor) {
-		String text = document.getText();
+		CharSequence text = document.getTextSequence();
 		String uri = document.getUri();
 		GreenDocument greenDoc = IncrementalParser.incrementalParse(
 				previousGreenDoc, text, editStart, deleteLength, insertLength, uri, monitor);

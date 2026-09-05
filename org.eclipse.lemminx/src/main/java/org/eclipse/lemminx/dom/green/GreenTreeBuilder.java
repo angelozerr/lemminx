@@ -43,11 +43,11 @@ public final class GreenTreeBuilder {
 	 * @param monitor optional cancel checker
 	 * @return the root green document node
 	 */
-	public static GreenDocument parse(String text, String uri, CancelChecker monitor) {
+	public static GreenDocument parse(CharSequence text, String uri, CancelChecker monitor) {
 		return parseRange(text, uri, 0, text.length(), monitor);
 	}
 
-	public static GreenDocument parseRange(String text, String uri,
+	public static GreenDocument parseRange(CharSequence text, String uri,
 			int rangeStart, int rangeEnd, CancelChecker monitor) {
 		boolean isDTD = DOMUtils.isDTD(uri);
 		Scanner scanner = XMLScanner.createScanner(text, rangeStart, isDTD);
@@ -863,7 +863,7 @@ public final class GreenTreeBuilder {
 		return false;
 	}
 
-	private static boolean containsNewline(String text, int from, int to) {
+	private static boolean containsNewline(CharSequence text, int from, int to) {
 		for (int i = from; i < to; i++) {
 			char c = text.charAt(i);
 			if (c == '\n' || c == '\r') {

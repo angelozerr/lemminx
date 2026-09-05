@@ -191,7 +191,7 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 			 *
 			 * <a> <a> </a> </b
 			 */
-			int endOffset = removeLeftSpaces(offset, document.getText());
+			int endOffset = removeLeftSpaces(offset, document.getTextSequence());
 			return XMLPositionUtility.selectEndTagName(endOffset, document);
 		}
 		case CustomETag:
@@ -328,7 +328,7 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 	 * @return the offset of the first character from the left offset which is not a
 	 *         whitespace.
 	 */
-	private static int removeLeftSpaces(final int initialOffset, String text) {
+	private static int removeLeftSpaces(final int initialOffset, CharSequence text) {
 		int offset = initialOffset;
 		if (offset >= text.length()) {
 			return text.length();
@@ -369,7 +369,7 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 	 * @return the proper range from the given node to the given offset.
 	 */
 	private static Range getRangeFromStartNodeToOffset(DOMNode fromNode, int toOffset, DOMDocument document) {
-		int endOffset = removeLeftSpaces(toOffset, document.getText());
+		int endOffset = removeLeftSpaces(toOffset, document.getTextSequence());
 		int startOffset = fromNode.getStart();
 		if (fromNode.isElement()) {
 			// The from node is a DOM element, adjust end and start offset

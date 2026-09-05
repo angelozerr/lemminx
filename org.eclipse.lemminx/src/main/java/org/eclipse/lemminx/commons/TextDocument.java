@@ -54,6 +54,10 @@ public class TextDocument extends TextDocumentItem {
 		super.setText(text);
 	}
 
+	/**
+	 * Returns the text content as a {@link String}. Prefer
+	 * {@link #getTextSequence()} which avoids costly string materialization.
+	 */
 	@Override
 	public String getText() {
 		synchronized (lock) {
@@ -67,6 +71,15 @@ public class TextDocument extends TextDocumentItem {
 			}
 		}
 		return super.getText();
+	}
+
+	public CharSequence getTextSequence() {
+		synchronized (lock) {
+			if (textBuffer != null) {
+				return textBuffer;
+			}
+		}
+		return getText();
 	}
 
 	@Override

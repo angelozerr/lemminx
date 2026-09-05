@@ -50,7 +50,7 @@ public final class IncrementalParser {
 	 * @return a new GreenDocument (never null)
 	 */
 	public static GreenDocument incrementalParse(GreenDocument oldDoc,
-			String newText, int editStart, int deleteLength, int insertLength,
+			CharSequence newText, int editStart, int deleteLength, int insertLength,
 			String uri, CancelChecker monitor) {
 		int delta = insertLength - deleteLength;
 		int editEnd = editStart + deleteLength;
@@ -68,7 +68,7 @@ public final class IncrementalParser {
 	private static GreenNode[] tryIncrementalOnChildren(
 			GreenNode[] oldChildren, int childrenAbsStart, int childrenAreaWidth,
 			int editStart, int editEnd, int delta,
-			String newText, String uri, CancelChecker monitor) {
+			CharSequence newText, String uri, CancelChecker monitor) {
 
 		if (oldChildren.length == 0) {
 			return null;
@@ -155,7 +155,7 @@ public final class IncrementalParser {
 	private static GreenElement tryDescentIntoElement(
 			GreenElement elem, int elemAbsStart,
 			int editStart, int editEnd, int delta,
-			String newText, String uri, CancelChecker monitor) {
+			CharSequence newText, String uri, CancelChecker monitor) {
 
 		int csr = elem.childrenStartRel();
 		int childrenAbsStart = elemAbsStart + csr;
