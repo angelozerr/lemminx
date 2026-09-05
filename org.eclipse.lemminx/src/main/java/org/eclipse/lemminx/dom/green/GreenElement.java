@@ -101,6 +101,15 @@ public final class GreenElement extends GreenNode {
 		return children;
 	}
 
+	public GreenElement withNewChildren(GreenNode[] newChildren, int widthDelta) {
+		return new GreenElement(
+				width() + widthDelta, closed(), tag, selfClosed,
+				startTagCloseRel,
+				endTagOpenRel != NULL_VALUE ? endTagOpenRel + widthDelta : NULL_VALUE,
+				endTagCloseRel != NULL_VALUE ? endTagCloseRel + widthDelta : NULL_VALUE,
+				contentStartRel, attributes, newChildren);
+	}
+
 	@Override
 	protected GreenNode replaceChildren(GreenNode[] newChildren, int newWidth) {
 		return new GreenElement(newWidth, closed(), tag, selfClosed,

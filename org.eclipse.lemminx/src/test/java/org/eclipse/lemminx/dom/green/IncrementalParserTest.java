@@ -675,6 +675,140 @@ public class IncrementalParserTest {
 	}
 
 	@Test
+	public void descentIntoRootElement() {
+		String oldText = "<root><a/><b/><c/></root>";
+		String newText = "<root><a/><bx/><c/></root>";
+		GreenDocument oldDoc = GreenTreeBuilder.parse(oldText, "test.xml", null);
+		GreenElement oldRoot = (GreenElement) oldDoc.child(0);
+		GreenNode oldA = oldRoot.child(0);
+		GreenNode oldC = oldRoot.child(2);
+
+		GreenDocument newDoc = IncrementalParser.incrementalParse(
+				oldDoc, newText, 10, 4, 5, "test.xml", null);
+
+		assertEquals(newText.length(), newDoc.width());
+		GreenElement newRoot = (GreenElement) newDoc.child(0);
+		assertSame(oldA, newRoot.child(0), "Child <a/> before edit should be reused");
+		assertSame(oldC, newRoot.child(2), "Child <c/> after edit should be reused");
+		assertGreenTreesEqual(
+				GreenTreeBuilder.parse(newText, "test.xml", null),
+				newDoc, "");
+	}
+
+	@Test
+	public void descentDeepNested() {
+		String oldText = "<root><outer><a/><b/><c/></outer></root>";
+		String newText = "<root><outer><a/><bx/><c/></outer></root>";
+		GreenDocument oldDoc = GreenTreeBuilder.parse(oldText, "test.xml", null);
+		GreenElement oldRoot = (GreenElement) oldDoc.child(0);
+		GreenElement oldOuter = (GreenElement) oldRoot.child(0);
+		GreenNode oldA = oldOuter.child(0);
+		GreenNode oldC = oldOuter.child(2);
+
+		GreenDocument newDoc = IncrementalParser.incrementalParse(
+				oldDoc, newText, 17, 4, 5, "test.xml", null);
+
+		assertEquals(newText.length(), newDoc.width());
+		GreenElement newRoot = (GreenElement) newDoc.child(0);
+		GreenElement newOuter = (GreenElement) newRoot.child(0);
+		assertSame(oldA, newOuter.child(0), "Nested <a/> should be reused");
+		assertSame(oldC, newOuter.child(2), "Nested <c/> should be reused");
+		assertGreenTreesEqual(
+				GreenTreeBuilder.parse(newText, "test.xml", null),
+				newDoc, "");
+	}
+
+	@Test
+	public void descentWithManyChildren() {
+		StringBuilder sb = new StringBuilder("<root>");
+		for (int i = 0; i < 100; i++) {
+			sb.append("<item").append(i).append("/>");
+		}
+		sb.append("</root>");
+		String oldText = sb.toString();
+		GreenDocument oldDoc = GreenTreeBuilder.parse(oldText, "test.xml", null);
+		GreenElement oldRoot = (GreenElement) oldDoc.child(0);
+
+		int editOffset = oldRoot.childrenStartRel();
+		for (int i = 0; i < 50; i++) {
+			editOffset += oldRoot.child(i).width();
+		}
+		int oldChildWidth = oldRoot.child(50).width();
+		String replacement = "<modified/>";
+
+		String newText = oldText.substring(0, editOffset) + replacement
+				+ oldText.substring(editOffset + oldChildWidth);
+
+		GreenDocument newDoc = IncrementalParser.incrementalParse(
+				oldDoc, newText, editOffset, oldChildWidth, replacement.length(),
+				"test.xml", null);
+
+		assertEquals(newText.length(), newDoc.width());
+		GreenElement newRoot = (GreenElement) newDoc.child(0);
+		for (int i = 0; i < 50; i++) {
+			assertSame(oldRoot.child(i), newRoot.child(i),
+					"Prefix child " + i + " inside root should be reused");
+		}
+		for (int i = 51; i < 100; i++) {
+			assertSame(oldRoot.child(i), newRoot.child(i),
+					"Suffix child " + i + " inside root should be reused");
+		}
+		assertGreenTreesEqual(
+				GreenTreeBuilder.parse(newText, "test.xml", null),
+				newDoc, "");
+	}
+
+	@Test
+	public void descentFallsBackOnAttributeEdit() {
+		String oldText = "<root><a id=\"old\"/><b/></root>";
+		String newText = "<root><a id=\"new\"/><b/></root>";
+		GreenDocument oldDoc = GreenTreeBuilder.parse(oldText, "test.xml", null);
+		GreenDocument newDoc = IncrementalParser.incrementalParse(
+				oldDoc, newText, 13, 3, 3, "test.xml", null);
+		assertEquals(newText.length(), newDoc.width());
+		assertGreenTreesEqual(
+				GreenTreeBuilder.parse(newText, "test.xml", null),
+				newDoc, "");
+	}
+
+	@Test
+	public void descentTextCoalescing() {
+		String oldText = "<root>hello</root>";
+		String newText = "<root>helloX</root>";
+		GreenDocument oldDoc = GreenTreeBuilder.parse(oldText, "test.xml", null);
+		GreenDocument newDoc = IncrementalParser.incrementalParse(
+				oldDoc, newText, 11, 0, 1, "test.xml", null);
+		assertEquals(newText.length(), newDoc.width());
+		assertGreenTreesEqual(
+				GreenTreeBuilder.parse(newText, "test.xml", null),
+				newDoc, "");
+	}
+
+	@Test
+	public void descentWithPrologAndDoctype() {
+		String oldText = "<?xml version=\"1.0\"?><!DOCTYPE root><root><a/><b/><c/></root>";
+		String newText = "<?xml version=\"1.0\"?><!DOCTYPE root><root><a/><bx/><c/></root>";
+		GreenDocument oldDoc = GreenTreeBuilder.parse(oldText, "test.xml", null);
+		GreenNode oldProlog = oldDoc.child(0);
+		GreenNode oldDoctype = oldDoc.child(1);
+
+		GreenDocument newDoc = IncrementalParser.incrementalParse(
+				oldDoc, newText, 46, 4, 5, "test.xml", null);
+
+		assertEquals(newText.length(), newDoc.width());
+		assertSame(oldProlog, newDoc.child(0), "Prolog should be reused");
+		assertSame(oldDoctype, newDoc.child(1), "Doctype should be reused");
+
+		GreenElement oldRoot = (GreenElement) oldDoc.child(2);
+		GreenElement newRoot = (GreenElement) newDoc.child(2);
+		assertSame(oldRoot.child(0), newRoot.child(0), "<a/> inside root should be reused");
+		assertSame(oldRoot.child(2), newRoot.child(2), "<c/> inside root should be reused");
+		assertGreenTreesEqual(
+				GreenTreeBuilder.parse(newText, "test.xml", null),
+				newDoc, "");
+	}
+
+	@Test
 	public void middleEndLessThanMiddleStartFallsBack() {
 		// Large deletion: remove middle 2 nodes from 3, leaving prefix+suffix
 		// that overlap in the new shorter text
