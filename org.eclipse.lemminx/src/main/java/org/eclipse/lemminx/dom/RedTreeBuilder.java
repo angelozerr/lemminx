@@ -84,8 +84,7 @@ public final class RedTreeBuilder {
 
 	private void addChildrenOrDefer(DOMNode node, GreenNode green, int absStart) {
 		if (lazy && green.children().length > 0) {
-			node.lazyGreenNode = green;
-			node.lazyAbsStart = absStart;
+			node.setLazy(green, absStart);
 		} else {
 			addChildren(node, green, absStart);
 		}
@@ -186,9 +185,12 @@ public final class RedTreeBuilder {
 		elem.setClosed(green.closed());
 
 		GreenAttr[] greenAttrs = green.attributes();
-		for (GreenAttr ga : greenAttrs) {
-			DOMAttr attr = createAttr(ga, absStart, elem);
-			elem.setAttributeNode(attr);
+		if (greenAttrs.length > 0) {
+			DOMAttr[] attrs = new DOMAttr[greenAttrs.length];
+			for (int i = 0; i < greenAttrs.length; i++) {
+				attrs[i] = createAttr(greenAttrs[i], absStart, elem);
+			}
+			elem.attributeNodes = attrs;
 		}
 
 		addChildrenOrDefer(elem, green, absStart);
@@ -249,9 +251,12 @@ public final class RedTreeBuilder {
 		pi.setClosed(green.closed());
 
 		GreenAttr[] greenAttrs = green.attributes();
-		for (GreenAttr ga : greenAttrs) {
-			DOMAttr attr = createAttr(ga, absStart, pi);
-			pi.setAttributeNode(attr);
+		if (greenAttrs.length > 0) {
+			DOMAttr[] attrs = new DOMAttr[greenAttrs.length];
+			for (int i = 0; i < greenAttrs.length; i++) {
+				attrs[i] = createAttr(greenAttrs[i], absStart, pi);
+			}
+			pi.attributeNodes = attrs;
 		}
 		return pi;
 	}

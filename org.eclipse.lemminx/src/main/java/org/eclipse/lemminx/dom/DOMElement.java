@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.eclipse.lemminx.dom.green.GreenElement;
+import org.eclipse.lemminx.dom.green.GreenNode;
 import org.eclipse.lemminx.utils.StringUtils;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.NodeList;
@@ -35,10 +36,33 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 
 	GreenElement greenElement;
 
+	private volatile GreenNode lazyGreenNode;
+	private int lazyAbsStart;
+
 	int startTagOpenOffset = NULL_VALUE; // |<root>
 
 	public DOMElement(int start, int end) {
 		super(start, end);
+	}
+
+	@Override
+	void ensureChildren() {
+		if (lazyGreenNode != null) {
+			synchronized (this) {
+				if (lazyGreenNode != null) {
+					GreenNode green = lazyGreenNode;
+					int absStart = lazyAbsStart;
+					lazyGreenNode = null;
+					RedTreeBuilder.expandLazy(this, green, absStart);
+				}
+			}
+		}
+	}
+
+	@Override
+	void setLazy(GreenNode green, int absStart) {
+		this.lazyGreenNode = green;
+		this.lazyAbsStart = absStart;
 	}
 
 	/*

@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.eclipse.lemminx.dom.green.GreenNode;
 import org.w3c.dom.DOMException;
@@ -67,7 +67,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	static final byte FLAG_SELF_CLOSED = 0x02;
 	static final byte FLAG_WHITESPACE = 0x04;
 
-	private XMLNamedNodeMap<DOMAttr> attributeNodes;
+	DOMAttr[] attributeNodes;
 	DOMNode[] children;
 
 	final int start; // |<root> </root>
@@ -76,9 +76,6 @@ public abstract class DOMNode implements Node, DOMRange {
 	DOMNode parent;
 
 	int cachedIndexInParent = -1;
-
-	volatile GreenNode lazyGreenNode;
-	int lazyAbsStart;
 
 	private static final NodeList EMPTY_CHILDREN = new NodeList() {
 
@@ -104,59 +101,20 @@ public abstract class DOMNode implements Node, DOMRange {
 		}
 	}
 
-	static class XMLNamedNodeMap<T extends DOMNode> extends ArrayList<T> implements NamedNodeMap {
-
-		private static final long serialVersionUID = 1L;
-
-		XMLNamedNodeMap() {
-			super(4);
-		}
-
-		@Override
-		public int getLength() {
-			return super.size();
-		}
-
-		@Override
-		public T getNamedItem(String name) {
-			for (T node : this) {
-				if (name.equals(node.getNodeName())) {
-					return node;
-				}
-			}
+	private static final class AttrNamedNodeMap implements NamedNodeMap {
+		private final DOMAttr[] attrs;
+		AttrNamedNodeMap(DOMAttr[] attrs) { this.attrs = attrs; }
+		@Override public int getLength() { return attrs.length; }
+		@Override public Node item(int index) { return index >= 0 && index < attrs.length ? attrs[index] : null; }
+		@Override public Node getNamedItem(String name) {
+			for (DOMAttr a : attrs) { if (name.equals(a.getNodeName())) return a; }
 			return null;
 		}
-
-		@Override
-		public T getNamedItemNS(String name, String arg1) throws DOMException {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public T item(int index) {
-			return super.get(index);
-		}
-
-		@Override
-		public T removeNamedItem(String arg0) throws DOMException {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public T removeNamedItemNS(String arg0, String arg1) throws DOMException {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public T setNamedItem(org.w3c.dom.Node arg0) throws DOMException {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public T setNamedItemNS(org.w3c.dom.Node arg0) throws DOMException {
-			throw new UnsupportedOperationException();
-		}
-
+		@Override public Node getNamedItemNS(String ns, String local) throws DOMException { throw new UnsupportedOperationException(); }
+		@Override public Node removeNamedItem(String n) throws DOMException { throw new UnsupportedOperationException(); }
+		@Override public Node removeNamedItemNS(String ns, String local) throws DOMException { throw new UnsupportedOperationException(); }
+		@Override public Node setNamedItem(Node n) throws DOMException { throw new UnsupportedOperationException(); }
+		@Override public Node setNamedItemNS(Node n) throws DOMException { throw new UnsupportedOperationException(); }
 	}
 
 	public DOMNode(int start, int end) {
@@ -357,14 +315,14 @@ public abstract class DOMNode implements Node, DOMRange {
 	 * @returns the least x for which p(x) is true or array.length if no element
 	 *          full fills the given function.
 	 */
-	private static <T> int findFirst(List<T> array, Function<T, Boolean> p) {
+	private static <T> int findFirst(List<T> array, Predicate<T> p) {
 		int low = 0, high = array.size();
 		if (high == 0) {
-			return 0; // no children
+			return 0;
 		}
 		while (low < high) {
-			int mid = (int) Math.floor((low + high) / 2);
-			if (p.apply(array.get(mid))) {
+			int mid = (low + high) >>> 1;
+			if (p.test(array.get(mid))) {
 				high = mid;
 			} else {
 				low = mid + 1;
@@ -434,11 +392,10 @@ public abstract class DOMNode implements Node, DOMRange {
 		if (!hasAttributes()) {
 			return null;
 		}
-
-		if (index > attributeNodes.getLength() - 1) {
+		if (index < 0 || index >= attributeNodes.length) {
 			return null;
 		}
-		return attributeNodes.get(index);
+		return attributeNodes[index];
 	}
 
 	public boolean hasAttribute(String name) {
@@ -452,7 +409,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	@Override
 	public boolean hasAttributes() {
-		return attributeNodes != null && attributeNodes.size() != 0;
+		return attributeNodes != null && attributeNodes.length > 0;
 	}
 
 	public void setAttribute(String name, String value) {
@@ -466,13 +423,15 @@ public abstract class DOMNode implements Node, DOMRange {
 
 	public void setAttributeNode(DOMAttr attr) {
 		if (attributeNodes == null) {
-			attributeNodes = new XMLNamedNodeMap<>();
+			attributeNodes = new DOMAttr[] { attr };
+		} else {
+			attributeNodes = Arrays.copyOf(attributeNodes, attributeNodes.length + 1);
+			attributeNodes[attributeNodes.length - 1] = attr;
 		}
-		attributeNodes.add(attr);
 	}
 
 	public List<DOMAttr> getAttributeNodes() {
-		return attributeNodes;
+		return attributeNodes != null ? Arrays.asList(attributeNodes) : null;
 	}
 
 	/**
@@ -496,17 +455,10 @@ public abstract class DOMNode implements Node, DOMRange {
 		return result;
 	}
 
-	private void ensureChildren() {
-		if (lazyGreenNode != null) {
-			synchronized (this) {
-				if (lazyGreenNode != null) {
-					GreenNode green = lazyGreenNode;
-					int absStart = lazyAbsStart;
-					lazyGreenNode = null;
-					RedTreeBuilder.expandLazy(this, green, absStart);
-				}
-			}
-		}
+	void ensureChildren() {
+	}
+
+	void setLazy(GreenNode green, int absStart) {
 	}
 
 	/**
@@ -539,9 +491,6 @@ public abstract class DOMNode implements Node, DOMRange {
 	}
 
 	void compactChildren() {
-		if (attributeNodes != null) {
-			attributeNodes.trimToSize();
-		}
 	}
 
 	/**
@@ -701,7 +650,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	@Override
 	public NamedNodeMap getAttributes() {
-		return attributeNodes;
+		return attributeNodes != null ? new AttrNamedNodeMap(attributeNodes) : null;
 	}
 
 	/*
