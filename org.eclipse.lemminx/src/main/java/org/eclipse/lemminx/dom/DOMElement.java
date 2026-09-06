@@ -16,6 +16,7 @@ import static org.eclipse.lemminx.dom.DOMAttr.XMLNS_ATTR;
 import static org.eclipse.lemminx.dom.DOMAttr.XMLNS_NO_DEFAULT_ATTR;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -25,6 +26,7 @@ import org.eclipse.lemminx.dom.green.GreenElement;
 import org.eclipse.lemminx.dom.green.GreenNode;
 import org.eclipse.lemminx.utils.StringUtils;
 import org.w3c.dom.DOMException;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.TypeInfo;
 
@@ -35,6 +37,7 @@ import org.w3c.dom.TypeInfo;
 public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 
 	GreenElement greenElement;
+	DOMAttr[] attributeNodes;
 
 	private volatile GreenNode lazyGreenNode;
 	private int lazyAbsStart;
@@ -63,6 +66,42 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 	void setLazy(GreenNode green, int absStart) {
 		this.lazyGreenNode = green;
 		this.lazyAbsStart = absStart;
+	}
+
+	@Override
+	public boolean hasAttributes() {
+		return attributeNodes != null && attributeNodes.length > 0;
+	}
+
+	@Override
+	public void setAttributeNode(DOMAttr attr) {
+		if (attributeNodes == null) {
+			attributeNodes = new DOMAttr[] { attr };
+		} else {
+			attributeNodes = Arrays.copyOf(attributeNodes, attributeNodes.length + 1);
+			attributeNodes[attributeNodes.length - 1] = attr;
+		}
+	}
+
+	@Override
+	public List<DOMAttr> getAttributeNodes() {
+		return attributeNodes != null ? Arrays.asList(attributeNodes) : null;
+	}
+
+	@Override
+	public DOMAttr getAttributeAtIndex(int index) {
+		if (!hasAttributes()) {
+			return null;
+		}
+		if (index < 0 || index >= attributeNodes.length) {
+			return null;
+		}
+		return attributeNodes[index];
+	}
+
+	@Override
+	public NamedNodeMap getAttributes() {
+		return attributeNodes != null ? new AttrNamedNodeMap(attributeNodes) : null;
 	}
 
 	/*

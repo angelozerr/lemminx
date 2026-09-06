@@ -119,8 +119,8 @@ public class MemoryBenchmark {
 		System.out.println("Walked " + nodeCount + " nodes in " + (System.currentTimeMillis() - start) + " ms");
 		System.gc();
 		Thread.sleep(1000);
-		System.out.println(">> SNAPSHOT 5: after tree walk. Press Enter to exit...");
-		Thread.sleep(15000);
+		System.out.println(">> SNAPSHOT 5: after tree walk. Waiting 120s...");
+		Thread.sleep(120000);
 
 		System.out.println("Done.");
 	}

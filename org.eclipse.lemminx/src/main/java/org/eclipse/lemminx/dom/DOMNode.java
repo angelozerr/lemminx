@@ -67,7 +67,6 @@ public abstract class DOMNode implements Node, DOMRange {
 	static final byte FLAG_SELF_CLOSED = 0x02;
 	static final byte FLAG_WHITESPACE = 0x04;
 
-	DOMAttr[] attributeNodes;
 	DOMNode[] children;
 
 	final int start; // |<root> </root>
@@ -101,7 +100,7 @@ public abstract class DOMNode implements Node, DOMRange {
 		}
 	}
 
-	private static final class AttrNamedNodeMap implements NamedNodeMap {
+	static final class AttrNamedNodeMap implements NamedNodeMap {
 		private final DOMAttr[] attrs;
 		AttrNamedNodeMap(DOMAttr[] attrs) { this.attrs = attrs; }
 		@Override public int getLength() { return attrs.length; }
@@ -341,6 +340,9 @@ public abstract class DOMNode implements Node, DOMRange {
 	 * If there is no namespace, set prefix to null.
 	 */
 	public DOMAttr getAttributeNode(String prefix, String suffix) {
+		if (!hasAttributes()) {
+			return null;
+		}
 		StringBuilder sb = new StringBuilder();
 		if (prefix != null) {
 			sb.append(prefix);
@@ -348,10 +350,7 @@ public abstract class DOMNode implements Node, DOMRange {
 		}
 		sb.append(suffix);
 		String name = sb.toString();
-		if (!hasAttributes()) {
-			return null;
-		}
-		for (DOMAttr attr : attributeNodes) {
+		for (DOMAttr attr : getAttributeNodes()) {
 			if (name.equals(attr.getName())) {
 				return attr;
 			}
@@ -389,13 +388,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 * @return
 	 */
 	public DOMAttr getAttributeAtIndex(int index) {
-		if (!hasAttributes()) {
-			return null;
-		}
-		if (index < 0 || index >= attributeNodes.length) {
-			return null;
-		}
-		return attributeNodes[index];
+		return null;
 	}
 
 	public boolean hasAttribute(String name) {
@@ -409,7 +402,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	@Override
 	public boolean hasAttributes() {
-		return attributeNodes != null && attributeNodes.length > 0;
+		return false;
 	}
 
 	public void setAttribute(String name, String value) {
@@ -422,16 +415,10 @@ public abstract class DOMNode implements Node, DOMRange {
 	}
 
 	public void setAttributeNode(DOMAttr attr) {
-		if (attributeNodes == null) {
-			attributeNodes = new DOMAttr[] { attr };
-		} else {
-			attributeNodes = Arrays.copyOf(attributeNodes, attributeNodes.length + 1);
-			attributeNodes[attributeNodes.length - 1] = attr;
-		}
 	}
 
 	public List<DOMAttr> getAttributeNodes() {
-		return attributeNodes != null ? Arrays.asList(attributeNodes) : null;
+		return null;
 	}
 
 	/**
@@ -650,7 +637,7 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	@Override
 	public NamedNodeMap getAttributes() {
-		return attributeNodes != null ? new AttrNamedNodeMap(attributeNodes) : null;
+		return null;
 	}
 
 	/*

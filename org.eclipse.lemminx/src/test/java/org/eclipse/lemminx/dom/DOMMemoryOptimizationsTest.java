@@ -264,6 +264,39 @@ public class DOMMemoryOptimizationsTest {
 		assertEquals("root", ((DOMElement) found).getTagName());
 	}
 
+	// --- attributeNodes field scoping tests ---
+
+	@Test
+	public void textNodeHasNoAttributes() {
+		DOMDocument doc = parse("<root>hello</root>");
+		DOMNode text = doc.getDocumentElement().getFirstChild();
+		assertTrue(text.isText());
+		assertFalse(text.hasAttributes());
+		assertNull(text.getAttributeNodes());
+		assertNull(text.getAttributes());
+		assertNull(text.getAttributeAtIndex(0));
+	}
+
+	@Test
+	public void prologHasAttributes() {
+		DOMDocument doc = parse("<?xml version=\"1.0\" encoding=\"UTF-8\"?><root/>");
+		DOMNode prolog = doc.getFirstChild();
+		assertTrue(prolog.isProlog());
+		assertTrue(prolog.hasAttributes());
+		assertEquals("1.0", prolog.getAttribute("version"));
+		assertEquals("UTF-8", prolog.getAttribute("encoding"));
+	}
+
+	@Test
+	public void setAttributeOnElement() {
+		DOMDocument doc = parse("<root/>");
+		DOMElement root = doc.getDocumentElement();
+		assertFalse(root.hasAttributes());
+		root.setAttribute("key", "val");
+		assertTrue(root.hasAttributes());
+		assertEquals("val", root.getAttribute("key"));
+	}
+
 	// --- Helpers ---
 
 	private DOMDocument parse(String xml) {
