@@ -67,8 +67,6 @@ public abstract class DOMNode implements Node, DOMRange {
 	static final byte FLAG_SELF_CLOSED = 0x02;
 	static final byte FLAG_WHITESPACE = 0x04;
 
-	DOMNode[] children;
-
 	final int start; // |<root> </root>
 	int end; // <root> </root>|
 
@@ -169,17 +167,18 @@ public abstract class DOMNode implements Node, DOMRange {
 		result.append(", closed: ");
 		result.append(isClosed());
 		ensureChildren();
-		if (children != null && children.length > 0) {
+		DOMNode[] arr = getChildrenArray();
+		if (arr != null && arr.length > 0) {
 			result.append(", \n");
 			for (int i = 0; i < indent + 1; i++) {
 				result.append("\t");
 			}
 			result.append("children:[");
-			for (int i = 0; i < children.length; i++) {
-				DOMNode node = children[i];
+			for (int i = 0; i < arr.length; i++) {
+				DOMNode node = arr[i];
 				result.append("\n");
 				result.append(node.toString(indent + 2));
-				if (i < children.length - 1) {
+				if (i < arr.length - 1) {
 					result.append(",");
 				}
 			}
@@ -442,6 +441,13 @@ public abstract class DOMNode implements Node, DOMRange {
 		return result;
 	}
 
+	DOMNode[] getChildrenArray() {
+		return null;
+	}
+
+	void setChildrenArray(DOMNode[] c) {
+	}
+
 	void ensureChildren() {
 	}
 
@@ -455,10 +461,11 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	public List<DOMNode> getChildren() {
 		ensureChildren();
-		if (children == null || children.length == 0) {
+		DOMNode[] arr = getChildrenArray();
+		if (arr == null || arr.length == 0) {
 			return Collections.emptyList();
 		}
-		return Arrays.asList(children);
+		return Arrays.asList(arr);
 	}
 
 	/**
@@ -468,13 +475,15 @@ public abstract class DOMNode implements Node, DOMRange {
 	 */
 	public void addChild(DOMNode child) {
 		child.parent = this;
-		if (children == null) {
-			children = new DOMNode[] { child };
+		DOMNode[] arr = getChildrenArray();
+		if (arr == null) {
+			arr = new DOMNode[] { child };
 		} else {
-			children = Arrays.copyOf(children, children.length + 1);
-			children[children.length - 1] = child;
+			arr = Arrays.copyOf(arr, arr.length + 1);
+			arr[arr.length - 1] = child;
 		}
-		child.cachedIndexInParent = children.length - 1;
+		setChildrenArray(arr);
+		child.cachedIndexInParent = arr.length - 1;
 	}
 
 	void compactChildren() {
@@ -616,7 +625,8 @@ public abstract class DOMNode implements Node, DOMRange {
 	@Override
 	public DOMNode getFirstChild() {
 		ensureChildren();
-		return children != null && children.length > 0 ? children[0] : null;
+		DOMNode[] arr = getChildrenArray();
+		return arr != null && arr.length > 0 ? arr[0] : null;
 	}
 
 	/*
@@ -627,7 +637,8 @@ public abstract class DOMNode implements Node, DOMRange {
 	@Override
 	public DOMNode getLastChild() {
 		ensureChildren();
-		return children != null && children.length > 0 ? children[children.length - 1] : null;
+		DOMNode[] arr = getChildrenArray();
+		return arr != null && arr.length > 0 ? arr[arr.length - 1] : null;
 	}
 
 	/*
@@ -648,7 +659,8 @@ public abstract class DOMNode implements Node, DOMRange {
 	@Override
 	public NodeList getChildNodes() {
 		ensureChildren();
-		return children != null && children.length > 0 ? new ArrayNodeList(children) : EMPTY_CHILDREN;
+		DOMNode[] arr = getChildrenArray();
+		return arr != null && arr.length > 0 ? new ArrayNodeList(arr) : EMPTY_CHILDREN;
 	}
 
 	/*
@@ -842,9 +854,10 @@ public abstract class DOMNode implements Node, DOMRange {
 		// concatenation of the textContent attribute value of every child node
 		default:
 			ensureChildren();
-			if (this.children != null && children.length > 0) {
+			DOMNode[] arr = getChildrenArray();
+			if (arr != null && arr.length > 0) {
 				final StringBuilder builder = new StringBuilder();
-				for (DOMNode child : children) {
+				for (DOMNode child : arr) {
 					short nodeType = child.getNodeType();
 					if (nodeType == Node.COMMENT_NODE || nodeType == Node.PROCESSING_INSTRUCTION_NODE) {
 						// excluding COMMENT_NODE and PROCESSING_INSTRUCTION_NODE nodes.
@@ -875,7 +888,8 @@ public abstract class DOMNode implements Node, DOMRange {
 	@Override
 	public boolean hasChildNodes() {
 		ensureChildren();
-		return children != null && children.length > 0;
+		DOMNode[] arr = getChildrenArray();
+		return arr != null && arr.length > 0;
 	}
 
 	@Override

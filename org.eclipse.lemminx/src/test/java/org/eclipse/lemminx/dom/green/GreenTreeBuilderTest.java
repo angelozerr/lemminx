@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -485,6 +486,89 @@ public class GreenTreeBuilderTest {
 		assertTrue(origA == newRoot.child(0));
 		assertTrue(origB == newRoot.child(1));
 		assertInstanceOf(GreenText.class, newRoot.child(2));
+	}
+
+	// --- Compact children storage tests ---
+
+	@Test
+	public void compactChildrenZero() {
+		String xml = "<empty/>";
+		GreenDocument doc = GreenTreeBuilder.parse(xml, "test.xml", null);
+		GreenElement empty = assertInstanceOf(GreenElement.class, doc.child(0));
+		assertEquals(0, empty.childCount());
+		assertEquals(0, empty.children().length);
+		assertThrows(IndexOutOfBoundsException.class, () -> empty.child(0));
+	}
+
+	@Test
+	public void compactChildrenOne() {
+		String xml = "<parent><only/></parent>";
+		GreenDocument doc = GreenTreeBuilder.parse(xml, "test.xml", null);
+		GreenElement parent = assertInstanceOf(GreenElement.class, doc.child(0));
+		assertEquals(1, parent.childCount());
+		GreenNode only = parent.child(0);
+		assertInstanceOf(GreenElement.class, only);
+		assertEquals("only", ((GreenElement) only).tag());
+
+		GreenNode[] arr = parent.children();
+		assertEquals(1, arr.length);
+		assertEquals(only.width(), arr[0].width());
+
+		assertThrows(IndexOutOfBoundsException.class, () -> parent.child(1));
+		assertThrows(IndexOutOfBoundsException.class, () -> parent.child(-1));
+	}
+
+	@Test
+	public void compactChildrenTwo() {
+		String xml = "<parent><a/><b/></parent>";
+		GreenDocument doc = GreenTreeBuilder.parse(xml, "test.xml", null);
+		GreenElement parent = assertInstanceOf(GreenElement.class, doc.child(0));
+		assertEquals(2, parent.childCount());
+		assertEquals("a", ((GreenElement) parent.child(0)).tag());
+		assertEquals("b", ((GreenElement) parent.child(1)).tag());
+		assertEquals(2, parent.children().length);
+	}
+
+	@Test
+	public void compactChildrenSingleText() {
+		String xml = "<p>text</p>";
+		GreenDocument doc = GreenTreeBuilder.parse(xml, "test.xml", null);
+		GreenElement p = assertInstanceOf(GreenElement.class, doc.child(0));
+		assertEquals(1, p.childCount());
+		assertInstanceOf(GreenText.class, p.child(0));
+		assertEquals(4, p.child(0).width());
+	}
+
+	@Test
+	public void withReplacedChildOnSingleChild() {
+		String xml = "<parent><child/></parent>";
+		GreenDocument doc = GreenTreeBuilder.parse(xml, "test.xml", null);
+		GreenElement parent = assertInstanceOf(GreenElement.class, doc.child(0));
+		assertEquals(1, parent.childCount());
+
+		GreenText replacement = new GreenText(10, false);
+		GreenNode newParent = parent.withReplacedChild(0, replacement);
+		GreenElement newElem = assertInstanceOf(GreenElement.class, newParent);
+		assertEquals(1, newElem.childCount());
+		assertInstanceOf(GreenText.class, newElem.child(0));
+		assertEquals(10, newElem.child(0).width());
+	}
+
+	@Test
+	public void withNewChildrenCompactsCorrectly() {
+		String xml = "<root><a/><b/></root>";
+		GreenDocument doc = GreenTreeBuilder.parse(xml, "test.xml", null);
+		GreenElement root = assertInstanceOf(GreenElement.class, doc.child(0));
+
+		GreenNode[] singleChild = new GreenNode[] { new GreenText(5, false) };
+		GreenElement withOne = root.withNewChildren(singleChild,
+				5 - (root.child(0).width() + root.child(1).width()));
+		assertEquals(1, withOne.childCount());
+		assertInstanceOf(GreenText.class, withOne.child(0));
+
+		GreenElement withNone = root.withNewChildren(new GreenNode[0],
+				-(root.child(0).width() + root.child(1).width()));
+		assertEquals(0, withNone.childCount());
 	}
 
 	private void assertTotalWidthConsistent(GreenNode node) {

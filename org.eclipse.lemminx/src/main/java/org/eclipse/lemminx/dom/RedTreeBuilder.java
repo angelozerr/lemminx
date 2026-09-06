@@ -83,7 +83,7 @@ public final class RedTreeBuilder {
 	}
 
 	private void addChildrenOrDefer(DOMNode node, GreenNode green, int absStart) {
-		if (lazy && green.children().length > 0) {
+		if (lazy && green.childCount() > 0) {
 			node.setLazy(green, absStart);
 		} else {
 			addChildren(node, green, absStart);
@@ -91,8 +91,8 @@ public final class RedTreeBuilder {
 	}
 
 	private void addChildren(DOMNode parent, GreenNode greenParent, int parentAbsStart) {
-		GreenNode[] greenChildren = greenParent.children();
-		if (greenChildren.length == 0) {
+		int cc = greenParent.childCount();
+		if (cc == 0) {
 			parent.compactChildren();
 			return;
 		}
@@ -100,12 +100,13 @@ public final class RedTreeBuilder {
 		int childrenStartRel = greenParent.childrenStartRel();
 		int childAbsStart = parentAbsStart + childrenStartRel;
 		boolean skipWhitespace = ignoreWhitespaceContent
-				&& (hasNonWhitespaceChild(greenChildren) || greenParent instanceof GreenDocumentType);
+				&& (hasNonWhitespaceChild(greenParent, cc) || greenParent instanceof GreenDocumentType);
 
-		DOMNode[] redChildren = new DOMNode[greenChildren.length];
+		DOMNode[] redChildren = new DOMNode[cc];
 		int idx = 0;
 
-		for (GreenNode greenChild : greenChildren) {
+		for (int i = 0; i < cc; i++) {
+			GreenNode greenChild = greenParent.child(i);
 			if (skipWhitespace && isWhitespaceText(greenChild)) {
 				childAbsStart += greenChild.width();
 				continue;
@@ -125,14 +126,14 @@ public final class RedTreeBuilder {
 		}
 
 		if (idx > 0) {
-			parent.children = (idx == redChildren.length) ? redChildren : Arrays.copyOf(redChildren, idx);
+			parent.setChildrenArray((idx == redChildren.length) ? redChildren : Arrays.copyOf(redChildren, idx));
 		}
 		parent.compactChildren();
 	}
 
-	private static boolean hasNonWhitespaceChild(GreenNode[] children) {
-		for (GreenNode child : children) {
-			if (!isWhitespaceText(child)) {
+	private static boolean hasNonWhitespaceChild(GreenNode parent, int cc) {
+		for (int i = 0; i < cc; i++) {
+			if (!isWhitespaceText(parent.child(i))) {
 				return true;
 			}
 		}
@@ -178,10 +179,6 @@ public final class RedTreeBuilder {
 		DOMElement elem = new DOMElement(absStart, absEnd);
 		elem.greenElement = green;
 		elem.setSelfClosed(green.selfClosed());
-		boolean isOrphanEndTag = green.endTagOpenRel() != GreenElement.NULL_VALUE
-				&& green.endTagOpenRel() == 0
-				&& green.startTagCloseRel() == GreenElement.NULL_VALUE;
-		elem.startTagOpenOffset = isOrphanEndTag ? DOMNode.NULL_VALUE : absStart;
 		elem.setClosed(green.closed());
 
 		GreenAttr[] greenAttrs = green.attributes();

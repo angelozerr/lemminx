@@ -57,7 +57,11 @@ public class TextDocument extends TextDocumentItem {
 	/**
 	 * Returns the text content as a {@link String}. Prefer
 	 * {@link #getTextSequence()} which avoids costly string materialization.
+	 *
+	 * @deprecated Use {@link #getTextSequence()} instead to avoid allocating
+	 *             a full String copy of the document text.
 	 */
+	@Deprecated
 	@Override
 	public String getText() {
 		synchronized (lock) {
@@ -66,8 +70,6 @@ public class TextDocument extends TextDocumentItem {
 			}
 			if (textBuffer != null) {
 				cachedText = textBuffer.toString();
-				textBuffer = null;
-				super.setText(cachedText);
 				return cachedText;
 			}
 		}
@@ -191,7 +193,7 @@ public class TextDocument extends TextDocumentItem {
 			return lineTracker;
 		}
 		ILineTracker lineTracker = isIncremental() ? new ArrayLineTracker() : new ListLineTracker();
-		lineTracker.set(getText());
+		lineTracker.set(getTextSequence());
 		return lineTracker;
 	}
 
@@ -211,7 +213,12 @@ public class TextDocument extends TextDocumentItem {
 				long start = System.currentTimeMillis();
 				synchronized (lock) {
 					if (textBuffer == null) {
-						textBuffer = new StringBuilder(getText());
+						String currentText = getText();
+						int len = currentText.length();
+						textBuffer = new StringBuilder(len + Math.max(1024, len >> 3));
+						textBuffer.append(currentText);
+						cachedText = null;
+						super.setText("");
 					}
 
 					for (int i = 0; i < changes.size(); i++) {

@@ -34,8 +34,9 @@ public class DTDDeclNode extends DOMNode {
 	public DTDDeclParameter unrecognized;
 	public DTDDeclParameter declType;
 
+	DOMNode[] children;
+
 	private volatile GreenNode lazyGreenNode;
-	private int lazyAbsStart;
 
 	private List<DTDDeclParameter> parameters;
 	private DTDDeclParameter name;
@@ -45,14 +46,23 @@ public class DTDDeclNode extends DOMNode {
 	}
 
 	@Override
+	DOMNode[] getChildrenArray() {
+		return children;
+	}
+
+	@Override
+	void setChildrenArray(DOMNode[] c) {
+		this.children = c;
+	}
+
+	@Override
 	void ensureChildren() {
 		if (lazyGreenNode != null) {
 			synchronized (this) {
 				if (lazyGreenNode != null) {
 					GreenNode green = lazyGreenNode;
-					int absStart = lazyAbsStart;
 					lazyGreenNode = null;
-					RedTreeBuilder.expandLazy(this, green, absStart);
+					RedTreeBuilder.expandLazy(this, green, start);
 				}
 			}
 		}
@@ -61,7 +71,6 @@ public class DTDDeclNode extends DOMNode {
 	@Override
 	void setLazy(GreenNode green, int absStart) {
 		this.lazyGreenNode = green;
-		this.lazyAbsStart = absStart;
 	}
 
 	public String getName() {

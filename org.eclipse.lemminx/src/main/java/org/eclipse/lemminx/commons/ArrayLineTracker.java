@@ -50,7 +50,7 @@ public class ArrayLineTracker implements ILineTracker {
 	}
 
 	@Override
-	public void set(String text) {
+	public void set(CharSequence text) {
 		textLength = text != null ? text.length() : 0;
 		int count = 1;
 		if (text != null) {

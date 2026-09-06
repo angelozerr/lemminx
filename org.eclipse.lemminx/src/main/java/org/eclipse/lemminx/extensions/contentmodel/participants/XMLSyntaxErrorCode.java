@@ -257,8 +257,8 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 			int startOffset = offset + 1;
 			int endOffset = 0;
 			int errorOffset = offset + 1;
-			String text = document.getText();
-			int startPrologOffset = text.indexOf("<");
+			CharSequence text = document.getTextSequence();
+			int startPrologOffset = indexOf(text, '<', 0);
 			if (errorOffset < startPrologOffset) {
 				// Invalid content given before prolog. Prolog should be the first thing in the
 				// file if given.
@@ -267,7 +267,7 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 			} else {
 				// Invalid content given after prolog. Either root tag or comment should be
 				// present
-				int firstStartTagOffset = text.indexOf("<", errorOffset);
+				int firstStartTagOffset = indexOf(text, '<', errorOffset);
 				startOffset = errorOffset;
 				endOffset = firstStartTagOffset != -1 ? firstStartTagOffset : text.length();
 			}
@@ -409,6 +409,16 @@ public enum XMLSyntaxErrorCode implements IXMLErrorCode {
 			}
 		}
 		return null;
+	}
+
+	private static int indexOf(CharSequence cs, char ch, int from) {
+		int len = cs.length();
+		for (int i = from; i < len; i++) {
+			if (cs.charAt(i) == ch) {
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	public static void registerCodeActionParticipants(Map<String, ICodeActionParticipant> codeActions,

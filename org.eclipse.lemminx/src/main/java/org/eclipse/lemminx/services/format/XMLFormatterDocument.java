@@ -852,10 +852,6 @@ public class XMLFormatterDocument {
 		return textDocument.getTextSequence();
 	}
 
-	String getText() {
-		return textDocument.getText();
-	}
-
 	public int getLineAtOffset(int offset) {
 		try {
 			return textDocument.lineOffsetAt(offset);

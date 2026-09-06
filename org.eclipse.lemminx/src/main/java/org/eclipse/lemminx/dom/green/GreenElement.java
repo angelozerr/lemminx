@@ -28,7 +28,7 @@ public final class GreenElement extends GreenNode {
 	private final int startTagCloseRel;
 	private final int endTagOpenRel;
 	private final GreenAttr[] attributes;
-	private final GreenNode[] children;
+	private final Object childrenData;
 
 	public GreenElement(int width, boolean closed, String tag, boolean selfClosed,
 			int startTagCloseRel, int endTagOpenRel, boolean endTagHasClose,
@@ -39,7 +39,13 @@ public final class GreenElement extends GreenNode {
 		this.startTagCloseRel = startTagCloseRel;
 		this.endTagOpenRel = endTagOpenRel;
 		this.attributes = attributes != null ? attributes : EMPTY_ATTRS;
-		this.children = children != null ? children : EMPTY_CHILDREN;
+		if (children == null || children.length == 0) {
+			this.childrenData = null;
+		} else if (children.length == 1) {
+			this.childrenData = children[0];
+		} else {
+			this.childrenData = children;
+		}
 	}
 
 	@Override
@@ -83,12 +89,13 @@ public final class GreenElement extends GreenNode {
 		if (startTagCloseRel != NULL_VALUE) {
 			return startTagCloseRel + 1;
 		}
-		if (children.length == 0) {
+		int cc = childCount();
+		if (cc == 0) {
 			return 0;
 		}
 		int childrenWidth = 0;
-		for (GreenNode child : children) {
-			childrenWidth += child.width();
+		for (int i = 0; i < cc; i++) {
+			childrenWidth += child(i).width();
 		}
 		if (endTagOpenRel != NULL_VALUE) {
 			return endTagOpenRel - childrenWidth;
@@ -98,7 +105,23 @@ public final class GreenElement extends GreenNode {
 
 	@Override
 	public GreenNode[] children() {
-		return children;
+		if (childrenData == null) return EMPTY_CHILDREN;
+		if (childrenData instanceof GreenNode[]) return (GreenNode[]) childrenData;
+		return new GreenNode[] { (GreenNode) childrenData };
+	}
+
+	@Override
+	public int childCount() {
+		if (childrenData == null) return 0;
+		if (childrenData instanceof GreenNode[]) return ((GreenNode[]) childrenData).length;
+		return 1;
+	}
+
+	@Override
+	public GreenNode child(int index) {
+		if (childrenData instanceof GreenNode[]) return ((GreenNode[]) childrenData)[index];
+		if (index == 0 && childrenData != null) return (GreenNode) childrenData;
+		throw new IndexOutOfBoundsException(index);
 	}
 
 	public GreenElement withNewChildren(GreenNode[] newChildren, int widthDelta) {

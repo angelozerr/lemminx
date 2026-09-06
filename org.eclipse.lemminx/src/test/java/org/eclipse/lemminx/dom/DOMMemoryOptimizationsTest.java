@@ -238,6 +238,42 @@ public class DOMMemoryOptimizationsTest {
 		assertEquals("val", elem.getAttribute("key"));
 	}
 
+	@Test
+	public void lazySingleChildExpanded() {
+		DOMDocument doc = parseLazy("<root><only/></root>");
+		DOMElement root = doc.getDocumentElement();
+		assertTrue(root.hasChildNodes());
+		assertEquals(1, root.getChildren().size());
+		DOMElement only = (DOMElement) root.getFirstChild();
+		assertEquals("only", only.getTagName());
+	}
+
+	@Test
+	public void lazySingleTextChildExpanded() {
+		DOMDocument doc = parseLazy("<root>content</root>");
+		DOMElement root = doc.getDocumentElement();
+		assertTrue(root.hasChildNodes());
+		DOMNode text = root.getFirstChild();
+		assertTrue(text.isText());
+	}
+
+	@Test
+	public void lazyEmptyElementNoChildren() {
+		DOMDocument doc = parseLazy("<root><empty/></root>");
+		DOMElement root = doc.getDocumentElement();
+		DOMElement empty = (DOMElement) root.getFirstChild();
+		assertFalse(empty.hasChildNodes());
+		assertEquals(0, empty.getChildren().size());
+	}
+
+	@Test
+	public void findNodeAtSingleChild() {
+		DOMDocument doc = parseLazy("<root><child attr=\"v\"/></root>");
+		DOMNode node = doc.findNodeAt(7);
+		assertTrue(node.isElement());
+		assertEquals("child", ((DOMElement) node).getTagName());
+	}
+
 	// --- findFirst binary search tests ---
 
 	@Test
@@ -295,6 +331,40 @@ public class DOMMemoryOptimizationsTest {
 		root.setAttribute("key", "val");
 		assertTrue(root.hasAttributes());
 		assertEquals("val", root.getAttribute("key"));
+	}
+
+	@Test
+	public void textNodeHasNoChildrenArray() {
+		DOMDocument doc = parse("<root>hello</root>");
+		DOMNode text = doc.getDocumentElement().getFirstChild();
+		assertTrue(text.isText());
+		assertNull(text.getChildrenArray());
+		assertFalse(text.hasChildNodes());
+	}
+
+	@Test
+	public void commentNodeHasNoChildrenArray() {
+		DOMDocument doc = parse("<root><!-- comment --></root>");
+		DOMNode comment = doc.getDocumentElement().getFirstChild();
+		assertTrue(comment.isComment());
+		assertNull(comment.getChildrenArray());
+		assertFalse(comment.hasChildNodes());
+	}
+
+	@Test
+	public void elementHasChildrenArray() {
+		DOMDocument doc = parse("<root><child/></root>");
+		DOMElement root = doc.getDocumentElement();
+		assertTrue(root.hasChildNodes());
+		assertNotNull(root.getChildrenArray());
+		assertEquals(1, root.getChildren().size());
+	}
+
+	@Test
+	public void documentHasChildrenArray() {
+		DOMDocument doc = parse("<root/>");
+		assertNotNull(doc.getChildrenArray());
+		assertTrue(doc.hasChildNodes());
 	}
 
 	// --- Helpers ---

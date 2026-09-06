@@ -38,14 +38,22 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 
 	GreenElement greenElement;
 	DOMAttr[] attributeNodes;
+	DOMNode[] children;
 
 	private volatile GreenNode lazyGreenNode;
-	private int lazyAbsStart;
-
-	int startTagOpenOffset = NULL_VALUE; // |<root>
 
 	public DOMElement(int start, int end) {
 		super(start, end);
+	}
+
+	@Override
+	DOMNode[] getChildrenArray() {
+		return children;
+	}
+
+	@Override
+	void setChildrenArray(DOMNode[] c) {
+		this.children = c;
 	}
 
 	@Override
@@ -54,9 +62,8 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 			synchronized (this) {
 				if (lazyGreenNode != null) {
 					GreenNode green = lazyGreenNode;
-					int absStart = lazyAbsStart;
 					lazyGreenNode = null;
-					RedTreeBuilder.expandLazy(this, green, absStart);
+					RedTreeBuilder.expandLazy(this, green, start);
 				}
 			}
 		}
@@ -65,7 +72,6 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 	@Override
 	void setLazy(GreenNode green, int absStart) {
 		this.lazyGreenNode = green;
-		this.lazyAbsStart = absStart;
 	}
 
 	@Override
@@ -342,12 +348,13 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 	}
 
 	public boolean isInStartTag(int offset) {
+		int stoOffset = getStartTagOpenOffset();
 		int stcOffset = getStartTagCloseOffset();
-		if (startTagOpenOffset == NULL_VALUE || stcOffset == NULL_VALUE) {
+		if (stoOffset == NULL_VALUE || stcOffset == NULL_VALUE) {
 			// case <|
 			return true;
 		}
-		if (offset > startTagOpenOffset && offset <= stcOffset) {
+		if (offset > stoOffset && offset <= stcOffset) {
 			// case <bean | >
 			return true;
 		}
@@ -383,7 +390,15 @@ public class DOMElement extends DOMNode implements org.w3c.dom.Element {
 	 *         doesn't exist.
 	 */
 	public int getStartTagOpenOffset() {
-		return startTagOpenOffset;
+		if (greenElement == null) {
+			return NULL_VALUE;
+		}
+		int eto = greenElement.endTagOpenRel();
+		if (eto != GreenElement.NULL_VALUE && eto == 0
+				&& greenElement.startTagCloseRel() == GreenElement.NULL_VALUE) {
+			return NULL_VALUE;
+		}
+		return start;
 	}
 
 	/**
