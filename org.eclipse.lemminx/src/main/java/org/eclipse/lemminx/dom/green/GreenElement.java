@@ -81,7 +81,17 @@ public final class GreenElement extends GreenNode {
 		if (startTagCloseRel != NULL_VALUE) {
 			return startTagCloseRel + 1;
 		}
-		return 0;
+		if (children.length == 0) {
+			return 0;
+		}
+		int childrenWidth = 0;
+		for (GreenNode child : children) {
+			childrenWidth += child.width();
+		}
+		if (endTagOpenRel != NULL_VALUE) {
+			return endTagOpenRel - childrenWidth;
+		}
+		return width() - childrenWidth;
 	}
 
 	@Override

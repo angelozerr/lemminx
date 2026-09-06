@@ -156,6 +156,133 @@ public class ModelTextDocumentTest {
 		assertNull(doc.getPreviousIncrementalData());
 	}
 
+	// --- Edit merge tests ---
+
+	@Test
+	public void mergeEditsAfterDirtyRegion() {
+		// T0 = "AABBCCDD", edit1 replaces "BB" with "YYY", edit2 replaces second "C" with "Z"
+		ModelTextDocument<String> doc = createDoc("AABBCCDD");
+		doc.getModel();
+
+		// Edit 1: replace "BB" (pos 2, len 2) with "YYY" → "AAYYYCCDD"
+		doc.setVersion(1);
+		doc.update(Collections.singletonList(createChange(0, 2, 0, 4, "YYY")));
+
+		// Edit 2: replace second "C" (pos 6 in T1, len 1) with "Z" → "AAYYYCZDD"
+		doc.setVersion(2);
+		doc.update(Collections.singletonList(createChange(0, 6, 0, 7, "Z")));
+
+		ModelTextDocument.EditInfo edit = doc.getPendingEdit();
+		assertNotNull(edit);
+		// Merged against T0: dirty region is [2, 6), so delete "BBCC" (4 chars), insert "YYYCZ" (5 chars)
+		assertEquals(2, edit.getStartOffset());
+		assertEquals(4, edit.getDeleteLength());
+		assertEquals(5, edit.getInsertLength());
+	}
+
+	@Test
+	public void mergeEditsBeforeDirtyRegion() {
+		// T0 = "AABBCCDD", edit1 at pos 4, edit2 at pos 1
+		ModelTextDocument<String> doc = createDoc("AABBCCDD");
+		doc.getModel();
+
+		// Edit 1: replace "CC" (pos 4, len 2) with "YYY" → "AABBYYYТDD"
+		doc.setVersion(1);
+		doc.update(Collections.singletonList(createChange(0, 4, 0, 6, "YYY")));
+
+		// Edit 2: delete "A" at pos 1 (len 1) → "ABBYYYТDD"
+		doc.setVersion(2);
+		doc.update(Collections.singletonList(createChange(0, 1, 0, 2, "")));
+
+		ModelTextDocument.EditInfo edit = doc.getPendingEdit();
+		assertNotNull(edit);
+		// Merged against T0: dirty region is [1, 6), delete "ABBCC" (5 chars), insert "BBYYY" (5 chars)
+		assertEquals(1, edit.getStartOffset());
+		assertEquals(5, edit.getDeleteLength());
+		assertEquals(5, edit.getInsertLength());
+	}
+
+	@Test
+	public void mergeEditsWithinDirtyRegion() {
+		// T0 = "AABBCCDD", edit1 replaces "BB" with "YYY", edit2 within dirty region
+		ModelTextDocument<String> doc = createDoc("AABBCCDD");
+		doc.getModel();
+
+		// Edit 1: replace "BB" (pos 2, len 2) with "YYY" → "AAYYYCCDD"
+		doc.setVersion(1);
+		doc.update(Collections.singletonList(createChange(0, 2, 0, 4, "YYY")));
+
+		// Edit 2: replace "Y" at pos 3 (within dirty) with "ZZ" → "AAYZZYYCCDD"... wait
+		// T1 = "AAYYYCCDD", replace pos 3 len 1 with "ZZ" → "AAYZZYCCDD"
+		doc.setVersion(2);
+		doc.update(Collections.singletonList(createChange(0, 3, 0, 4, "ZZ")));
+
+		ModelTextDocument.EditInfo edit = doc.getPendingEdit();
+		assertNotNull(edit);
+		// Merged against T0: dirty region is [2, 4), delete "BB" (2 chars), insert "YZZY" (4 chars)
+		assertEquals(2, edit.getStartOffset());
+		assertEquals(2, edit.getDeleteLength());
+		assertEquals(4, edit.getInsertLength());
+	}
+
+	@Test
+	public void mergeThreeConsecutiveEdits() {
+		// Simulate rapid typing: insert 'a', 'b', 'c' at consecutive positions
+		ModelTextDocument<String> doc = createDoc("<root></root>");
+		doc.getModel();
+
+		// Edit 1: insert "a" at pos 6 → "<root>a</root>"
+		doc.setVersion(1);
+		doc.update(Collections.singletonList(createChange(0, 6, 0, 6, "a")));
+
+		// Edit 2: insert "b" at pos 7 → "<root>ab</root>"
+		doc.setVersion(2);
+		doc.update(Collections.singletonList(createChange(0, 7, 0, 7, "b")));
+
+		// Edit 3: insert "c" at pos 8 → "<root>abc</root>"
+		doc.setVersion(3);
+		doc.update(Collections.singletonList(createChange(0, 8, 0, 8, "c")));
+
+		ModelTextDocument.EditInfo edit = doc.getPendingEdit();
+		assertNotNull(edit);
+		// Merged against T0: at pos 6, delete 0, insert 3
+		assertEquals(6, edit.getStartOffset());
+		assertEquals(0, edit.getDeleteLength());
+		assertEquals(3, edit.getInsertLength());
+	}
+
+	@Test
+	public void singleEditNoMerge() {
+		ModelTextDocument<String> doc = createDoc("<root>text</root>");
+		doc.getModel();
+
+		doc.setVersion(1);
+		doc.update(Collections.singletonList(createChange(0, 6, 0, 10, "newtext")));
+
+		ModelTextDocument.EditInfo edit = doc.getPendingEdit();
+		assertNotNull(edit);
+		assertEquals(6, edit.getStartOffset());
+		assertEquals(4, edit.getDeleteLength());
+		assertEquals(7, edit.getInsertLength());
+	}
+
+	@Test
+	public void mergeEditsPreviousIncrementalDataPreserved() {
+		ModelTextDocument<String> doc = createDoc("AABBCCDD");
+		String firstModel = doc.getModel();
+
+		doc.setVersion(1);
+		doc.update(Collections.singletonList(createChange(0, 2, 0, 4, "YYY")));
+
+		doc.setVersion(2);
+		doc.update(Collections.singletonList(createChange(0, 6, 0, 7, "Z")));
+
+		// previousIncrementalData should still be from the original model (T0)
+		Object prev = doc.getPreviousIncrementalData();
+		assertNotNull(prev);
+		assertEquals(firstModel, prev);
+	}
+
 	private ModelTextDocument<String> createDoc(String text) {
 		ModelTextDocument<String> doc = new ModelTextDocument<>(text, "test://test.xml",
 				(document, cancelChecker) -> document.getText(),

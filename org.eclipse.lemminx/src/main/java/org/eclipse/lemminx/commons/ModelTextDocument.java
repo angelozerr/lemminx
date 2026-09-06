@@ -147,15 +147,22 @@ public class ModelTextDocument<T> extends TextDocument {
 					int delLen = rangeLength != null ? rangeLength.intValue()
 							: offsetAt(range.getEnd()) - start;
 					int insLen = change.getText() != null ? change.getText().length() : 0;
-					pendingEdit = new EditInfo(start, delLen, insLen);
+					if (pendingEdit != null) {
+						pendingEdit.merge(start, delLen, insLen);
+					} else {
+						pendingEdit = new EditInfo(start, delLen, insLen);
+					}
 				} catch (BadLocationException e) {
 					pendingEdit = null;
+					previousIncrementalData = null;
 				}
 			}
 		} else {
 			pendingEdit = null;
+			previousIncrementalData = null;
 		}
 		super.update(changes);
+		cancelModel();
 	}
 
 	/**
@@ -199,30 +206,64 @@ public class ModelTextDocument<T> extends TextDocument {
 	}
 
 	/**
-	 * Information about a single text edit: where it started in the old text,
-	 * how many characters were deleted, and how many were inserted.
+	 * Tracks the cumulative dirty range across multiple edits, always expressed
+	 * relative to the original text (T0) that matches previousIncrementalData.
+	 *
+	 * <p>When multiple edits arrive before the model is rebuilt, each new edit
+	 * is merged into this range so the incremental parser receives correct
+	 * coordinates against the original green tree.</p>
 	 */
 	public static final class EditInfo {
-		private final int startOffset;
-		private final int deleteLength;
-		private final int insertLength;
+		private int startInOld;
+		private int endInOld;
+		private int totalDelta;
 
 		public EditInfo(int startOffset, int deleteLength, int insertLength) {
-			this.startOffset = startOffset;
-			this.deleteLength = deleteLength;
-			this.insertLength = insertLength;
+			this.startInOld = startOffset;
+			this.endInOld = startOffset + deleteLength;
+			this.totalDelta = insertLength - deleteLength;
+		}
+
+		/**
+		 * Merge a new edit (in current-text coordinates) into this dirty range.
+		 */
+		public void merge(int s2, int d2, int i2) {
+			int dirtyEndCurrent = endInOld + totalDelta;
+
+			int s2Old;
+			if (s2 <= startInOld) {
+				s2Old = s2;
+			} else if (s2 >= dirtyEndCurrent) {
+				s2Old = s2 - totalDelta;
+			} else {
+				s2Old = startInOld;
+			}
+
+			int s2End = s2 + d2;
+			int s2EndOld;
+			if (s2End <= startInOld) {
+				s2EndOld = s2End;
+			} else if (s2End >= dirtyEndCurrent) {
+				s2EndOld = s2End - totalDelta;
+			} else {
+				s2EndOld = endInOld;
+			}
+
+			startInOld = Math.min(startInOld, s2Old);
+			endInOld = Math.max(endInOld, s2EndOld);
+			totalDelta += (i2 - d2);
 		}
 
 		public int getStartOffset() {
-			return startOffset;
+			return startInOld;
 		}
 
 		public int getDeleteLength() {
-			return deleteLength;
+			return endInOld - startInOld;
 		}
 
 		public int getInsertLength() {
-			return insertLength;
+			return (endInOld - startInOld) + totalDelta;
 		}
 	}
 
