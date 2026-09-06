@@ -112,6 +112,7 @@ public final class GreenTreeBuilder {
 						linkToEmptyStartTag = true;
 						top.closed = true;
 						top.endTagOpenOffset = endTagOpenOffset;
+						top.endTagHasClose = true;
 						top.nodeEnd = scanner.getTokenEnd();
 					}
 				}
@@ -119,7 +120,7 @@ public final class GreenTreeBuilder {
 				if (token != TokenType.EndTag && !linkToEmptyStartTag) {
 					GreenElement fakeEndTag = new GreenElement(
 							2, false, null, false,
-							GreenElement.NULL_VALUE, 0, GreenElement.NULL_VALUE,
+							GreenElement.NULL_VALUE, 0, false,
 							null, null);
 					addChildToCurrentOrRoot(stack, rootChildren, nextRootChildEnd, fakeEndTag, endTagOpenOffset);
 				}
@@ -263,9 +264,7 @@ public final class GreenTreeBuilder {
 					if (!stack.isEmpty()) {
 						NodeBuilder top = stack.peek();
 						top.nodeEnd = scanner.getTokenEnd();
-						if (top.kind == NodeKind.ELEMENT) {
-							top.endTagCloseOffset = scanner.getTokenOffset();
-						}
+						top.endTagHasClose = true;
 						if (top.kind == NodeKind.DOCUMENT_TYPE) {
 							top.closed = true;
 						}
@@ -808,7 +807,7 @@ public final class GreenTreeBuilder {
 		if (previousTokenWasEndTagOpen) {
 			GreenElement fakeEndTag = new GreenElement(
 					2, false, null, false,
-					GreenElement.NULL_VALUE, 0, GreenElement.NULL_VALUE,
+					GreenElement.NULL_VALUE, 0, false,
 					null, null);
 			addChildToCurrentOrRoot(stack, rootChildren, nextRootChildEnd, fakeEndTag, endTagOpenOffset);
 		}
@@ -908,7 +907,7 @@ public final class GreenTreeBuilder {
 		int startTagOpenOffset = GreenElement.NULL_VALUE;
 		int startTagCloseOffset = GreenElement.NULL_VALUE;
 		int endTagOpenOffset = GreenElement.NULL_VALUE;
-		int endTagCloseOffset = GreenElement.NULL_VALUE;
+		boolean endTagHasClose;
 		GreenAttr[] attributes;
 		int attrCount;
 
@@ -1054,7 +1053,7 @@ public final class GreenTreeBuilder {
 					: null;
 			return new GreenElement(width, closed, tag, selfClosed,
 					rel(startTagCloseOffset), rel(endTagOpenOffset),
-					rel(endTagCloseOffset), attrs, kids);
+					endTagHasClose, attrs, kids);
 		}
 
 		private GreenComment buildComment(int width) {

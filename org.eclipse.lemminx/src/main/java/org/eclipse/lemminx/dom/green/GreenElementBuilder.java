@@ -29,7 +29,7 @@ public final class GreenElementBuilder {
 	private boolean closed;
 	private int startTagCloseOffset = GreenElement.NULL_VALUE;
 	private int endTagOpenOffset = GreenElement.NULL_VALUE;
-	private int endTagCloseOffset = GreenElement.NULL_VALUE;
+	private boolean endTagHasClose;
 	private GreenAttr[] attributes;
 	private int attrCount;
 	private GreenNode[] children;
@@ -76,8 +76,8 @@ public final class GreenElementBuilder {
 		this.endTagOpenOffset = offset;
 	}
 
-	public void setEndTagCloseOffset(int offset) {
-		this.endTagCloseOffset = offset;
+	public void setEndTagHasClose(boolean endTagHasClose) {
+		this.endTagHasClose = endTagHasClose;
 	}
 
 	public void addAttribute(GreenAttr attr) {
@@ -108,8 +108,6 @@ public final class GreenElementBuilder {
 				? startTagCloseOffset - nodeStart : GreenElement.NULL_VALUE;
 		int etoRel = endTagOpenOffset != GreenElement.NULL_VALUE
 				? endTagOpenOffset - nodeStart : GreenElement.NULL_VALUE;
-		int etcRel = endTagCloseOffset != GreenElement.NULL_VALUE
-				? endTagCloseOffset - nodeStart : GreenElement.NULL_VALUE;
 
 		GreenAttr[] attrs = attributes != null
 				? (attrCount == attributes.length ? attributes : Arrays.copyOf(attributes, attrCount))
@@ -119,6 +117,6 @@ public final class GreenElementBuilder {
 				: null;
 
 		return new GreenElement(width, closed, tag, selfClosed,
-				stcRel, etoRel, etcRel, attrs, kids);
+				stcRel, etoRel, endTagHasClose, attrs, kids);
 	}
 }

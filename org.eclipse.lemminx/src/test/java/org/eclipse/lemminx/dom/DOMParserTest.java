@@ -1222,7 +1222,7 @@ public class DOMParserTest {
 			int width = n.end - n.start;
 			int endTagOpenRel = endTagStart != null ? endTagStart - n.start : GreenElement.NULL_VALUE;
 			elem.greenElement = new GreenElement(width, closed, tag, false,
-					GreenElement.NULL_VALUE, endTagOpenRel, GreenElement.NULL_VALUE,
+					GreenElement.NULL_VALUE, endTagOpenRel, closed && endTagOpenRel != GreenElement.NULL_VALUE,
 					null, null);
 			boolean isOrphanEndTag = endTagOpenRel == 0;
 			elem.startTagOpenOffset = isOrphanEndTag ? DOMNode.NULL_VALUE : n.start;

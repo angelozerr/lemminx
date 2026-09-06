@@ -106,7 +106,14 @@ public final class IncrementalParser {
 		int middleCount = oldChildren.length - prefixCount - suffixCount;
 		if (middleCount == 1) {
 			GreenNode middleChild = oldChildren[prefixCount];
-			if (middleChild instanceof GreenElement && middleChild.childCount() > 0) {
+			if (middleChild instanceof GreenText) {
+				int insertEnd = editEnd + delta;
+				if (!containsLessThan(newText, editStart, insertEnd)) {
+					GreenNode newText2 = new GreenText(middleChild.width() + delta, false);
+					return splice(oldChildren, prefixCount, suffixCount,
+							new GreenNode[] { newText2 });
+				}
+			} else if (middleChild instanceof GreenElement && middleChild.childCount() > 0) {
 				GreenElement elem = (GreenElement) middleChild;
 				int elemAbsStart = childrenAbsStart + prefixWidth;
 				GreenElement newElem = tryDescentIntoElement(
@@ -233,6 +240,15 @@ public final class IncrementalParser {
 			}
 		}
 		return result;
+	}
+
+	private static boolean containsLessThan(CharSequence text, int from, int to) {
+		for (int i = from; i < to; i++) {
+			if (text.charAt(i) == '<') {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static int childrenWidth(GreenNode[] children) {

@@ -29,7 +29,8 @@ public abstract class GreenNode {
 
 	static final int CLOSED_FLAG = 1 << 31;
 	static final int SUBCLASS_FLAG = 1 << 30;
-	private static final int WIDTH_MASK = 0x3FFFFFFF;
+	static final int EXTRA_FLAG = 1 << 29;
+	private static final int WIDTH_MASK = 0x1FFFFFFF;
 
 	private final int widthAndFlags;
 
@@ -49,6 +50,10 @@ public abstract class GreenNode {
 
 	protected final boolean subclassFlag() {
 		return (widthAndFlags & SUBCLASS_FLAG) != 0;
+	}
+
+	protected final boolean extraFlag() {
+		return (widthAndFlags & EXTRA_FLAG) != 0;
 	}
 
 	public GreenNode[] children() {
