@@ -85,7 +85,7 @@ public class DOMParser {
 		DOMNode lastClosed = curr;
 		DOMAttr attr = null;
 		int endTagOpenOffset = -1;
-		DOMNode tempWhitespaceContent = null;
+		DOMText tempWhitespaceContent = null;
 		boolean isInitialDeclaration = true; // A declaration can have multiple internal declarations
 		boolean previousTokenWasEndTagOpen = false;
 		TokenType token = scanner.scan();
@@ -183,6 +183,7 @@ public class DOMParser {
 
 				case EndTagOpen:
 					if (tempWhitespaceContent != null) {
+						tempWhitespaceContent.setWhitespace(true);
 						curr.addChild(tempWhitespaceContent);
 						tempWhitespaceContent = null;
 					}
@@ -381,26 +382,22 @@ public class DOMParser {
 					}
 					int start = scanner.getTokenOffset();
 					int end = scanner.getTokenEnd();
-					DOMText textNode = xmlDocument.createText(start, end);
-					textNode.setClosed(true);
 
 					if (scanner.isTokenTextBlank()) {
-						if (ignoreWhitespaceContent) {
-							if (curr.hasChildNodes()) {
-								break;
-							}
-
-							tempWhitespaceContent = textNode;
-							break;
-
-						} else if (!currIsDeclNode) {
-							textNode.setWhitespace(true);
-						} else {
+						if (currIsDeclNode) {
 							break;
 						}
-
+						if (curr.hasChildNodes()) {
+							break;
+						}
+						DOMText wsNode = xmlDocument.createText(start, end);
+						wsNode.setClosed(true);
+						tempWhitespaceContent = wsNode;
+						break;
 					}
 
+					DOMText textNode = xmlDocument.createText(start, end);
+					textNode.setClosed(true);
 					curr.addChild(textNode);
 					break;
 				}

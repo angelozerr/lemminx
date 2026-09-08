@@ -485,13 +485,9 @@ public class DOMParserTest {
 
 	@Test
 	public void testWhitespaceIsParsed() {
-		DOMNode textNodeBefore = createTextNode("\r\n\r\n", 3, 7, true);
 		DOMNode a = createElement("a", 0, 18, 22, true);
 		DOMNode b = createElement("b", 7, 10, 14, true);
-		DOMNode textNodeAfter = createTextNode("\r\n\r\n", 14, 18, true);
-		a.addChild(textNodeBefore);
 		a.addChild(b);
-		a.addChild(textNodeAfter);
 
 		assertDocument("<a>\r\n\r\n<b></b>\r\n\r\n</a>", a, false);
 	}

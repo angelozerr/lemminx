@@ -903,6 +903,17 @@ public class XMLFormatterTest extends AbstractCacheBasedTest {
 		assertFormat(expected, expected);
 	}
 
+	@Test
+	public void fullDocument() throws BadLocationException {
+		String content = "<div  class = \"foo\">\n" + //
+				"<br/>\n" + //
+				" </div>";
+		String expected = "<div class=\"foo\">\n" + //
+				"  <br />\n" + //
+				"</div>";
+		XMLAssert.assertFormat(content, expected, new SharedSettings());
+	}
+
 	private static void assertFormat(String unformatted, String actual, TextEdit... expectedEdits)
 			throws BadLocationException {
 		assertFormat(unformatted, actual, new SharedSettings(), expectedEdits);

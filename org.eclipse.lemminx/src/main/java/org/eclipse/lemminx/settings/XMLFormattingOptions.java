@@ -58,7 +58,6 @@ public class XMLFormattingOptions extends org.eclipse.lemminx.settings.LSPFormat
 			"style", //
 			"script");
 
-	private boolean legacy;
 	private int maxLineWidth;
 
 	public static enum SplitAttributes {
@@ -162,7 +161,6 @@ public class XMLFormattingOptions extends org.eclipse.lemminx.settings.LSPFormat
 		this.setJoinCommentLines(false);
 		this.setJoinContentLines(false);
 		this.setEnabled(true);
-		this.setLegacy(false);
 		this.setMaxLineWidth(100);
 		this.setSpaceBeforeEmptyCloseTag(true);
 		this.setPreserveEmptyContent(false);
@@ -244,25 +242,6 @@ public class XMLFormattingOptions extends org.eclipse.lemminx.settings.LSPFormat
 
 	public void setJoinContentLines(final boolean joinContentLines) {
 		this.joinContentLines = joinContentLines;
-	}
-
-	/**
-	 * Returns true if the legacy formatter must be used and false otherwise.
-	 * 
-	 * @return true if the legacy formatter must be used and false otherwise.
-	 */
-	public boolean isLegacy() {
-		return legacy;
-	}
-
-	/**
-	 * Set true if the legacy formatter must be used and false otherwise.
-	 * 
-	 * @param legacy true if the legacy formatter must be used and false
-	 *                     otherwise.
-	 */
-	public void setLegacy(final boolean legacy) {
-		this.legacy = legacy;
 	}
 
 	/**
@@ -449,7 +428,6 @@ public class XMLFormattingOptions extends org.eclipse.lemminx.settings.LSPFormat
 		setInsertSpaces(formattingOptions.isInsertSpaces());
 		setTrimFinalNewlines(formattingOptions.isTrimFinalNewlines());
 		setTrimTrailingWhitespace(formattingOptions.isTrimTrailingWhitespace());
-		setLegacy(formattingOptions.isLegacy());
 		setMaxLineWidth(formattingOptions.getMaxLineWidth());
 		setSplitAttributes(formattingOptions.getSplitAttributes());
 		setJoinCDATALines(formattingOptions.isJoinCDATALines());

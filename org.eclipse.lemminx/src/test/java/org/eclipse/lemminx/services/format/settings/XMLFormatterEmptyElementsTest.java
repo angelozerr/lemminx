@@ -339,6 +339,33 @@ public class XMLFormatterEmptyElementsTest extends AbstractCacheBasedTest {
 		assertFormat(expected, expected, settings);
 	}
 
+	@Test
+	public void collapseEmptyElementsWithoutPreserveAttrLineBreaks() throws BadLocationException {
+		SharedSettings settings = new SharedSettings();
+		settings.getFormattingSettings().setEmptyElement(EmptyElements.collapse);
+		settings.getFormattingSettings().setPreserveAttributeLineBreaks(false);
+
+		String content = "<example att=\"hello\"></example>";
+		String expected = "<example att=\"hello\" />";
+		XMLAssert.assertFormat(content, expected, settings);
+	}
+
+	@Test
+	public void expandEmptyElementsWithoutPreserveAttrLineBreaks() throws BadLocationException {
+		SharedSettings settings = new SharedSettings();
+		settings.getFormattingSettings().setEmptyElement(EmptyElements.expand);
+		settings.getFormattingSettings().setPreserveAttributeLineBreaks(false);
+
+		String content = "<example att=\"hello\" />";
+		String expected = "<example att=\"hello\"></example>";
+		XMLAssert.assertFormat(content, expected, settings);
+
+		content = "<example \r\n" + //
+				"  att=\"hello\"\r\n" + //
+				"  />";
+		XMLAssert.assertFormat(content, expected, settings);
+	}
+
 	private static void assertFormat(String unformatted, String expected, SharedSettings sharedSettings,
 			TextEdit... expectedEdits) throws BadLocationException {
 		assertFormat(unformatted, expected, sharedSettings, "test.xml", expectedEdits);

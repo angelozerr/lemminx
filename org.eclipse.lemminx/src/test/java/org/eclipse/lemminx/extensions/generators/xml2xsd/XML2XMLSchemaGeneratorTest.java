@@ -48,7 +48,6 @@ public class XML2XMLSchemaGeneratorTest extends AbstractCacheBasedTest {
 				"  </xs:element>" + lineSeparator() + //
 				"</xs:schema>";
 		SharedSettings settings = new SharedSettings();
-		settings.getFormattingSettings().setLegacy(true);;
 		assertGrammarGenerator(xml, new XMLSchemaGeneratorSettings(), settings, xsd);
 	}
 

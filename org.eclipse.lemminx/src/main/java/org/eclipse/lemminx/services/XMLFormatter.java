@@ -24,7 +24,6 @@ import org.eclipse.lemminx.commons.TextDocument;
 import org.eclipse.lemminx.dom.DOMDocument;
 import org.eclipse.lemminx.services.extensions.XMLExtensionsRegistry;
 import org.eclipse.lemminx.services.extensions.format.IFormatterParticipant;
-import org.eclipse.lemminx.services.format.XMLFormatterDocumentOld;
 import org.eclipse.lemminx.services.format.XMLFormatterDocument;
 import org.eclipse.lemminx.settings.SharedSettings;
 import org.eclipse.lsp4j.Position;
@@ -55,11 +54,6 @@ class XMLFormatter {
 	 */
 	public List<? extends TextEdit> format(DOMDocument xmlDocument, Range range, SharedSettings sharedSettings) {
 		try {
-			if (sharedSettings.getFormattingSettings().isLegacy()) {
-				XMLFormatterDocumentOld formatterDocument = new XMLFormatterDocumentOld(xmlDocument.getTextDocument(),
-						range, sharedSettings, getFormatterParticipants());
-				return formatterDocument.format();
-			}
 			XMLFormatterDocument formatterDocument = new XMLFormatterDocument(xmlDocument, range,
 					sharedSettings, getFormatterParticipants());
 			List<? extends TextEdit> result =  formatterDocument.format();
