@@ -9,5 +9,17 @@
     ],
     "description": "Insert Comment",
     "sortText": "ZZa"
+  },
+  "Formatter Off/On": {
+    "prefix": [
+      "@formatter:off"
+    ],
+    "body": [
+      "<!-- @formatter:off -->",
+      "$1",
+      "<!-- @formatter:on -->"
+    ],
+    "description": "Disable formatting for a section",
+    "sortText": "ZZa1"
   }
  }
