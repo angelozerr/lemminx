@@ -517,6 +517,15 @@ public class XMLTextDocumentService implements TextDocumentService {
 			return (List<Either<Command, CodeAction>>) getXMLLanguageService()
 					.doCodeActions(params.getContext(), params.getRange(), xmlDocument, sharedSettings, cancelChecker) //
 					.stream() //
+					.filter(ca -> {
+						if (codeActionLiteralSupport) {
+							return true;
+						}
+						return ca.getEdit() != null
+								&& ca.getEdit().getDocumentChanges() != null
+								&& !ca.getEdit().getDocumentChanges().isEmpty()
+								&& ca.getEdit().getDocumentChanges().get(0).getLeft() != null;
+					}) //
 					.map(ca -> {
 						if (codeActionLiteralSupport) {
 							Either<Command, CodeAction> e = Either.forRight(ca);
