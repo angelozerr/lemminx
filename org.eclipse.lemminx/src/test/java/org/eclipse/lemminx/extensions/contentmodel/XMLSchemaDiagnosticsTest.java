@@ -368,6 +368,23 @@ public class XMLSchemaDiagnosticsTest extends AbstractCacheBasedTest {
 	}
 
 	@Test
+	public void cvc_complex_type_2_4_bCodeAction_Only_Required_Extension() throws Exception {
+		String xml = "<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
+				"xsi:noNamespaceSchemaLocation=\"src/test/resources/xsd/order_extension.xsd\"></root>";
+		Diagnostic d = d(0, 1, 0, 5, XMLSchemaErrorCode.cvc_complex_type_2_4_b);
+		testDiagnosticsFor(xml, d);
+		testCodeActionsFor(xml, d, ca(d, te(1, 75, 1, 75, //
+				"\r\n" + //
+						"\t<episode></episode>\r\n" + //
+						"\t<episodeType></episodeType>\r\n" + //
+						"\t<episodeTime></episodeTime>\r\n")),
+				ca(d, te(1, 75, 1, 75, //
+						"\r\n" + //
+								"\t<episode></episode>\r\n" + //
+								"\t<episodeTime></episodeTime>\r\n")));
+	}
+
+	@Test
 	public void cvc_attribute_3() throws Exception {
 		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" + //
 				"<beans xmlns=\"http://www.springframework.org/schema/beans\" xsi:schemaLocation=\"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n"

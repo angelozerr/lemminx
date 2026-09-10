@@ -359,21 +359,24 @@ public class CMXSDElementDeclaration implements CMElementDeclaration {
 			case XSTypeDefinition.COMPLEX_TYPE:
 				XSParticle particle = ((XSComplexTypeDefinition) typeDefinition).getParticle();
 				if (particle != null) {
-					XSObjectList objectList = ((XSModelGroup) particle.getTerm()).getParticles();
-					for (int i = 0; i < objectList.getLength(); i++) {
-						XSParticle xp = (XSParticle) objectList.item(i);
-						XSTerm t = xp.getTerm();
-						if (t instanceof XSElementDeclaration) {
-							if (xp != null) {
-								elementOptionality.put(t.getName(), xp.getMinOccurs() == 0);
-							}
-						}
-					}
+					collectElementOptionality(particle);
 				}
 			}
 		}
 		Boolean isOptional = elementOptionality.get(childElementName);
 		return (isOptional != null) ? isOptional : false;
+	}
+
+	private void collectElementOptionality(XSParticle particle) {
+		XSTerm term = particle.getTerm();
+		if (term instanceof XSElementDeclaration) {
+			elementOptionality.put(term.getName(), particle.getMinOccurs() == 0);
+		} else if (term instanceof XSModelGroup) {
+			XSObjectList particles = ((XSModelGroup) term).getParticles();
+			for (int i = 0; i < particles.getLength(); i++) {
+				collectElementOptionality((XSParticle) particles.item(i));
+			}
+		}
 	}
 
 	@SuppressWarnings("unchecked")
