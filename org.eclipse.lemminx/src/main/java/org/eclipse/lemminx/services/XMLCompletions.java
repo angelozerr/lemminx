@@ -796,7 +796,10 @@ public class XMLCompletions {
 		Range tagNameRange = request.getXMLDocument().getElementNameRangeAt(request.getOffset());
 		if (tagNameRange != null) {
 			collectOpenTagSuggestions(false, tagNameRange, request, response, cancelChecker);
-			collectCloseTagSuggestions(tagNameRange, true, true, false, request, response);
+			boolean isEmptyRange = tagNameRange.getStart().equals(tagNameRange.getEnd());
+			if (!isEmptyRange || !request.getNode().isText()) {
+				collectCloseTagSuggestions(tagNameRange, true, true, false, request, response);
+			}
 		}
 		// Adjust the range for covering the text node.
 		Range textRange = getTextRangeInsideContent(request.getNode());

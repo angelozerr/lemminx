@@ -92,6 +92,14 @@ public class XMLCompletionTest {
 	}
 
 	@Test
+	public void noEndTagCompletionAfterSlashContent() throws BadLocationException {
+		// See https://github.com/redhat-developer/vscode-xml/issues/1088
+		testCompletionFor("<a>/|", 0 + 2 /* CDATA and Comments */);
+		testCompletionFor("<a>\r\n/|", 0 + 2 /* CDATA and Comments */);
+		testCompletionFor("<a>some/|", 0 + 2 /* CDATA and Comments */);
+	}
+
+	@Test
 	public void unneededEndTagCompletion() throws BadLocationException {
 		testCompletionFor("<a>|</a>", 0 + 2 /* CDATA and Comments */);
 		testCompletionFor("<a><|</a>", 0 + 2 /* CDATA and Comments */);
