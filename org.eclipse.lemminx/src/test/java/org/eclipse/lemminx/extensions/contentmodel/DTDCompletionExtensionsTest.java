@@ -228,7 +228,7 @@ public class DTDCompletionExtensionsTest extends AbstractCacheBasedTest {
 				+ "<svg xmlns=\"http://www.w3.org/2000/svg\">\n" + "    <animate attributeName=\"foo\">\n"
 				+ "        <|\n" + // <-- completion
 				"    </animate>\n" + "</svg>";
-		testCompletionFor(xml, false, 3 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, false, 3 + 4 /* CDATA and Comments */,
 				c("desc", te(4, 8, 4, 9, "<desc></desc>"), "<desc"),
 				c("metadata", te(4, 8, 4, 9, "<metadata></metadata>"), "<metadata"),
 				c("title", te(4, 8, 4, 9, "<title></title>"), "<title"));

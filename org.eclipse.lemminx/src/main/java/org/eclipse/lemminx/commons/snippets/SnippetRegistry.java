@@ -253,8 +253,7 @@ public class SnippetRegistry {
 			item.setKind(CompletionItemKind.Snippet);
 			item.setDocumentation(
 					Either.forRight(createDocumentation(snippet, model, canSupportMarkdown, lineDelimiter)));
-			String prefix = snippet.getPrefixes().get(0);
-			item.setFilterText(prefix);
+			item.setFilterText(String.join(" ", snippet.getPrefixes()));
 			item.setDetail(snippet.getDescription());
 			Range range = replaceRange;
 			if (!StringUtils.isEmpty(snippet.getSuffix()) && suffixProvider != null) {

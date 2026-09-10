@@ -97,6 +97,36 @@ public abstract class DOMCharacterData extends DOMTreeNode implements CharacterD
 		return false;
 	}
 
+	/**
+	 * Returns true if the trimmed content of this character data equals the
+	 * given text, using zero-allocation char-by-char comparison against the
+	 * document's {@link CharSequence}.
+	 *
+	 * @param text the text to match against the trimmed content.
+	 * @return true if the trimmed content equals the given text.
+	 */
+	public boolean containsText(String text) {
+		CharSequence docText = getOwnerDocument().getTextSequence();
+		int s = getStartContent();
+		int e = getEndContent();
+		while (s < e && Character.isWhitespace(docText.charAt(s))) {
+			s++;
+		}
+		while (e > s && Character.isWhitespace(docText.charAt(e - 1))) {
+			e--;
+		}
+		int len = e - s;
+		if (len != text.length()) {
+			return false;
+		}
+		for (int i = 0; i < len; i++) {
+			if (docText.charAt(s + i) != text.charAt(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public boolean hasData() {
 		return getStartContent() < getEndContent();
 	}

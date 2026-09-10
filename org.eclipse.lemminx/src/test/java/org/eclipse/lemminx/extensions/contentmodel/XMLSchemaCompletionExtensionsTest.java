@@ -240,7 +240,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"  <ViewDefinitions>\r\n" + //
 				"    <View><|";
 		// Completion only with Name
-		testCompletionFor(xml, null, "src/test/resources/Format.xml", 4 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/Format.xml", 4 + 4 /* CDATA and Comments */,
 				c("Name", "<Name></Name>"), c("End with '</Configuration>'", "/Configuration>"),
 				c("End with '</ViewDefinitions>'", "/ViewDefinitions>"), c("End with '</View>'", "/View>"));
 
@@ -250,7 +250,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"  <ViewDefinitions>\r\n" + //
 				"    <View><Name /><|";
 		// Completion only with Name
-		testCompletionFor(xml, null, "src/test/resources/Format.xml", 5 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/Format.xml", 5 + 4 /* CDATA and Comments */,
 				c("OutOfBand", "<OutOfBand>false</OutOfBand>"),
 				c("ViewSelectedBy", "<ViewSelectedBy></ViewSelectedBy>"),
 				c("End with '</Configuration>'", "/Configuration>"),
@@ -264,7 +264,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				+ " xsi:schemaLocation=\"http://invoice xsd/invoice-ns.xsd \">\r\n" + //
 				"  <|";
 		// Completion only for date
-		testCompletionFor(xml, null, "src/test/resources/invoice.xml", 2 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/invoice.xml", 2 + 4 /* CDATA and Comments */,
 				c("date", "<date></date>"), c("End with '</invoice>'", "</invoice>"));
 
 		// Completion only for number
@@ -272,7 +272,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"<invoice xmlns=\"http://invoice\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n"
 				+ " xsi:schemaLocation=\"http://invoice xsd/invoice-ns.xsd \">\r\n" + //
 				"  <date></date>|";
-		testCompletionFor(xml, null, "src/test/resources/invoice.xml", 2 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/invoice.xml", 2 + 4 /* CDATA and Comments */,
 				c("number", "<number></number>"), c("End with '</invoice>'", "</invoice>"));
 	}
 
@@ -411,7 +411,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	xsi:noNamespaceSchemaLocation=\"xsd/dressSize.xsd\" >\r\n" + //
 				"	| " + //
 				"</dresssize>";
-		testCompletionFor(xml, null, "src/test/resources/dressSize.xml", 4 /*
+		testCompletionFor(xml, null, "src/test/resources/dressSize.xml", 6 /*
 																			 * start/end region + CDATA and Comments
 																			 */ + 4, //
 				c("small", te(2, 52, 3, 2, "small"), //
@@ -686,7 +686,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				4 /*
 					 * edmx:DataServices, <edmx:DataServices, #region, #endregion AND NOT
 					 * edm:Annotation
-					 */ + 2 /* CDATA and Comments */, c("edmx:DataServices", "<edmx:DataServices></edmx:DataServices>"), //
+					 */ + 4 /* CDATA and Comments */, c("edmx:DataServices", "<edmx:DataServices></edmx:DataServices>"), //
 				c("edmx:Reference", "<edmx:Reference Uri=\"\"></edmx:Reference>"));
 
 		// with xmlns="http://docs.oasis-open.org/odata/ns/edm"
@@ -698,7 +698,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				4 /*
 					 * edmx:DataServices, <edmx:DataServices, #region, #endregion AND NOT
 					 * edm:Annotation
-					 */ + 2 /* CDATA and Comments */, c("edmx:DataServices", "<edmx:DataServices></edmx:DataServices>"), //
+					 */ + 4 /* CDATA and Comments */, c("edmx:DataServices", "<edmx:DataServices></edmx:DataServices>"), //
 				c("edmx:Reference", "<edmx:Reference Uri=\"\"></edmx:Reference>"));
 	}
 
@@ -832,7 +832,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				" <employee /> <| " + //
 				"</person>";
 		// Completion only member or employee
-		testCompletionFor(xml, null, "src/test/resources/choice.xml", 2 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/choice.xml", 2 + 4 /* CDATA and Comments */,
 				c("employee", "<employee></employee>"));
 
 		xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" + //
@@ -843,7 +843,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				" <employee /> <| " + //
 				"</person>";
 		// maxOccurs = 3, completion should be empty
-		testCompletionFor(xml, null, "src/test/resources/choice.xml", 2 /* CDATA and Comments */);
+		testCompletionFor(xml, null, "src/test/resources/choice.xml", 4 /* CDATA and Comments */);
 	}
 
 	@Test
@@ -895,7 +895,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	xsi:noNamespaceSchemaLocation=\"xsd/sequence.xsd\">\r\n" + //
 				"	<e1></e1><e2></e2><e3 /><optional3></optional3><optional3></optional3>|";
 		// optional3 is not return by completion since optional3 has a max=2 occurences
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 1 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 1 + 4 /* CDATA and Comments */,
 				c("End with '</data>'", "</data>"));
 	}
 
@@ -907,7 +907,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				" xsi:noNamespaceSchemaLocation=\"xsd/all.xsd\">\r\n" + //
 				"    <|\r\n" + //
 				"</Demo>";
-		testCompletionFor(xml, null, "src/test/resources/all.xml", 2 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/all.xml", 2 + 4 /* CDATA and Comments */,
 				c("Hello", "<Hello></Hello>"), c("World", "<World></World>"));
 
 		// Completion after Hello only: World is offered (Hello already at maxOccurs)
@@ -917,7 +917,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"    <Hello></Hello>\r\n" + //
 				"    <|\r\n" + //
 				"</Demo>";
-		testCompletionFor(xml, null, "src/test/resources/all.xml", 1 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/all.xml", 1 + 4 /* CDATA and Comments */,
 				c("World", "<World></World>"));
 
 		// Completion after both Hello and World: no element completions
@@ -928,7 +928,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"    <World></World>\r\n" + //
 				"    <|\r\n" + //
 				"</Demo>";
-		testCompletionFor(xml, null, "src/test/resources/all.xml", 2 /* CDATA and Comments */);
+		testCompletionFor(xml, null, "src/test/resources/all.xml", 4 /* CDATA and Comments */);
 
 		// Completion after World only: Hello is offered
 		xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" + //
@@ -937,7 +937,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"    <World></World>\r\n" + //
 				"    <|\r\n" + //
 				"</Demo>";
-		testCompletionFor(xml, null, "src/test/resources/all.xml", 1 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/all.xml", 1 + 4 /* CDATA and Comments */,
 				c("Hello", "<Hello></Hello>"));
 	}
 
@@ -971,7 +971,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	<a/>" + //
 				"</ui:page>";
 		testCompletionFor(xmlLanguageService, xml, null, null,
-				getTempDirPath().resolve("target/any.xml").toUri().toString(), 4 + 1, true,
+				getTempDirPath().resolve("target/any.xml").toUri().toString(), 6 + 1, true,
 				c("title", "<title></title>"));
 
 		// xs:any completion with strict -> only XML Schema global element declaration
@@ -983,7 +983,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	<a/>" + //
 				"</ui:page>";
 		testCompletionFor(xmlLanguageService, xml, null, null,
-				getTempDirPath().resolve("target/any.xml").toUri().toString(), 4 + 2, true,
+				getTempDirPath().resolve("target/any.xml").toUri().toString(), 6 + 2, true,
 				c("ui:page", "<ui:page></ui:page>"), c("ui:textbox", "<ui:textbox></ui:textbox>"));
 
 		// no completion
@@ -995,7 +995,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	<a/>" + //
 				"</ui:page>";
 		testCompletionFor(xmlLanguageService, xml, null, null,
-				getTempDirPath().resolve("target/any.xml").toUri().toString(), 4, true);
+				getTempDirPath().resolve("target/any.xml").toUri().toString(), 6, true);
 	}
 
 	@Test
@@ -1029,7 +1029,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	<a/>" + //
 				"</ui:page>";
 		testCompletionFor(xmlLanguageService, xml, null, null,
-				getTempDirPath().resolve("target/any.xml").toUri().toString(), 4 + 1, true,
+				getTempDirPath().resolve("target/any.xml").toUri().toString(), 6 + 1, true,
 				c("title", "<title></title>"));
 
 		// xs:any completion with strict -> all XML Schema element declaration
@@ -1041,7 +1041,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	<a/>" + //
 				"</ui:page>";
 		testCompletionFor(xmlLanguageService, xml, null, null,
-				getTempDirPath().resolve("target/any.xml").toUri().toString(), 4 + 4, true,
+				getTempDirPath().resolve("target/any.xml").toUri().toString(), 6 + 4, true,
 				c("title", "<title></title>"), c("a", "<a/>"), c("ui:page", "<ui:page></ui:page>"),
 				c("ui:textbox", "<ui:textbox></ui:textbox>"));
 
@@ -1054,7 +1054,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	<a/>" + //
 				"</ui:page>";
 		testCompletionFor(xmlLanguageService, xml, null, null,
-				getTempDirPath().resolve("target/any.xml").toUri().toString(), 4, true);
+				getTempDirPath().resolve("target/any.xml").toUri().toString(), 6, true);
 	}
 
 	@Test
@@ -1089,7 +1089,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"		</plugins>\r\n" + //
 				"	</build>\r\n" + //
 				"</project>";
-		testCompletionFor(xml, "src/test/resources/catalogs/catalog.xml", null, 3 /* project, comment and cdata */,
+		testCompletionFor(xml, "src/test/resources/catalogs/catalog.xml", null, 5 /* project, 3 comments and cdata */,
 				c("project", te(20, 7, 20, 9, "<project></project>"), "<project"));
 	}
 
@@ -1176,7 +1176,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
 				"	xsi:noNamespaceSchemaLocation=\"xsd/tag.xsd\">\r\n" + //
 				"	|";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 4 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 4 + 4 /* CDATA and Comments */,
 				c("tag", "<tag></tag>"), c("End with '</root>'", "</root>"), c("#region", "<!-- #region -->"),
 				c("#endregion", "<!-- #endregion-->"), c("<![CDATA[", "<![CDATA[ ]]>"), //
 				c("<!--", "<!-- -->"));
@@ -1186,7 +1186,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	xsi:noNamespaceSchemaLocation=\"xsd/tag.xsd\">\r\n" + //
 				"	|\r\n" + //
 				"</root>";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 3 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 3 + 4 /* CDATA and Comments */,
 				c("tag", "<tag></tag>"), c("#region", "<!-- #region -->"), c("#endregion", "<!-- #endregion-->"),
 				c("<![CDATA[", "<![CDATA[ ]]>"), c("<!--", "<!-- -->"));
 
@@ -1194,7 +1194,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
 				"	xsi:noNamespaceSchemaLocation=\"xsd/tag.xsd\">\r\n" + //
 				"	<|";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 2 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 2 + 4 /* CDATA and Comments */,
 				c("tag", "<tag></tag>"), c("End with '</root>'", "</root>"));
 
 		xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n" + //
@@ -1202,35 +1202,35 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	xsi:noNamespaceSchemaLocation=\"xsd/tag.xsd\">\r\n" + //
 				"	<|\r\n" + //
 				"</root>";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 1 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 1 + 4 /* CDATA and Comments */,
 				c("tag", "<tag></tag>"));
 
 		xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n" + //
 				"<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
 				"	xsi:noNamespaceSchemaLocation=\"xsd/tag.xsd\">\r\n" + //
 				"	<tag />|";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 2 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 2 + 4 /* CDATA and Comments */,
 				c("optional", "<optional></optional>"), c("End with '</root>'", "</root>"));
 
 		xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n" + //
 				"<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
 				"	xsi:noNamespaceSchemaLocation=\"xsd/tag.xsd\">\r\n" + //
 				"	<tag />|\r\n" + "</root>";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 1 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 1 + 4 /* CDATA and Comments */,
 				c("optional", "<optional></optional>"));
 
 		xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n" + //
 				"<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
 				"	xsi:noNamespaceSchemaLocation=\"xsd/tag.xsd\">\r\n" + //
 				"	<tag /><|";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 2 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 2 + 4 /* CDATA and Comments */,
 				c("optional", "<optional></optional>"), c("End with '</root>'", "/root>"));
 
 		xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n" + //
 				"<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
 				"	xsi:noNamespaceSchemaLocation=\"xsd/tag.xsd\">\r\n" + //
 				"	<tag /><|\r\n" + "</root>";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 1 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 1 + 4 /* CDATA and Comments */,
 				c("optional", "<optional></optional>"));
 
 		xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n" + //
@@ -1238,7 +1238,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	xsi:noNamespaceSchemaLocation=\"xsd/tag.xsd\">\r\n" + //
 				"	<tag />\r\n" + //
 				"|";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 4 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 4 + 4 /* CDATA and Comments */,
 				c("optional", "<optional></optional>"), c("End with '</root>'", "</root>"),
 				c("#region", "<!-- #region -->"), c("#endregion", "<!-- #endregion-->"));
 
@@ -1247,7 +1247,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	xsi:noNamespaceSchemaLocation=\"xsd/tag.xsd\">\r\n" + //
 				"	<tag />\r\n" + //
 				"|r\n" + "</root>";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 3 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 3 + 4 /* CDATA and Comments */,
 				c("optional", "<optional></optional>"), c("#region", "<!-- #region -->"),
 				c("#endregion", "<!-- #endregion-->"));
 
@@ -1256,7 +1256,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	xsi:noNamespaceSchemaLocation=\"xsd/tag.xsd\">\r\n" + //
 				"	<tag />\r\n" + //
 				"<|";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 2 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 2 + 4 /* CDATA and Comments */,
 				c("optional", "<optional></optional>"), c("End with '</root>'", "/root>"));
 
 		xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n" + //
@@ -1264,7 +1264,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	xsi:noNamespaceSchemaLocation=\"xsd/tag.xsd\">\r\n" + //
 				"	<tag />\r\n" + //
 				"<|\r\n" + "</root>";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 1 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 1 + 4 /* CDATA and Comments */,
 				c("optional", "<optional></optional>"));
 
 		xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n" + //
@@ -1273,7 +1273,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	<tag />\r\n" + //
 				"	<optional />\r\n" + //
 				"|";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 4 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 4 + 4 /* CDATA and Comments */,
 				c("optional", "<optional></optional>"), c("End with '</root>'", "</root>"),
 				c("#region", "<!-- #region -->"), c("#endregion", "<!-- #endregion-->"));
 
@@ -1283,7 +1283,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	<tag />\r\n" + //
 				"	<optional />\r\n" + //
 				"<|";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 2 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 2 + 4 /* CDATA and Comments */,
 				c("optional", "<optional></optional>"), c("End with '</root>'", "/root>"));
 
 		xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n" + //
@@ -1293,7 +1293,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	<optional />\r\n" + //
 				"	<optional />\r\n" + //
 				"|";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 3 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 3 + 4 /* CDATA and Comments */,
 				c("End with '</root>'", "</root>"), c("#region", "<!-- #region -->"),
 				c("#endregion", "<!-- #endregion-->"));
 
@@ -1304,7 +1304,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"	<optional />\r\n" + //
 				"	<optional />\r\n" + //
 				"<|";
-		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 1 + 2 /* CDATA and Comments */,
+		testCompletionFor(xml, null, "src/test/resources/sequence.xml", 1 + 4 /* CDATA and Comments */,
 				c("End with '</root>'", "/root>"));
 
 	}
@@ -1591,7 +1591,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"    <View><|";
 		// Completion only with Name
 		testCompletionFor(new XMLLanguageService(), xml, (String) null, config, "src/test/resources/Format.xml",
-				4 + 2 /* CDATA and Comments */, true, c("Name", "<Name></Name>"),
+				4 + 4 /* CDATA and Comments */, true, c("Name", "<Name></Name>"),
 				c("End with '</Configuration>'", "/Configuration>"),
 				c("End with '</ViewDefinitions>'", "/ViewDefinitions>"), c("End with '</View>'", "/View>"));
 	}
@@ -1629,7 +1629,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"</web-app>";
 		testCompletionFor(xml, "src/test/resources/catalogs/catalog-web-app.xml", //
 				"web.xml", //
-				31, //
+				33, //
 				c("servlet", te(4, 4, 4, 4, "<servlet></servlet>"), "servlet", null, null));
 	}
 
@@ -1664,7 +1664,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"  </item>\r\n" + //
 				"</root>";
 		testCompletionFor(xml, null, "src/test/resources/xsitype-ns.xml",
-				2 + 2 /* CDATA and Comments */, //
+				2 + 4 /* CDATA and Comments */, //
 				c("tns:baseProp", "<tns:baseProp></tns:baseProp>"), //
 				c("tns:derivedProp", "<tns:derivedProp></tns:derivedProp>"));
 	}
@@ -1679,7 +1679,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"  </item>\r\n" + //
 				"</root>";
 		testCompletionFor(xml, null, "src/test/resources/xsitype-ns.xml",
-				2 + 2 /* CDATA and Comments */, //
+				2 + 4 /* CDATA and Comments */, //
 				c("baseProp", "<baseProp></baseProp>"), //
 				c("derivedProp", "<derivedProp></derivedProp>"));
 	}
@@ -1694,7 +1694,7 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				"  <|" + //
 				"</root>";
 		testCompletionSnippetSupportFor(xml, "src/test/resources/xsitype-abstract.xml",
-				1 + 2 /* CDATA and Comments */, //
+				1 + 4 /* CDATA and Comments */, //
 				c("Character",
 						"<Character xsi:type=\"${1|Student,Teacher|}\" Name=\"$2\">$3</Character>$0",
 						r(3, 2, 3, 3), "<Character"));

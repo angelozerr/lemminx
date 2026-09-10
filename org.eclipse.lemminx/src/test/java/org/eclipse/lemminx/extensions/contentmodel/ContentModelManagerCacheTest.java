@@ -58,7 +58,7 @@ public class ContentModelManagerCacheTest extends BaseFileTempTest {
 				"    xsi:noNamespaceSchemaLocation=\"tag.xsd\">\r\n" + //
 				"  | " + // <-- completion must provide tag
 				"</root>";
-		XMLAssert.testCompletionFor(xml, null, xmlPath, 5 /* region, endregion, cdata, comment, tag */,
+		XMLAssert.testCompletionFor(xml, null, xmlPath, 7 /* region, endregion, cdata, 3 comments, tag */,
 				c("tag", "<tag></tag>"));
 		// Open again the completion to use the cache
 		XMLAssert.testCompletionFor(xml, null, xmlPath, null, c("tag", "<tag></tag>"));
@@ -78,21 +78,21 @@ public class ContentModelManagerCacheTest extends BaseFileTempTest {
 				"</xs:schema>";
 		updateFile(xsdPath, xsd);
 
-		XMLAssert.testCompletionFor(xml, null, xmlPath, 5 /* region, endregion, cdata, comment, label */,
+		XMLAssert.testCompletionFor(xml, null, xmlPath, 7 /* region, endregion, cdata, 3 comments, label */,
 				c("label", "<label></label>"));
 		// Open again the completion to use the cache
-		XMLAssert.testCompletionFor(xml, null, xmlPath, 5, c("label", "<label></label>"));
+		XMLAssert.testCompletionFor(xml, null, xmlPath, 7, c("label", "<label></label>"));
 
 		// delete the XSD file
 		MoreFiles.deleteRecursively(new File(xsdPath).toPath(), RecursiveDeleteOption.ALLOW_INSECURE);
 		// Completion must be empty
-		XMLAssert.testCompletionFor(xml, null, xmlPath, 4 /* region, endregion, cdata, comment */);
+		XMLAssert.testCompletionFor(xml, null, xmlPath, 6 /* region, endregion, cdata, 3 comments */);
 
 		// recreate the XSD file
 		createFile(xsdPath, xsd);
-		XMLAssert.testCompletionFor(xml, null, xmlPath, 5 /* region, endregion, cdata, comment, label */,
+		XMLAssert.testCompletionFor(xml, null, xmlPath, 7 /* region, endregion, cdata, 3 comments, label */,
 				c("label", "<label></label>"));
-		XMLAssert.testCompletionFor(xml, null, xmlPath, 5 /* region, endregion, cdata, comment, label */,
+		XMLAssert.testCompletionFor(xml, null, xmlPath, 7 /* region, endregion, cdata, 3 comments, label */,
 				c("label", "<label></label>"));
 
 	}

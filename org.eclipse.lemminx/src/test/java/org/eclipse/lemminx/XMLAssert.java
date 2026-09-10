@@ -128,7 +128,7 @@ public class XMLAssert {
 
 	// ------------------- Completion assert
 
-	public static final int COMMENT_SNIPPETS = 1;
+	public static final int COMMENT_SNIPPETS = 3;
 
 	public static final int CDATA_SNIPPETS = 1;
 

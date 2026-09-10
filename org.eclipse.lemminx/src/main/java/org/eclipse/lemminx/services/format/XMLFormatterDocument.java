@@ -91,6 +91,21 @@ public class XMLFormatterDocument {
 
 	private CancelChecker cancelChecker;
 
+	private static final String FORMATTER_OFF = "@formatter:off";
+	private static final String FORMATTER_ON = "@formatter:on";
+
+	private boolean formatterOff;
+
+	/**
+	 * Returns true if formatting is currently turned off by a
+	 * {@code <!-- @formatter:off -->} comment.
+	 *
+	 * @return true if formatting is off.
+	 */
+	public boolean isFormatterOff() {
+		return formatterOff;
+	}
+
 	/**
 	 * XML formatter document.
 	 */
@@ -325,6 +340,32 @@ public class XMLFormatterDocument {
 
 	public void format(DOMNode child, XMLFormattingConstraints parentConstraints, int start, int end,
 			List<TextEdit> edits) {
+		// Support @formatter:off/on to toggle formatting (see issue #1648)
+
+		if (child.getNodeType() == Node.COMMENT_NODE) {
+			DOMComment comment = (DOMComment) child;
+			if (!formatterOff && comment.containsText(FORMATTER_OFF)) {
+				commentFormatter.formatComment(comment, parentConstraints, start, end, edits);
+				formatterOff = true;
+				return;
+			}
+			if (formatterOff && comment.containsText(FORMATTER_ON)) {
+				formatterOff = false;
+				if (isMaxLineWidthSupported()) {
+					parentConstraints.setAvailableLineWidth(
+							updateLineWidthWithLastLine(child, parentConstraints.getAvailableLineWidth()));
+				}
+				return;
+			}
+		}
+
+		if (formatterOff) {
+			if (isMaxLineWidthSupported()) {
+				parentConstraints.setAvailableLineWidth(
+						updateLineWidthWithLastLine(child, parentConstraints.getAvailableLineWidth()));
+			}
+			return;
+		}
 
 		switch (child.getNodeType()) {
 

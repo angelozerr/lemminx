@@ -415,7 +415,7 @@ public class ErrorParticipantLanguageServiceTest extends AbstractCacheBasedTest 
 				c("xmlns", "xmlns", r(0, 4, 0, 6), "xmlns"), //
 				c("xmlns:xsi", "xmlns:xsi", r(0, 4, 0, 6), "xmlns:xsi"));
 		testCompletionFor(new ErrorParticipantLanguageService(), "<aa bb=\"cc\">dd|</aa>", null, (a) -> {
-		}, null, 4, new SharedSettings(), //
+		}, null, 6, new SharedSettings(), //
 				ErrorParticipantLanguageService.TEST_COMPLETION_ITEM);
 		testCompletionFor(new ErrorParticipantLanguageService(), "<!DOCTYPE foo SYSTEM \"./zrb|\">", null, (a) -> {
 		}, null, 1, new SharedSettings(), //

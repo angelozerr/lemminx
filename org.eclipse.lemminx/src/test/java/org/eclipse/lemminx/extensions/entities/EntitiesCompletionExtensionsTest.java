@@ -39,7 +39,7 @@ public class EntitiesCompletionExtensionsTest extends AbstractCacheBasedTest {
 				"	]>\r\n" + //
 				"	<copyright>&|</copyright>";
 		testCompletionFor(xml, 1 + //
-				2 /* CDATA and Comments */ + //
+				4 /* CDATA and Comments */ + //
 				PredefinedEntity.values().length /* predefined entities */, //
 				c("&c;", "&c;", r(5, 12, 5, 13), "&c;"));
 	}
@@ -55,7 +55,7 @@ public class EntitiesCompletionExtensionsTest extends AbstractCacheBasedTest {
 				"  &|\r\n" + // <- here completion shows mdash entity
 				"</root>";
 		testCompletionFor(xml, 1 + //
-				2 /* CDATA and Comments */ + //
+				4 /* CDATA and Comments */ + //
 				PredefinedEntity.values().length /* predefined entities */,
 				c("&mdash;", "&mdash;", r(5, 2, 5, 3), "&mdash;"));
 
@@ -72,7 +72,7 @@ public class EntitiesCompletionExtensionsTest extends AbstractCacheBasedTest {
 				"  &m|\r\n" + // <- here completion shows mdash entity
 				"</root>";
 		testCompletionFor(xml, 1 + //
-				2 /* CDATA and Comments */ + //
+				4 /* CDATA and Comments */ + //
 				PredefinedEntity.values().length /* predefined entities */,
 				c("&mdash;", "&mdash;", r(5, 2, 5, 4), "&mdash;"));
 
@@ -89,7 +89,7 @@ public class EntitiesCompletionExtensionsTest extends AbstractCacheBasedTest {
 				"  &m|dblablabla\r\n" + // <- here completion shows mdash entity
 				"</root>";
 		testCompletionFor(xml, 1 + //
-				2 /* CDATA and Comments */ + //
+				4 /* CDATA and Comments */ + //
 				PredefinedEntity.values().length /* predefined entities */,
 				c("&mdash;", "&mdash;", r(5, 2, 5, 4), "&mdash;"));
 	}
@@ -106,7 +106,7 @@ public class EntitiesCompletionExtensionsTest extends AbstractCacheBasedTest {
 				"  &foo_b|\r\n" + // <- here completion shows mdash entity
 				"</root>";
 		testCompletionFor(xml, 2 + //
-				2 /* CDATA and Comments */ + //
+				4 /* CDATA and Comments */ + //
 				PredefinedEntity.values().length /* predefined entities */,
 				c("&foo_bar;", "&foo_bar;", r(6, 2, 6, 8), "&foo_bar;"), //
 				c("&foo_baz;", "&foo_baz;", r(6, 2, 6, 8), "&foo_baz;"));
@@ -124,7 +124,7 @@ public class EntitiesCompletionExtensionsTest extends AbstractCacheBasedTest {
 				"  &foo_b|\r\n" + // <- here completion shows mdash entity
 				"</root>";
 		testCompletionFor(xml, 2 + //
-				2 /* CDATA and Comments */ + //
+				4 /* CDATA and Comments */ + //
 				PredefinedEntity.values().length /* predefined entities */, true,
 				c("&foo_bar;", "&foo_bar;", r(6, 2, 6, 8), "&foo_bar;"), //
 				c("&foo_baz;", "&foo_baz;", r(6, 2, 6, 8), "&foo_baz;"));
@@ -141,7 +141,7 @@ public class EntitiesCompletionExtensionsTest extends AbstractCacheBasedTest {
 				"  &m|d;blablabla\r\n" + // <- here completion shows mdash entity
 				"</root>";
 		testCompletionFor(xml, 1 + //
-				2 /* CDATA and Comments */ + //
+				4 /* CDATA and Comments */ + //
 				PredefinedEntity.values().length /* predefined entities */,
 				c("&mdash;", "&mdash;", r(5, 2, 5, 6), "&mdash;"));
 	}
@@ -155,7 +155,7 @@ public class EntitiesCompletionExtensionsTest extends AbstractCacheBasedTest {
 				"<root>\r\n" + //
 				"  |\r\n" + // <- no entity completion
 				"</root>";
-		testCompletionFor(xml, 2 + 2 /* CDATA and Comments */);
+		testCompletionFor(xml, 2 + 4 /* CDATA and Comments */);
 	}
 
 	// Test for external entities
@@ -170,7 +170,7 @@ public class EntitiesCompletionExtensionsTest extends AbstractCacheBasedTest {
 				"\r\n &|" + //
 				"</root-element>";
 		testCompletionFor(xml, null, "test.xml", 2 + //
-				2 /* CDATA and Comments */ + //
+				4 /* CDATA and Comments */ + //
 				PredefinedEntity.values().length /* predefined entities */,
 				c("&mdash;", "&mdash;", r(6, 1, 6, 2), "&mdash;"), //
 				c("&foo;", "&foo;", r(6, 1, 6, 2), "&foo;"));
@@ -182,7 +182,7 @@ public class EntitiesCompletionExtensionsTest extends AbstractCacheBasedTest {
 				"<!DOCTYPE author SYSTEM \"src/test/resources/dtd/entities/base-system.dtd\">\r\n" + //
 				"<author>&|</author>";
 		testCompletionFor(xml, null, "test.xml", 2 + //
-				2 /* CDATA and Comments */ + //
+				4 /* CDATA and Comments */ + //
 				PredefinedEntity.values().length /* predefined entities */,
 				c("&writer;", "&writer;", r(2, 8, 2, 9), "&writer;"), //
 				c("&copyright;", "&copyright;", r(2, 8, 2, 9), "&copyright;"));
@@ -201,7 +201,7 @@ public class EntitiesCompletionExtensionsTest extends AbstractCacheBasedTest {
 				"&|\r\n" + //
 				"</root>";
 		testCompletionFor(xml, null, "test.xml", 29 + //
-				2 /* CDATA and Comments */ + //
+				4 /* CDATA and Comments */ + //
 				PredefinedEntity.values().length /* predefined entities */, //
 				c("&fdcuf_hide_actions_column;", "&fdcuf_hide_actions_column;", r(5, 0, 5, 1),
 						"&fdcuf_hide_actions_column;"));

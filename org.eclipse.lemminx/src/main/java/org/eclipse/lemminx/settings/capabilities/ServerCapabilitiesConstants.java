@@ -86,7 +86,7 @@ public class ServerCapabilitiesConstants {
 	public static final String INLINE_COMPLETION_ID = UUID.randomUUID().toString();
 
 	public static final CompletionOptions DEFAULT_COMPLETION_OPTIONS = new CompletionOptions(true,
-			Arrays.asList(".", ":", "<", "\"", "=", "/", "\\", "?", "\'", "&", "#"));
+			Arrays.asList(".", ":", "<", "\"", "=", "/", "\\", "?", "\'", "&", "#", "@"));
 	public static final TextDocumentSyncKind DEFAULT_SYNC_OPTION = TextDocumentSyncKind.Full;
 	public static final DocumentLinkOptions DEFAULT_LINK_OPTIONS = new DocumentLinkOptions(true);
 	public static final RenameOptions DEFAULT_RENAME_OPTIONS = new RenameOptions(true);

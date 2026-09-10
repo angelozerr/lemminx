@@ -299,6 +299,10 @@ public class DOMElementFormatter {
 
 	private int formatEndTagElement(DOMElement element, XMLFormattingConstraints parentConstraints,
 			XMLFormattingConstraints constraints, List<TextEdit> edits) {
+		// When formatting is off, skip end tag formatting to preserve whitespace
+		if (formatterDocument.isFormatterOff()) {
+			return element.getTagName() != null ? element.getTagName().length() + 2 : 0;
+		}
 		// 1) remove / add some spaces on the left of the end tag element
 		// before formatting : [space][space]</a>
 		// after formatting : </a>
