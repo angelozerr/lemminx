@@ -1488,6 +1488,14 @@
         }]
     },
     {
+        "name": "org.eclipse.lsp4j.SelectedCompletionInfo",
+        "allDeclaredFields": true,
+        "methods": [{
+            "name": "<init>",
+            "parameterTypes": []
+        }]
+    },
+    {
         "name": "org.eclipse.lsp4j.InlineCompletionContext",
         "allDeclaredFields": true,
         "methods": [{
