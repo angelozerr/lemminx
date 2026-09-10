@@ -20,6 +20,8 @@ import org.eclipse.lemminx.extensions.generators.xml2xsd.XML2XMLSchemaGenerator;
 import org.eclipse.lemminx.extensions.generators.xml2xsd.XMLSchemaGeneratorSettings;
 import org.eclipse.lemminx.extensions.generators.xml2relaxng.XML2RelaxNGGenerator;
 import org.eclipse.lemminx.extensions.generators.xml2relaxng.RelaxNGGeneratorSettings;
+import org.eclipse.lemminx.extensions.generators.xml2rnc.XML2RelaxNGCompactGenerator;
+import org.eclipse.lemminx.extensions.generators.xml2rnc.RelaxNGCompactGeneratorSettings;
 import org.eclipse.lemminx.services.IXMLFullFormatter;
 import org.eclipse.lemminx.settings.SharedSettings;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
@@ -55,6 +57,7 @@ public class FileContentGeneratorManager {
 		registerGenerator(new XML2DTDGenerator(), DTDGeneratorSettings.class);
 		registerGenerator(new XML2XMLSchemaGenerator(), XMLSchemaGeneratorSettings.class);
 		registerGenerator(new XML2RelaxNGGenerator(), RelaxNGGeneratorSettings.class);
+		registerGenerator(new XML2RelaxNGCompactGenerator(), RelaxNGCompactGeneratorSettings.class);
 	}
 
 	/**

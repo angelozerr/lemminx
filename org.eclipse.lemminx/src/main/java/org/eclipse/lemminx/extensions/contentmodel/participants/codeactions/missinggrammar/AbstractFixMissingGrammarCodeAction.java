@@ -52,6 +52,10 @@ public abstract class AbstractFixMissingGrammarCodeAction implements ICodeAction
 				new GenerateDTDCodeActionResolver());
 		resolveCodeActionParticipants.put(GenerateXSDCodeActionResolver.PARTICIPANT_ID,
 				new GenerateXSDCodeActionResolver());
+		resolveCodeActionParticipants.put(GenerateRelaxNGCodeActionResolver.PARTICIPANT_ID,
+				new GenerateRelaxNGCodeActionResolver());
+		resolveCodeActionParticipants.put(GenerateRelaxNGCompactCodeActionResolver.PARTICIPANT_ID,
+				new GenerateRelaxNGCompactCodeActionResolver());
 	}
 
 	@Override

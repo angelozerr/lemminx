@@ -29,6 +29,7 @@ import org.eclipse.lemminx.AbstractCacheBasedTest;
 import org.eclipse.lemminx.commons.BadLocationException;
 import org.eclipse.lemminx.extensions.contentmodel.participants.XMLSyntaxErrorCode;
 import org.eclipse.lemminx.extensions.contentmodel.participants.codeactions.nogrammarconstraints.GenerateDocTypeCodeActionResolver;
+import org.eclipse.lemminx.extensions.contentmodel.participants.codeactions.nogrammarconstraints.GenerateRelaxNGCompactSchemaCodeActionResolver;
 import org.eclipse.lemminx.extensions.contentmodel.participants.codeactions.nogrammarconstraints.GenerateRelaxNGSchemaCodeActionResolver;
 import org.eclipse.lemminx.extensions.contentmodel.participants.codeactions.nogrammarconstraints.GenerateXMLModelWithDTDCodeActionResolver;
 import org.eclipse.lemminx.extensions.contentmodel.participants.codeactions.nogrammarconstraints.GenerateXMLModelWithXSDCodeActionResolver;
@@ -105,6 +106,11 @@ public class XMLProblemsTest extends AbstractCacheBasedTest {
 				"    </element>" + lineSeparator() + //
 				"  </define>" + lineSeparator() + //
 				"</grammar>";
+		String rncTemplate = "datatypes xsd = \"http://www.w3.org/2001/XMLSchema-datatypes\"" + lineSeparator() + //
+				lineSeparator() + //
+				"start = rootContent" + lineSeparator() + //
+				lineSeparator() + //
+				"rootContent = element root { empty }" + lineSeparator();
 		testCodeActionsFor(xml, d, null, settings,
 				// XSD with xsi:noNamespaceSchemaLocation
 				ca(d, //
@@ -142,6 +148,13 @@ public class XMLProblemsTest extends AbstractCacheBasedTest {
 								rngTemplate), //
 						teOp("test.xml", 0, 0, 0, 0, //
 								"<?xml-model href=\"test.rng\"?>" + lineSeparator())),
+				// RelaxNG Compact with xml-model
+				ca(d, //
+						createFile("test.rnc", false), //
+						teOp("test.rnc", 0, 0, 0, 0, //
+								rncTemplate), //
+						teOp("test.xml", 0, 0, 0, 0, //
+								"<?xml-model href=\"test.rnc\"?>" + lineSeparator())),
 				// Open binding wizard command
 				ca(d, new Command("Bind to existing grammar/schema", OPEN_BINDING_WIZARD,
 						Arrays.asList(new Object[] { "test.xml" }))));
@@ -173,6 +186,11 @@ public class XMLProblemsTest extends AbstractCacheBasedTest {
 				"    </element>" + lineSeparator() + //
 				"  </define>" + lineSeparator() + //
 				"</grammar>";
+		String rncTemplate = "datatypes xsd = \"http://www.w3.org/2001/XMLSchema-datatypes\"" + lineSeparator() + //
+				lineSeparator() + //
+				"start = rootContent" + lineSeparator() + //
+				lineSeparator() + //
+				"rootContent = element root { empty }" + lineSeparator();
 		testCodeActionsFor(xml, d, null, settings,
 				// XSD with xsi:noNamespaceSchemaLocation
 				ca(d, //
@@ -210,6 +228,13 @@ public class XMLProblemsTest extends AbstractCacheBasedTest {
 								rngTemplate), //
 						teOp("test.xml", 0, 0, 0, 0, //
 								"<?xml-model href=\"test.rng\"?>" + lineSeparator())),
+				// RelaxNG Compact with xml-model
+				ca(d, //
+						createFile("test.rnc", false), //
+						teOp("test.rnc", 0, 0, 0, 0, //
+								rncTemplate), //
+						teOp("test.xml", 0, 0, 0, 0, //
+								"<?xml-model href=\"test.rnc\"?>" + lineSeparator())),
 				// Open binding wizard command
 				ca(d, new Command("Bind to existing grammar/schema", OPEN_BINDING_WIZARD,
 						Arrays.asList(new Object[] { "test.xml" }))));
@@ -238,6 +263,8 @@ public class XMLProblemsTest extends AbstractCacheBasedTest {
 				ca(d, createData("test.xml", GenerateXMLModelWithDTDCodeActionResolver.PARTICIPANT_ID, "test.dtd")),
 				// RelaxNG with xml-model
 				ca(d, createData("test.xml", GenerateRelaxNGSchemaCodeActionResolver.PARTICIPANT_ID, "test.rng")),
+				// RelaxNG Compact with xml-model
+				ca(d, createData("test.xml", GenerateRelaxNGCompactSchemaCodeActionResolver.PARTICIPANT_ID, "test.rnc")),
 				// Open binding wizard command
 				ca(d, new Command("Bind to existing grammar/schema", OPEN_BINDING_WIZARD,
 						Arrays.asList(new Object[] { "test.xml" }))), //
