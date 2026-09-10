@@ -334,7 +334,7 @@ public class SnippetRegistry {
 				newLine.append(line, offset, dollarIndex);
 			}
 			int lastDigitOffset = dollarIndex + 1;
-			while (Character.isDigit(line.charAt(lastDigitOffset))) {
+			while (lastDigitOffset < line.length() && Character.isDigit(line.charAt(lastDigitOffset))) {
 				lastDigitOffset++;
 			}
 			if (!replace) {

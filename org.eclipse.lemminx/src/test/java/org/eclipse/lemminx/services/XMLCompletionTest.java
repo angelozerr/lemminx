@@ -53,27 +53,27 @@ public class XMLCompletionTest {
 
 	@Test
 	public void successfulEndTagCompletion() throws BadLocationException {
-		testCompletionFor("<a>|", 1 + 2 /* CDATA and Comments */, c("End with '</a>'", "</a>", r(0, 3, 0, 3), "</a>"));
-		testCompletionFor("<a>a|", 1 + 2 /* CDATA and Comments */, c("End with '</a>'", "</a>", r(0, 3, 0, 4), "</a>"));
-		testCompletionFor("<a><|", 1 + 2 /* CDATA and Comments */, c("End with '</a>'", "/a>", r(0, 4, 0, 4), "/a>"));
+		testCompletionFor("<a>|", 1 + CDATA_SNIPPETS + COMMENT_SNIPPETS, c("End with '</a>'", "</a>", r(0, 3, 0, 3), "</a>"));
+		testCompletionFor("<a>a|", 1 + CDATA_SNIPPETS + COMMENT_SNIPPETS, c("End with '</a>'", "</a>", r(0, 3, 0, 4), "</a>"));
+		testCompletionFor("<a><|", 1 + CDATA_SNIPPETS + COMMENT_SNIPPETS, c("End with '</a>'", "/a>", r(0, 4, 0, 4), "/a>"));
 		testCompletionFor("<a></|", 1, c("End with '</a>'", "/a>", r(0, 4, 0, 5), "/a>"));
 
-		testCompletionFor("<a><b>|</a>", 1 + 2 /* CDATA and Comments */,
+		testCompletionFor("<a><b>|</a>", 1 + CDATA_SNIPPETS + COMMENT_SNIPPETS,
 				c("End with '</b>'", "</b>", r(0, 6, 0, 6), "</b>"));
-		testCompletionFor("<a><b><|</a>", 1 + 2 /* CDATA and Comments */,
+		testCompletionFor("<a><b><|</a>", 1 + CDATA_SNIPPETS + COMMENT_SNIPPETS,
 				c("End with '</b>'", "/b>", r(0, 7, 0, 7), "/b>"));
 		testCompletionFor("<a><b></|</a>", 1, c("End with '</b>'", "/b>", r(0, 7, 0, 8), "/b>"));
 
-		testCompletionFor("<a>   <b>|</a>", 1 + 2 /* CDATA and Comments */,
+		testCompletionFor("<a>   <b>|</a>", 1 + CDATA_SNIPPETS + COMMENT_SNIPPETS,
 				c("End with '</b>'", "</b>", r(0, 9, 0, 9), "</b>"));
-		testCompletionFor("<a>   <b><|</a>", 1 + 2 /* CDATA and Comments */,
+		testCompletionFor("<a>   <b><|</a>", 1 + CDATA_SNIPPETS + COMMENT_SNIPPETS,
 				c("End with '</b>'", "/b>", r(0, 10, 0, 10), "/b>"));
 		testCompletionFor("<a>   <b></|</a>", 1, c("End with '</b>'", "/b>", r(0, 10, 0, 11), "/b>"));
 
-		testCompletionFor("<a><b>|", 2 + 2 /* CDATA and Comments */,
+		testCompletionFor("<a><b>|", 2 + CDATA_SNIPPETS + COMMENT_SNIPPETS,
 				c("End with '</b>'", "</b>", r(0, 6, 0, 6), "</b>"),
 				c("End with '</a>'", "</a>", r(0, 6, 0, 6), "</a>"));
-		testCompletionFor("<a><b><|", 2 + 2 /* CDATA and Comments */, c("End with '</b>'", "/b>", r(0, 7, 0, 7), "/b>"),
+		testCompletionFor("<a><b><|", 2 + CDATA_SNIPPETS + COMMENT_SNIPPETS, c("End with '</b>'", "/b>", r(0, 7, 0, 7), "/b>"),
 				c("End with '</a>'", "/a>", r(0, 7, 0, 7), "/a>"));
 		testCompletionFor("<a><b></|", 2, c("End with '</b>'", "/b>", r(0, 7, 0, 8), "/b>"),
 				c("End with '</a>'", "/a>", r(0, 7, 0, 8), "/a>"));
@@ -86,7 +86,7 @@ public class XMLCompletionTest {
 
 		testCompletionFor("  <a>\r\n" + //
 				"     <b>\r\n" + //
-				"<|", 2 + 2 /* CDATA and Comments */, //
+				"<|", 2 + CDATA_SNIPPETS + COMMENT_SNIPPETS, //
 				c("End with '</b>'", "     </b>", r(2, 0, 2, 1), "</b>"), //
 				c("End with '</a>'", "  </a>", r(2, 0, 2, 1), "</a>"));
 	}
@@ -94,19 +94,19 @@ public class XMLCompletionTest {
 	@Test
 	public void noEndTagCompletionAfterSlashContent() throws BadLocationException {
 		// See https://github.com/redhat-developer/vscode-xml/issues/1088
-		testCompletionFor("<a>/|", 0 + 2 /* CDATA and Comments */);
-		testCompletionFor("<a>\r\n/|", 0 + 2 /* CDATA and Comments */);
-		testCompletionFor("<a>some/|", 0 + 2 /* CDATA and Comments */);
+		testCompletionFor("<a>/|", 0 + CDATA_SNIPPETS + COMMENT_SNIPPETS);
+		testCompletionFor("<a>\r\n/|", 0 + CDATA_SNIPPETS + COMMENT_SNIPPETS);
+		testCompletionFor("<a>some/|", 0 + CDATA_SNIPPETS + COMMENT_SNIPPETS);
 	}
 
 	@Test
 	public void unneededEndTagCompletion() throws BadLocationException {
-		testCompletionFor("<a>|</a>", 0 + 2 /* CDATA and Comments */);
-		testCompletionFor("<a><|</a>", 0 + 2 /* CDATA and Comments */);
+		testCompletionFor("<a>|</a>", 0 + CDATA_SNIPPETS + COMMENT_SNIPPETS);
+		testCompletionFor("<a><|</a>", 0 + CDATA_SNIPPETS + COMMENT_SNIPPETS);
 		testCompletionFor("<a></|</a>", 0);
 
-		testCompletionFor("<a><b>|</b></a>", 0 + 2 /* CDATA and Comments */);
-		testCompletionFor("<a><b><|</b></a>", 0 + 2 /* CDATA and Comments */);
+		testCompletionFor("<a><b>|</b></a>", 0 + CDATA_SNIPPETS + COMMENT_SNIPPETS);
+		testCompletionFor("<a><b><|</b></a>", 0 + CDATA_SNIPPETS + COMMENT_SNIPPETS);
 		testCompletionFor("<a><b></|</b></a>", 0);
 	}
 
@@ -135,9 +135,9 @@ public class XMLCompletionTest {
 
 	@Test
 	public void completionBasedOnParent() throws BadLocationException {
-		testCompletionFor("<a><b />|</a>", 1 + 2 /* CDATA and Comments */, c("b", "<b />", r(0, 8, 0, 8), "b"));
-		testCompletionFor("<a><b /><|</a>", 1 + 2 /* CDATA and Comments */, c("b", "<b />", r(0, 8, 0, 9), "<b"));
-		testCompletionFor("<a>|</b></a>", 1 + 2 /* CDATA and Comments */, c("b", "<b>", r(0, 3, 0, 3), "b"));
+		testCompletionFor("<a><b />|</a>", 1 + CDATA_SNIPPETS + COMMENT_SNIPPETS, c("b", "<b />", r(0, 8, 0, 8), "b"));
+		testCompletionFor("<a><b /><|</a>", 1 + CDATA_SNIPPETS + COMMENT_SNIPPETS, c("b", "<b />", r(0, 8, 0, 9), "<b"));
+		testCompletionFor("<a>|</b></a>", 1 + CDATA_SNIPPETS + COMMENT_SNIPPETS, c("b", "<b>", r(0, 3, 0, 3), "b"));
 		testCompletionFor("<a><|b</b></a>", c("b", "<b>", r(0, 3, 0, 5), "<b"));
 	}
 

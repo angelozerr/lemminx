@@ -97,6 +97,28 @@ public abstract class DOMCharacterData extends DOMTreeNode implements CharacterD
 		return false;
 	}
 
+	public boolean containsText(String text) {
+		CharSequence docText = getOwnerDocument().getTextSequence();
+		int s = getStartContent();
+		int e = getEndContent();
+		while (s < e && Character.isWhitespace(docText.charAt(s))) {
+			s++;
+		}
+		while (e > s && Character.isWhitespace(docText.charAt(e - 1))) {
+			e--;
+		}
+		int len = e - s;
+		if (len != text.length()) {
+			return false;
+		}
+		for (int i = 0; i < len; i++) {
+			if (docText.charAt(s + i) != text.charAt(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public boolean hasData() {
 		return getStartContent() < getEndContent();
 	}

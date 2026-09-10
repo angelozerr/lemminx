@@ -16,7 +16,7 @@
     ],
     "body": [
       "<!-- @formatter:off -->",
-      "$1",
+      "\t$1",
       "<!-- @formatter:on -->"
     ],
     "description": "Disable formatting for a section",

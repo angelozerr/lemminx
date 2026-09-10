@@ -91,6 +91,9 @@ public class XMLFormatterDocument {
 
 	private CancelChecker cancelChecker;
 
+	private static final String FORMATTER_OFF = "@formatter:off";
+	private static final String FORMATTER_ON = "@formatter:on";
+
 	private boolean formatterOff;
 
 	/**
@@ -329,22 +332,19 @@ public class XMLFormatterDocument {
 			List<TextEdit> edits) {
 
 		if (child.getNodeType() == Node.COMMENT_NODE) {
-			String data = ((DOMComment) child).getData();
-			if (data != null) {
-				String trimmed = data.trim();
-				if (!formatterOff && "@formatter:off".equals(trimmed)) {
-					commentFormatter.formatComment((DOMComment) child, parentConstraints, start, end, edits);
-					formatterOff = true;
-					return;
+			DOMComment comment = (DOMComment) child;
+			if (!formatterOff && comment.containsText(FORMATTER_OFF)) {
+				commentFormatter.formatComment(comment, parentConstraints, start, end, edits);
+				formatterOff = true;
+				return;
+			}
+			if (formatterOff && comment.containsText(FORMATTER_ON)) {
+				formatterOff = false;
+				if (isMaxLineWidthSupported()) {
+					parentConstraints.setAvailableLineWidth(
+							updateLineWidthWithLastLine(child, parentConstraints.getAvailableLineWidth()));
 				}
-				if (formatterOff && "@formatter:on".equals(trimmed)) {
-					formatterOff = false;
-					if (isMaxLineWidthSupported()) {
-						parentConstraints.setAvailableLineWidth(
-								updateLineWidthWithLastLine(child, parentConstraints.getAvailableLineWidth()));
-					}
-					return;
-				}
+				return;
 			}
 		}
 
