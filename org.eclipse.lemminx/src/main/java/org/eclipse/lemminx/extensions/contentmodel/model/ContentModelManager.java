@@ -26,6 +26,8 @@ import java.util.Set;
 
 import org.eclipse.lemminx.dom.DOMDocument;
 import org.eclipse.lemminx.dom.DOMElement;
+import org.eclipse.lemminx.dom.SchemaLocation;
+import org.eclipse.lemminx.dom.SchemaLocationHint;
 import org.eclipse.lemminx.extensions.contentmodel.model.ContentModelProvider.Identifier;
 import org.eclipse.lemminx.extensions.contentmodel.participants.diagnostics.LSPXMLGrammarPool;
 import org.eclipse.lemminx.extensions.contentmodel.settings.XMLFileAssociation;
@@ -167,6 +169,37 @@ public class ContentModelManager {
 			CMDocument cmDocument = findCMDocument(xmlDocument.getDocumentURI(), namespaceURI, null, null);
 			if (cmDocument != null) {
 				documents.add(cmDocument);
+			}
+		}
+		if (documents.isEmpty() && namespaceURI != null) {
+			// No CMDocument found for the requested namespace through direct
+			// association. The namespace may be transitively imported by a
+			// schema declared for another namespace (xs:import).
+			// Load each declared schema (using its declared namespace) and
+			// check if its XS model covers the requested namespace.
+			for (ContentModelProvider modelProvider : modelProviders) {
+				if (modelProvider.adaptFor(xmlDocument, false)) {
+					SchemaLocation schemaLocation = xmlDocument.getSchemaLocation();
+					if (schemaLocation != null) {
+						for (Map.Entry<String, SchemaLocationHint> entry : schemaLocation
+								.getSchemaLocationEntries()) {
+							String declaredNamespace = entry.getKey();
+							SchemaLocationHint locationHint = entry.getValue();
+							String location = locationHint.getHint();
+							if (!StringUtils.isEmpty(location)) {
+								CMDocument cmDocument = findCMDocument(xmlDocument.getDocumentURI(),
+										declaredNamespace, location, modelProvider);
+								if (cmDocument != null && cmDocument.hasNamespace(namespaceURI)) {
+									documents.add(cmDocument);
+									break;
+								}
+							}
+						}
+					}
+					if (!documents.isEmpty()) {
+						break;
+					}
+				}
 			}
 		}
 		return documents;

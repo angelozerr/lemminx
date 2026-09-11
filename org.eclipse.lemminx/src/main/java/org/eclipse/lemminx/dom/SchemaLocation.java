@@ -15,6 +15,7 @@ package org.eclipse.lemminx.dom;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,6 +78,16 @@ public class SchemaLocation {
 	 */
 	public Collection<SchemaLocationHint> getSchemaLocationHints() {
 		return schemaLocationValuePairs.values();
+	}
+
+	/**
+	 * Returns all namespace/location-hint pairs from this xsi:schemaLocation
+	 * attribute.
+	 *
+	 * @return the set of namespace-to-SchemaLocationHint entries
+	 */
+	public Set<Map.Entry<String, SchemaLocationHint>> getSchemaLocationEntries() {
+		return schemaLocationValuePairs.entrySet();
 	}
 
 }

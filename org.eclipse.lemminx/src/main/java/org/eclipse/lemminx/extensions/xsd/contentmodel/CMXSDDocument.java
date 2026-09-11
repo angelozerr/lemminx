@@ -529,8 +529,16 @@ public class CMXSDDocument implements CMDocument, XSElementDeclHelper {
 			return null;
 		}
 
-		String documentURI = xercesElement != null ? xercesElement.getOwnerDocument().getDocumentURI()
-				: getSchemaURI(schemaGrammar);
+		String documentURI;
+		if (schemaGrammar != null
+				&& elementDeclaration.getElementDeclaration().getScope() == XSElementDecl.SCOPE_GLOBAL) {
+			// For global elements, xercesElement may point to an xs:element ref
+			// in a different schema than the actual definition.
+			documentURI = getSchemaURI(schemaGrammar);
+		} else {
+			documentURI = xercesElement != null ? xercesElement.getOwnerDocument().getDocumentURI()
+					: getSchemaURI(schemaGrammar);
+		}
 		if (URIUtils.isFileResource(documentURI)) {
 			// Only XML Schema file is supported. In the case of XML file is bound with an
 			// HTTP url and cache is enable, documentURI is a file uri from the cache

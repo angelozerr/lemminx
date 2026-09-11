@@ -193,6 +193,22 @@ public class XSICompletionExtensionsTest extends AbstractCacheBasedTest {
 				c("Student", te(3, 23, 3, 23, "Student"), "Student"));
 	}
 
+	@Test
+	public void xsiTypeValueCompletionWithCrossNamespaceImport() throws BadLocationException {
+		// xsi:type value completion for element with a named type from an imported
+		// schema that has derived types (cross-namespace via xs:import)
+		String xml = "<root xmlns=\"http://example.com/main\"\r\n" + //
+				"      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
+				"      xmlns:types=\"http://example.com/types\"\r\n" + //
+				"      xsi:schemaLocation=\"http://example.com/main xsd/import-extended-attrs/main.xsd\">\r\n" + //
+				"  <base-item xsi:type=\"|\">\r\n" + //
+				"    <types:name>test</types:name>\r\n" + //
+				"  </base-item>\r\n" + //
+				"</root>";
+		testCompletionFor(xml, "src/test/resources/test.xml",
+				c("types:ExtendedType", te(4, 23, 4, 23, "types:ExtendedType"), "types:ExtendedType"));
+	}
+
 	private SharedSettings singleQuotesSharedSettings() {
 		SharedSettings settings = new SharedSettings();
 		settings.getPreferences().setQuoteStyle(QuoteStyle.singleQuotes);

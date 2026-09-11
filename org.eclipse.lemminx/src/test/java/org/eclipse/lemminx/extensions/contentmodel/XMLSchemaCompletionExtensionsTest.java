@@ -1684,6 +1684,82 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				c("derivedProp", "<derivedProp></derivedProp>"));
 	}
 
+	// Tests for https://github.com/redhat-developer/vscode-xml/issues/1079
+
+	@Test
+	public void completionAttributeNameWithImportedExtendedType() throws BadLocationException {
+		// Attribute completion for element typed with an extended complexType from an imported schema
+		String xml = "<root xmlns=\"http://example.com/main\"\r\n" + //
+				"      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
+				"      xmlns:types=\"http://example.com/types\"\r\n" + //
+				"      xsi:schemaLocation=\"http://example.com/main xsd/import-extended-attrs/main.xsd\">\r\n" + //
+				"  <item | />\r\n" + //
+				"</root>";
+		testCompletionFor(xml, null, "src/test/resources/test.xml", null, //
+				c("id", te(4, 8, 4, 8, "id=\"\""), "id"), //
+				c("version", te(4, 8, 4, 8, "version=\"\""), "version"), //
+				c("category", te(4, 8, 4, 8, "category=\"\""), "category"));
+	}
+
+	@Test
+	public void completionAttributeNameWithImportedBaseType() throws BadLocationException {
+		// Attribute completion for element typed with a base complexType from an imported schema
+		String xml = "<root xmlns=\"http://example.com/main\"\r\n" + //
+				"      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
+				"      xmlns:types=\"http://example.com/types\"\r\n" + //
+				"      xsi:schemaLocation=\"http://example.com/main xsd/import-extended-attrs/main.xsd\">\r\n" + //
+				"  <base-item | />\r\n" + //
+				"</root>";
+		testCompletionFor(xml, null, "src/test/resources/test.xml", null, //
+				c("id", te(4, 13, 4, 13, "id=\"\""), "id"));
+	}
+
+	@Test
+	public void completionChildElementWithImportedExtendedType() throws BadLocationException {
+		// Child element completion for element typed with an extended complexType from an imported schema
+		String xml = "<root xmlns=\"http://example.com/main\"\r\n" + //
+				"      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
+				"      xmlns:types=\"http://example.com/types\"\r\n" + //
+				"      xsi:schemaLocation=\"http://example.com/main xsd/import-extended-attrs/main.xsd\">\r\n" + //
+				"  <item>\r\n" + //
+				"    <|\r\n" + //
+				"  </item>\r\n" + //
+				"</root>";
+		testCompletionFor(xml, null, "src/test/resources/test.xml", null, //
+				c("types:name", "<types:name></types:name>"));
+	}
+
+	@Test
+	public void completionAttributeWithCrossNamespaceExtension() throws BadLocationException {
+		// Issue #1079: attribute completion for element in imported schema that extends
+		// a type from another imported schema (cross-namespace extension)
+		String xml = "<root xmlns=\"http://example.com/main\"\r\n" + //
+				"      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
+				"      xmlns:product=\"http://example.com/product\"\r\n" + //
+				"      xsi:schemaLocation=\"http://example.com/main xsd/import-extended-attrs/main.xsd\">\r\n" + //
+				"  <product:QuestionValue | />\r\n" + //
+				"</root>";
+		testCompletionFor(xml, null, "src/test/resources/test.xml", null, //
+				c("name", te(4, 25, 4, 25, "name=\"\""), "name"), //
+				c("default", te(4, 25, 4, 25, "default=\"\""), "default"), //
+				c("type", te(4, 25, 4, 25, "type=\"\""), "type"), //
+				c("value", te(4, 25, 4, 25, "value=\"\""), "value"), //
+				c("required", te(4, 25, 4, 25, "required=\"false\""), "required"));
+	}
+
+	@Test
+	public void completionAttributeWithCrossNamespaceExtensionBaseAttrsOnly() throws BadLocationException {
+		// Verify base type attributes from cross-namespace extension are available
+		String xml = "<root xmlns=\"http://example.com/main\"\r\n" + //
+				"      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + //
+				"      xmlns:product=\"http://example.com/product\"\r\n" + //
+				"      xsi:schemaLocation=\"http://example.com/main xsd/import-extended-attrs/main.xsd\">\r\n" + //
+				"  <product:QuestionValue | />\r\n" + //
+				"</root>";
+		testCompletionFor(xml, null, "src/test/resources/test.xml", null, //
+				c("value", te(4, 25, 4, 25, "value=\"\""), "value"));
+	}
+
 	@Test
 	public void elementCompletionWithAbstractTypeGeneratesXsiType() throws BadLocationException {
 		// When completing an element whose type is abstract, the generated snippet
