@@ -12,6 +12,7 @@
 package org.eclipse.lemminx.utils;
 
 import org.eclipse.lemminx.commons.CharSequenceReader;
+import java.io.InputStream;
 import java.net.URL;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -241,9 +242,10 @@ public class DOMUtils {
 	 * @return the DOM document from the given XML Schema uri.
 	 */
 	public static DOMDocument loadDocument(String documentURI, URIResolverExtensionManager resolverExtensionManager) {
-		try {
-			return DOMParser.getInstance().parse(IOUtils.convertStreamToString(new URL(documentURI).openStream()),
-					documentURI, resolverExtensionManager);
+		try (InputStream is = new URL(documentURI).openStream()) {
+			byte[] bytes = is.readAllBytes();
+			String text = new String(bytes, IOUtils.detectXmlEncoding(bytes));
+			return DOMParser.getInstance().parse(text, documentURI, resolverExtensionManager);
 		} catch (Exception e) {
 			return null;
 		}

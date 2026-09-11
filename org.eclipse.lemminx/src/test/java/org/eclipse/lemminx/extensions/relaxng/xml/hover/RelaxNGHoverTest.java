@@ -99,6 +99,54 @@ public class RelaxNGHoverTest extends AbstractCacheBasedTest {
 				System.lineSeparator() + "Source: [docCollision.rng](" + schemaURI + ")", r(5, 3, 5, 6));
 	}
 
+	@Test
+	public void hoverWithUmlautNoEncodingDeclared() throws BadLocationException, MalformedURIException {
+		String schemaURI = getRelaxNGFileURI("umlautDoc.rng");
+		String xml = "<?xml-model href=\"umlautDoc.rng\" ?>\r\n" + //
+				"<layout>\r\n" + //
+				"  <te|xt>hello</text>\r\n" + //
+				"</layout>";
+		assertHover(xml, "Textinhalt mit Umlauten: ä, ö, ü, ß" + //
+				System.lineSeparator() + //
+				System.lineSeparator() + "Source: [umlautDoc.rng](" + schemaURI + ")", r(2, 3, 2, 7));
+	}
+
+	@Test
+	public void hoverWithUmlautNoEncodingDeclaredOnElement() throws BadLocationException, MalformedURIException {
+		String schemaURI = getRelaxNGFileURI("umlautDoc.rng");
+		String xml = "<?xml-model href=\"umlautDoc.rng\" ?>\r\n" + //
+				"<lay|out>\r\n" + //
+				"  <text>hello</text>\r\n" + //
+				"</layout>";
+		assertHover(xml, "Seitenlayout für die Ausgabe" + //
+				System.lineSeparator() + //
+				System.lineSeparator() + "Source: [umlautDoc.rng](" + schemaURI + ")", r(1, 1, 1, 7));
+	}
+
+	@Test
+	public void hoverWithUmlautUTF8Declared() throws BadLocationException, MalformedURIException {
+		String schemaURI = getRelaxNGFileURI("umlautDocUTF8.rng");
+		String xml = "<?xml-model href=\"umlautDocUTF8.rng\" ?>\r\n" + //
+				"<layout>\r\n" + //
+				"  <te|xt>hello</text>\r\n" + //
+				"</layout>";
+		assertHover(xml, "Textinhalt mit Umlauten: ä, ö, ü, ß" + //
+				System.lineSeparator() + //
+				System.lineSeparator() + "Source: [umlautDocUTF8.rng](" + schemaURI + ")", r(2, 3, 2, 7));
+	}
+
+	@Test
+	public void hoverWithUmlautISO88591Declared() throws BadLocationException, MalformedURIException {
+		String schemaURI = getRelaxNGFileURI("umlautDocISO88591.rng");
+		String xml = "<?xml-model href=\"umlautDocISO88591.rng\" ?>\r\n" + //
+				"<layout>\r\n" + //
+				"  <te|xt>hello</text>\r\n" + //
+				"</layout>";
+		assertHover(xml, "Textinhalt mit Umlauten: ä, ö, ü, ß" + //
+				System.lineSeparator() + //
+				System.lineSeparator() + "Source: [umlautDocISO88591.rng](" + schemaURI + ")", r(2, 3, 2, 7));
+	}
+
 	private static void assertHover(String value, String expectedHoverLabel, Range expectedHoverRange)
 			throws BadLocationException {
 		XMLAssert.assertHover(new XMLLanguageService(), value, null, "src/test/resources/relaxng/test.xml",
