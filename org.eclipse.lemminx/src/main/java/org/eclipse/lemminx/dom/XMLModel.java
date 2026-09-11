@@ -130,8 +130,28 @@ public class XMLModel {
 	}
 
 	/**
+	 * Returns the {@link XMLModel} that wraps the given PI node, or null if the
+	 * node is not an xml-model PI declared in the document.
+	 *
+	 * @param node     the DOM node.
+	 * @param document the DOM document.
+	 * @return the matching XMLModel or null.
+	 */
+	public static XMLModel findXMLModel(DOMNode node, DOMDocument document) {
+		if (!isXMLModel(node)) {
+			return null;
+		}
+		for (XMLModel xmlModel : document.getXMLModels()) {
+			if (xmlModel.processingInstruction == node) {
+				return xmlModel;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Returns the href range and null otherwise.
-	 * 
+	 *
 	 * @return the href range and null otherwise.
 	 */
 	public DOMRange getHrefNode() {

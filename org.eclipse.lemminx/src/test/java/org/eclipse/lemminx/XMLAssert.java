@@ -142,7 +142,7 @@ public class XMLAssert {
 
 	public static final int XML_DECLARATION_SNIPPETS = 2;
 
-	public static final int PROCESSING_INSTRUCTION_SNIPPETS = 4;
+	public static final int PROCESSING_INSTRUCTION_SNIPPETS = 5;
 
 	public static final int REGION_SNIPPETS = 2;
 

@@ -32,7 +32,7 @@ public class XMLDeclarationSnippetContext implements IXMLSnippetContext {
 		DOMDocument document = request.getXMLDocument();
 		DOMNode node = request.getNode();
 		int offset = request.getOffset();
-		if ((node.isComment() || node.isDoctype()) && offset < node.getEnd()) {
+		if ((node.isComment() || node.isDoctype() || node.isProcessingInstruction()) && offset < node.getEnd()) {
 			// completion was triggered inside comment, xml processing instruction
 			// --> <?xml version="1.0" encoding="UTF-8" | ?>
 			return false;

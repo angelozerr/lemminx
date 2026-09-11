@@ -60,6 +60,22 @@ public interface ICompletionParticipant {
 			throws Exception;
 
 	/**
+	 * Collects and stores completion items for the href pseudo-attribute of an
+	 * {@code <?xml-model?>} processing instruction.
+	 *
+	 * @param valuePrefix the href value before the offset in which completion was
+	 *                    invoked
+	 * @param request     the completion request
+	 * @param response    the completion response
+	 * @throws Exception
+	 */
+	default void onXMLModelHref(String valuePrefix, ICompletionRequest request, ICompletionResponse response,
+			CancelChecker cancelChecker)
+			throws Exception {
+		// Do nothing
+	}
+
+	/**
 	 * Returns the completion item resolver that corresponds to the given
 	 * participant id or null otherwise.
 	 *

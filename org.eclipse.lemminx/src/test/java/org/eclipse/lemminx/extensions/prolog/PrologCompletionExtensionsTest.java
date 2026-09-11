@@ -198,17 +198,17 @@ public class PrologCompletionExtensionsTest extends AbstractCacheBasedTest {
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 5), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?xml|>", true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 6), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?xml|?>", true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 7), //
-						"<?xml"));
+						"<?xml xml"));
 	}
 
 	@Test
@@ -218,22 +218,22 @@ public class PrologCompletionExtensionsTest extends AbstractCacheBasedTest {
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 2), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?|", false, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
 						r(0, 0, 0, 2), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?|>", true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 3), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?|?>", true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 4), //
-						"<?xml"));
+						"<?xml xml"));
 	}
 
 	@Test
@@ -242,27 +242,27 @@ public class PrologCompletionExtensionsTest extends AbstractCacheBasedTest {
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 3), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?xm|", true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 4), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?xml|", true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 5), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?xml|?", true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 6), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?xml|?>", true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 7), //
-						"<?xml"));
+						"<?xml xml"));
 	}
 
 	@Test
@@ -273,17 +273,17 @@ public class PrologCompletionExtensionsTest extends AbstractCacheBasedTest {
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 5), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?xml|>", dtdFileURI, true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 6), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?xml|?>", dtdFileURI, true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 7), //
-						"<?xml"));
+						"<?xml xml"));
 	}
 
 	@Test
@@ -294,22 +294,22 @@ public class PrologCompletionExtensionsTest extends AbstractCacheBasedTest {
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 2), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?|", dtdFileURI, false, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
 						r(0, 0, 0, 2), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?|>", dtdFileURI, true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 3), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?|?>", dtdFileURI, true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 4), //
-						"<?xml"));
+						"<?xml xml"));
 	}
 
 	@Test
@@ -319,27 +319,27 @@ public class PrologCompletionExtensionsTest extends AbstractCacheBasedTest {
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 3), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?xm|", dtdFileURI, true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 4), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?xml|", dtdFileURI, true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 5), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?xml|?", dtdFileURI, true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 6), //
-						"<?xml"));
+						"<?xml xml"));
 		testCompletionFor("<?xml|?>", dtdFileURI, true, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"${1|1.0,1.1|}\" encoding=\"${2|UTF-8,ISO-8859-1,Windows-1251,Windows-1252,Shift JIS,GB2312,EUC-KR|}\"?>${0}", //
 						r(0, 0, 0, 7), //
-						"<?xml"));
+						"<?xml xml"));
 	}
 
 	private void testCompletionFor(boolean enableItemDefaults, String xml, CompletionItem... expectedItems) throws BadLocationException {

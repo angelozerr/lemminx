@@ -185,8 +185,9 @@ public class FilePathCompletionWithSettingsTest extends AbstractFilePathCompleti
 	@Test
 	public void testFilePathCompletionStartWithDotDot() throws BadLocationException {
 		String xml = "<a path=\"../filePathCompletion/folderA/|\">";
-		CompletionItem[] items = getCompletionItemList(0, 39, 39, "xsdA1.xsd", "xsdA2.xsd", "dtdA1.dtd", "dtdA2.dtd");
-		testCompletionFor(xml, 4, items);
+		CompletionItem[] items = getCompletionItemList(0, 39, 39, "xsdA1.xsd", "xsdA2.xsd", "dtdA1.dtd", "dtdA2.dtd",
+				"rncA1.rnc", "rngA1.rng");
+		testCompletionFor(xml, 6, items);
 	}
 
 	@Test
@@ -195,15 +196,17 @@ public class FilePathCompletionWithSettingsTest extends AbstractFilePathCompleti
 			return;
 		}
 		String xml = "<a path=\"..\\filePathCompletion\\folderA\\|\">";
-		CompletionItem[] items = getCompletionItemList(0, 39, 39, "xsdA1.xsd", "xsdA2.xsd", "dtdA1.dtd", "dtdA2.dtd");
-		testCompletionFor(xml, 4, items);
+		CompletionItem[] items = getCompletionItemList(0, 39, 39, "xsdA1.xsd", "xsdA2.xsd", "dtdA1.dtd", "dtdA2.dtd",
+				"rncA1.rnc", "rngA1.rng");
+		testCompletionFor(xml, 6, items);
 	}
 
 	@Test
 	public void testFilePathCompletionStartWithDot() throws BadLocationException {
 		String xml = "<a path=\"./folderA/|\">";
-		CompletionItem[] items = getCompletionItemList(0, 19, 19, "xsdA1.xsd", "xsdA2.xsd", "dtdA1.dtd", "dtdA2.dtd");
-		testCompletionFor(xml, 4, items);
+		CompletionItem[] items = getCompletionItemList(0, 19, 19, "xsdA1.xsd", "xsdA2.xsd", "dtdA1.dtd", "dtdA2.dtd",
+				"rncA1.rnc", "rngA1.rng");
+		testCompletionFor(xml, 6, items);
 	}
 
 	@Test
@@ -212,8 +215,9 @@ public class FilePathCompletionWithSettingsTest extends AbstractFilePathCompleti
 			return;
 		}
 		String xml = "<a path=\".\\folderA\\|\">";
-		CompletionItem[] items = getCompletionItemList(0, 19, 19, "xsdA1.xsd", "xsdA2.xsd", "dtdA1.dtd", "dtdA2.dtd");
-		testCompletionFor(xml, 4, items);
+		CompletionItem[] items = getCompletionItemList(0, 19, 19, "xsdA1.xsd", "xsdA2.xsd", "dtdA1.dtd", "dtdA2.dtd",
+				"rncA1.rnc", "rngA1.rng");
+		testCompletionFor(xml, 6, items);
 	}
 
 	@Test

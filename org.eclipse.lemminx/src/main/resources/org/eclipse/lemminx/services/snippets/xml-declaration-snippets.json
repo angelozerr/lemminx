@@ -1,7 +1,8 @@
 {
   "Insert XML Declaration": {
     "prefix": [
-      "<?xml"
+      "<?xml",
+      "xml"
     ],
     "suffix": "?>",
     "body": [
@@ -13,7 +14,8 @@
   },
   "Insert XML Declaration with standalone": {
     "prefix": [
-      "<?xml"
+      "<?xml",
+      "xml"
     ],
     "suffix": "?>",
     "body": [

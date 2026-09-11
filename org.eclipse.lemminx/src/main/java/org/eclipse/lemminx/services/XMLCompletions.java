@@ -32,8 +32,10 @@ import org.eclipse.lemminx.dom.DOMAttr;
 import org.eclipse.lemminx.dom.DOMDocument;
 import org.eclipse.lemminx.dom.DOMElement;
 import org.eclipse.lemminx.dom.DOMNode;
+import org.eclipse.lemminx.dom.DOMRange;
 import org.eclipse.lemminx.dom.DOMText;
 import org.eclipse.lemminx.dom.DTDDeclParameter;
+import org.eclipse.lemminx.dom.XMLModel;
 import org.eclipse.lemminx.dom.parser.Scanner;
 import org.eclipse.lemminx.dom.parser.ScannerState;
 import org.eclipse.lemminx.dom.parser.TokenType;
@@ -267,6 +269,25 @@ public class XMLCompletions {
 						}
 						if (offset <= scanner.getTokenEnd()) {
 							collectInsideContent(completionRequest, completionResponse, cancelChecker);
+							return completionResponse;
+						}
+						break;
+					case PIContent:
+						if (scanner.getTokenOffset() <= offset && offset <= scanner.getTokenEnd()) {
+							XMLModel xmlModel = XMLModel.findXMLModel(completionRequest.getNode(),
+									xmlDocument);
+							if (xmlModel != null) {
+								DOMRange hrefNode = xmlModel.getHrefNode();
+								if (hrefNode != null) {
+									int hrefStart = hrefNode.getStart();
+									int hrefEnd = hrefNode.getEnd();
+									if (hrefStart < offset && offset <= hrefEnd - 1) {
+										collectXMLModelHrefSuggestions(hrefStart, hrefEnd,
+												completionRequest, completionResponse, cancelChecker);
+										return completionResponse;
+									}
+								}
+							}
 							return completionResponse;
 						}
 						break;
@@ -1026,6 +1047,57 @@ public class XMLCompletions {
 			} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "While performing ICompletionParticipant#onDTDSystemId", e);
 			}
+		}
+	}
+
+	/**
+	 * Collects completion suggestions for the href pseudo-attribute value of an
+	 * {@code <?xml-model?>} processing instruction.
+	 *
+	 * @param valueStart         the start offset of the href value (including the
+	 *                           opening quote)
+	 * @param valueEnd           the end offset of the href value (including the
+	 *                           closing quote)
+	 * @param completionRequest  the completion request
+	 * @param completionResponse the completion response
+	 * @param cancelChecker      the cancel checker
+	 */
+	private void collectXMLModelHrefSuggestions(int valueStart, int valueEnd, CompletionRequest completionRequest,
+			CompletionResponse completionResponse, CancelChecker cancelChecker) {
+		Collection<ICompletionParticipant> completionParticipants = getCompletionParticipants();
+		if (completionParticipants.isEmpty()) {
+			return;
+		}
+		int offset = completionRequest.getOffset();
+		CharSequence text = completionRequest.getXMLDocument().getTextSequence();
+		// Adjust range to exclude quotes
+		int valueContentStart = valueStart + 1;
+		int valueContentEnd = valueEnd - 1;
+		String valuePrefix = offset >= valueContentStart && offset <= valueContentEnd
+				? StringUtils.getString(text, valueContentStart, offset)
+				: "";
+		try {
+			Range replaceRange = getReplaceRange(valueContentStart, valueContentEnd, completionRequest);
+			completionRequest.setReplaceRange(replaceRange);
+			for (ICompletionParticipant participant : completionParticipants) {
+				try {
+					participant.onXMLModelHref(valuePrefix, completionRequest, completionResponse, cancelChecker);
+				} catch (CancellationException e) {
+					throw e;
+				} catch (Exception e) {
+					LOGGER.log(Level.SEVERE,
+							"While performing ICompletionParticipant#onXMLModelHref for participant '"
+									+ participant.getClass().getName() + "'.",
+							e);
+				}
+			}
+		} catch (BadLocationException e) {
+			LOGGER.log(Level.SEVERE,
+					"While performing Completions, getReplaceRange() was given a bad Offset location", e);
+		} catch (CancellationException e) {
+			throw e;
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "While performing ICompletionParticipant#onXMLModelHref", e);
 		}
 	}
 

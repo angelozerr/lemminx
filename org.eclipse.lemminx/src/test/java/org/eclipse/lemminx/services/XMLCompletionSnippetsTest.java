@@ -51,13 +51,16 @@ public class XMLCompletionSnippetsTest {
 						r(0, 0, 0, 0), "<!DOCTYPE"),
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
-						r(0, 0, 0, 0), "<?xml"),
+						r(0, 0, 0, 0), "<?xml xml"),
+				c("Insert xml-model", //
+						"<?xml-model href=\"file\"?>", //
+						r(0, 0, 0, 0), "<?xml-model xml-model"),
 				c("Insert XML Schema association", //
 						"<?xml-model href=\"file.xsd\" type=\"application/xml\" schematypens=\"http://www.w3.org/2001/XMLSchema\"?>", //
-						r(0, 0, 0, 0), "<?xml-model"),
+						r(0, 0, 0, 0), "<?xml-model xml-model"),
 				c("Insert DTD association", //
 						"<?xml-model href=\"file.dtd\" type=\"application/xml-dtd\"?>", //
-						r(0, 0, 0, 0), "<?xml-model"),
+						r(0, 0, 0, 0), "<?xml-model xml-model"),
 				c("New XML bound with xsi:schemaLocation", //
 						"<root-element xmlns=\"https://github.com/eclipse/lemminx\"" + lineSeparator() + //
 								"	xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" + lineSeparator() + //
@@ -124,13 +127,13 @@ public class XMLCompletionSnippetsTest {
 						r(0, 0, 0, 1), "<!DOCTYPE"),
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
-						r(0, 0, 0, 1), "<?xml"),
+						r(0, 0, 0, 1), "<?xml xml"),
 				c("Insert XML Schema association", //
 						"<?xml-model href=\"file.xsd\" type=\"application/xml\" schematypens=\"http://www.w3.org/2001/XMLSchema\"?>", //
-						r(0, 0, 0, 1), "<?xml-model"),
+						r(0, 0, 0, 1), "<?xml-model xml-model"),
 				c("Insert DTD association", //
 						"<?xml-model href=\"file.dtd\" type=\"application/xml-dtd\"?>", //
-						r(0, 0, 0, 1), "<?xml-model"),
+						r(0, 0, 0, 1), "<?xml-model xml-model"),
 				c("<!--", //
 						"<!-- -->", //
 						r(0, 0, 0, 1), "<!--"),
@@ -174,13 +177,13 @@ public class XMLCompletionSnippetsTest {
 						r(0, 0, 0, 2), "<!DOCTYPE"),
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
-						r(0, 0, 0, 2), "<?xml"),
+						r(0, 0, 0, 2), "<?xml xml"),
 				c("Insert XML Schema association", //
 						"<?xml-model href=\"file.xsd\" type=\"application/xml\" schematypens=\"http://www.w3.org/2001/XMLSchema\"?>", //
-						r(0, 0, 0, 2), "<?xml-model"),
+						r(0, 0, 0, 2), "<?xml-model xml-model"),
 				c("Insert DTD association", //
 						"<?xml-model href=\"file.dtd\" type=\"application/xml-dtd\"?>", //
-						r(0, 0, 0, 2), "<?xml-model"),
+						r(0, 0, 0, 2), "<?xml-model xml-model"),
 				c("<!--", //
 						"<!-- -->", //
 						r(0, 0, 0, 2), "<!--"),
@@ -227,7 +230,7 @@ public class XMLCompletionSnippetsTest {
 						r(0, 0, 0, 2), "<!DOCTYPE"),
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
-						r(0, 0, 0, 2), "<?xml"),
+						r(0, 0, 0, 2), "<?xml xml"),
 				c("<!--", //
 						"<!-- -->", //
 						r(0, 0, 0, 2), "<!--"));
@@ -251,13 +254,13 @@ public class XMLCompletionSnippetsTest {
 						r(0, 0, 0, 0), "<!DOCTYPE"),
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
-						r(0, 0, 0, 0), "<?xml"),
+						r(0, 0, 0, 0), "<?xml xml"),
 				c("Insert XML Schema association", //
 						"<?xml-model href=\"file.xsd\" type=\"application/xml\" schematypens=\"http://www.w3.org/2001/XMLSchema\"?>", //
-						r(0, 0, 0, 0), "<?xml-model"),
+						r(0, 0, 0, 0), "<?xml-model xml-model"),
 				c("Insert DTD association", //
 						"<?xml-model href=\"file.dtd\" type=\"application/xml-dtd\"?>", //
-						r(0, 0, 0, 0), "<?xml-model"),
+						r(0, 0, 0, 0), "<?xml-model xml-model"),
 				c("New XML bound with xsi:schemaLocation", //
 						"<root-element xmlns=\"https://github.com/eclipse/lemminx\"" + lineSeparator() + //
 								"	xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" + lineSeparator() + //
@@ -325,13 +328,13 @@ public class XMLCompletionSnippetsTest {
 						r(0, 0, 0, 1), "<!DOCTYPE"),
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
-						r(0, 0, 0, 1), "<?xml"),
+						r(0, 0, 0, 1), "<?xml xml"),
 				c("Insert XML Schema association", //
 						"<?xml-model href=\"file.xsd\" type=\"application/xml\" schematypens=\"http://www.w3.org/2001/XMLSchema\"?>", //
-						r(0, 0, 0, 1), "<?xml-model"),
+						r(0, 0, 0, 1), "<?xml-model xml-model"),
 				c("Insert DTD association", //
 						"<?xml-model href=\"file.dtd\" type=\"application/xml-dtd\"?>", //
-						r(0, 0, 0, 1), "<?xml-model"),
+						r(0, 0, 0, 1), "<?xml-model xml-model"),
 				c("<!--", //
 						"<!-- -->", //
 						r(0, 0, 0, 1), "<!--"),
@@ -376,13 +379,13 @@ public class XMLCompletionSnippetsTest {
 						r(0, 0, 0, 2), "<!DOCTYPE"),
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
-						r(0, 0, 0, 2), "<?xml"),
+						r(0, 0, 0, 2), "<?xml xml"),
 				c("Insert XML Schema association", //
 						"<?xml-model href=\"file.xsd\" type=\"application/xml\" schematypens=\"http://www.w3.org/2001/XMLSchema\"?>", //
-						r(0, 0, 0, 2), "<?xml-model"),
+						r(0, 0, 0, 2), "<?xml-model xml-model"),
 				c("Insert DTD association", //
 						"<?xml-model href=\"file.dtd\" type=\"application/xml-dtd\"?>", //
-						r(0, 0, 0, 2), "<?xml-model"),
+						r(0, 0, 0, 2), "<?xml-model xml-model"),
 				c("<!--", //
 						"<!-- -->", //
 						r(0, 0, 0, 2), "<!--"),
@@ -430,7 +433,7 @@ public class XMLCompletionSnippetsTest {
 						r(0, 0, 0, 2), "<!DOCTYPE"),
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
-						r(0, 0, 0, 2), "<?xml"),
+						r(0, 0, 0, 2), "<?xml xml"),
 				c("<!--", //
 						"<!-- -->", //
 						r(0, 0, 0, 2), "<!--"));
@@ -452,10 +455,10 @@ public class XMLCompletionSnippetsTest {
 						r(0, 8, 0, 8), "<!DOCTYPE"),
 				c("Insert XML Schema association", //
 						"<?xml-model href=\"file.xsd\" type=\"application/xml\" schematypens=\"http://www.w3.org/2001/XMLSchema\"?>", //
-						r(0, 8, 0, 8), "<?xml-model"),
+						r(0, 8, 0, 8), "<?xml-model xml-model"),
 				c("Insert DTD association", //
 						"<?xml-model href=\"file.dtd\" type=\"application/xml-dtd\"?>", //
-						r(0, 8, 0, 8), "<?xml-model"),
+						r(0, 8, 0, 8), "<?xml-model xml-model"),
 				c("<!--", //
 						"<!-- -->", //
 						r(0, 8, 0, 8), "<!--"),
@@ -501,10 +504,10 @@ public class XMLCompletionSnippetsTest {
 						r(0, 38, 0, 38), "<!DOCTYPE"),
 				c("Insert XML Schema association", //
 						"<?xml-model href=\"file.xsd\" type=\"application/xml\" schematypens=\"http://www.w3.org/2001/XMLSchema\"?>", //
-						r(0, 38, 0, 38), "<?xml-model"),
+						r(0, 38, 0, 38), "<?xml-model xml-model"),
 				c("Insert DTD association", //
 						"<?xml-model href=\"file.dtd\" type=\"application/xml-dtd\"?>", //
-						r(0, 38, 0, 38), "<?xml-model"),
+						r(0, 38, 0, 38), "<?xml-model xml-model"),
 				c("<!--", //
 						"<!-- -->", //
 						r(0, 38, 0, 38), "<!--"),
@@ -547,10 +550,10 @@ public class XMLCompletionSnippetsTest {
 						r(0, 38, 0, 39), "<!DOCTYPE"),
 				c("Insert XML Schema association", //
 						"<?xml-model href=\"file.xsd\" type=\"application/xml\" schematypens=\"http://www.w3.org/2001/XMLSchema\"?>", //
-						r(0, 38, 0, 39), "<?xml-model"),
+						r(0, 38, 0, 39), "<?xml-model xml-model"),
 				c("Insert DTD association", //
 						"<?xml-model href=\"file.dtd\" type=\"application/xml-dtd\"?>", //
-						r(0, 38, 0, 39), "<?xml-model"),
+						r(0, 38, 0, 39), "<?xml-model xml-model"),
 				c("<!--", //
 						"<!-- -->", //
 						r(0, 38, 0, 39), "<!--"),
@@ -593,10 +596,10 @@ public class XMLCompletionSnippetsTest {
 						r(0, 38, 0, 39), "<!DOCTYPE"),
 				c("Insert XML Schema association", //
 						"<?xml-model href=\"file.xsd\" type=\"application/xml\" schematypens=\"http://www.w3.org/2001/XMLSchema\"?>", //
-						r(0, 38, 0, 39), "<?xml-model"),
+						r(0, 38, 0, 39), "<?xml-model xml-model"),
 				c("Insert DTD association", //
 						"<?xml-model href=\"file.dtd\" type=\"application/xml-dtd\"?>", //
-						r(0, 38, 0, 39), "<?xml-model"),
+						r(0, 38, 0, 39), "<?xml-model xml-model"),
 				c("<!--", //
 						"<!-- -->", //
 						r(0, 38, 0, 39), "<!--"));
@@ -613,10 +616,10 @@ public class XMLCompletionSnippetsTest {
 						r(0, 38, 0, 40), "<!DOCTYPE"),
 				c("Insert XML Schema association", //
 						"<?xml-model href=\"file.xsd\" type=\"application/xml\" schematypens=\"http://www.w3.org/2001/XMLSchema\"?>", //
-						r(0, 38, 0, 40), "<?xml-model"),
+						r(0, 38, 0, 40), "<?xml-model xml-model"),
 				c("Insert DTD association", //
 						"<?xml-model href=\"file.dtd\" type=\"application/xml-dtd\"?>", //
-						r(0, 38, 0, 40), "<?xml-model"),
+						r(0, 38, 0, 40), "<?xml-model xml-model"),
 				c("<!--", //
 						"<!-- -->", //
 						r(0, 38, 0, 40), "<!--"));
@@ -634,10 +637,10 @@ public class XMLCompletionSnippetsTest {
 						r(1, 0, 1, 0), "<!DOCTYPE"),
 				c("Insert XML Schema association", //
 						"<?xml-model href=\"file.xsd\" type=\"application/xml\" schematypens=\"http://www.w3.org/2001/XMLSchema\"?>", //
-						r(1, 0, 1, 0), "<?xml-model"),
+						r(1, 0, 1, 0), "<?xml-model xml-model"),
 				c("Insert DTD association", //
 						"<?xml-model href=\"file.dtd\" type=\"application/xml-dtd\"?>", //
-						r(1, 0, 1, 0), "<?xml-model"),
+						r(1, 0, 1, 0), "<?xml-model xml-model"),
 				c("<!--", //
 						"<!-- -->", //
 						r(1, 0, 1, 0), "<!--"), //
@@ -688,7 +691,7 @@ public class XMLCompletionSnippetsTest {
 						r(0, 0, 0, 0), "<schema"),
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
-						r(0, 0, 0, 0), "<?xml"),
+						r(0, 0, 0, 0), "<?xml xml"),
 				c("<!--", //
 						"<!-- -->", //
 						r(0, 0, 0, 0), "<!--"));
@@ -707,7 +710,7 @@ public class XMLCompletionSnippetsTest {
 						r(0, 0, 0, 1), "<schema"),
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
-						r(0, 0, 0, 1), "<?xml"),
+						r(0, 0, 0, 1), "<?xml xml"),
 				c("<!--", //
 						"<!-- -->", //
 						r(0, 0, 0, 1), "<!--"));
@@ -726,7 +729,7 @@ public class XMLCompletionSnippetsTest {
 						r(0, 0, 0, 2), "<schema"),
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
-						r(0, 0, 0, 2), "<?xml"),
+						r(0, 0, 0, 2), "<?xml xml"),
 				c("<!--", //
 						"<!-- -->", //
 						r(0, 0, 0, 2), "<!--"));
@@ -931,7 +934,7 @@ public class XMLCompletionSnippetsTest {
 						COMMENT_SNIPPETS /* Comment snippets */ , //
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
-						r(0, 0, 0, 2), "<?xml"));
+						r(0, 0, 0, 2), "<?xml xml"));
 
 	}
 
@@ -989,13 +992,13 @@ public class XMLCompletionSnippetsTest {
 						REGION_SNIPPETS /* Region Snippets */, //
 				c("Insert XML Declaration", //
 						"<?xml version=\"1.0\" encoding=\"UTF-8\"?>", //
-						r(0, 0, 0, 0), "<?xml"),
+						r(0, 0, 0, 0), "<?xml xml"),
 				c("Insert XML Schema association", //
 						"<?xml-model href=\"file.xsd\" type=\"application/xml\" schematypens=\"http://www.w3.org/2001/XMLSchema\"?>", //
-						r(0, 0, 0, 0), "<?xml-model"),
+						r(0, 0, 0, 0), "<?xml-model xml-model"),
 				c("Insert DTD association", //
 						"<?xml-model href=\"file.dtd\" type=\"application/xml-dtd\"?>", //
-						r(0, 0, 0, 0), "<?xml-model"),
+						r(0, 0, 0, 0), "<?xml-model xml-model"),
 				c("Insert SYSTEM DOCTYPE", //
 						"<!DOCTYPE root SYSTEM \"file.dtd\">", //
 						r(0, 0, 0, 0), "<!DOCTYPE"),

@@ -101,8 +101,8 @@ public class RelaxNGHoverTest extends AbstractCacheBasedTest {
 
 	@Test
 	public void hoverWithUmlautNoEncodingDeclared() throws BadLocationException, MalformedURIException {
-		String schemaURI = getRelaxNGFileURI("umlautDoc.rng");
-		String xml = "<?xml-model href=\"umlautDoc.rng\" ?>\r\n" + //
+		String schemaURI = getRelaxNGFileURI("encoding/umlautDoc.rng");
+		String xml = "<?xml-model href=\"encoding/umlautDoc.rng\" ?>\r\n" + //
 				"<layout>\r\n" + //
 				"  <te|xt>hello</text>\r\n" + //
 				"</layout>";
@@ -113,8 +113,8 @@ public class RelaxNGHoverTest extends AbstractCacheBasedTest {
 
 	@Test
 	public void hoverWithUmlautNoEncodingDeclaredOnElement() throws BadLocationException, MalformedURIException {
-		String schemaURI = getRelaxNGFileURI("umlautDoc.rng");
-		String xml = "<?xml-model href=\"umlautDoc.rng\" ?>\r\n" + //
+		String schemaURI = getRelaxNGFileURI("encoding/umlautDoc.rng");
+		String xml = "<?xml-model href=\"encoding/umlautDoc.rng\" ?>\r\n" + //
 				"<lay|out>\r\n" + //
 				"  <text>hello</text>\r\n" + //
 				"</layout>";
@@ -125,8 +125,8 @@ public class RelaxNGHoverTest extends AbstractCacheBasedTest {
 
 	@Test
 	public void hoverWithUmlautUTF8Declared() throws BadLocationException, MalformedURIException {
-		String schemaURI = getRelaxNGFileURI("umlautDocUTF8.rng");
-		String xml = "<?xml-model href=\"umlautDocUTF8.rng\" ?>\r\n" + //
+		String schemaURI = getRelaxNGFileURI("encoding/umlautDocUTF8.rng");
+		String xml = "<?xml-model href=\"encoding/umlautDocUTF8.rng\" ?>\r\n" + //
 				"<layout>\r\n" + //
 				"  <te|xt>hello</text>\r\n" + //
 				"</layout>";
@@ -137,8 +137,8 @@ public class RelaxNGHoverTest extends AbstractCacheBasedTest {
 
 	@Test
 	public void hoverWithUmlautISO88591Declared() throws BadLocationException, MalformedURIException {
-		String schemaURI = getRelaxNGFileURI("umlautDocISO88591.rng");
-		String xml = "<?xml-model href=\"umlautDocISO88591.rng\" ?>\r\n" + //
+		String schemaURI = getRelaxNGFileURI("encoding/umlautDocISO88591.rng");
+		String xml = "<?xml-model href=\"encoding/umlautDocISO88591.rng\" ?>\r\n" + //
 				"<layout>\r\n" + //
 				"  <te|xt>hello</text>\r\n" + //
 				"</layout>";

@@ -33,6 +33,7 @@ import org.eclipse.lemminx.dom.DOMText;
 import org.eclipse.lemminx.dom.DTDDeclParameter;
 import org.eclipse.lemminx.dom.NoNamespaceSchemaLocation;
 import org.eclipse.lemminx.dom.SchemaLocation;
+import org.eclipse.lemminx.dom.XMLModel;
 import org.eclipse.lemminx.extensions.filepath.FilePathPlugin;
 import org.eclipse.lemminx.extensions.filepath.IFilePathExpression;
 import org.eclipse.lemminx.extensions.filepath.SimpleFilePathExpression;
@@ -106,6 +107,15 @@ public class FilePathCompletionParticipant extends CompletionParticipantAdapter 
 
 		public Character getSeparator() {
 			return ' ';
+		};
+	};
+
+	private static final IFilePathExpression XML_MODEL_HREF_FILE_PATH_EXPRESSION = new SimpleFilePathExpression() {
+
+		@Override
+		protected boolean acceptFile(Path path) {
+			String fileName = getFileName(path);
+			return DOMUtils.isXSD(fileName) || DOMUtils.isDTD(fileName) || DOMUtils.isRelaxNGUri(fileName);
 		};
 	};
 
@@ -206,6 +216,24 @@ public class FilePathCompletionParticipant extends CompletionParticipantAdapter 
 		DTDDeclParameter systemId = xmlDocument.getDoctype().getSystemIdNode();
 		addFileCompletionItems(xmlDocument, systemId.getStart() + 1 /* increment to be after the quote */,
 				systemId.getEnd() - 1, request.getOffset(), DOCTYPE_FILE_PATH_EXPRESSION, response, cancelChecker);
+	}
+
+	@Override
+	public void onXMLModelHref(String value, ICompletionRequest request, ICompletionResponse response,
+			CancelChecker cancelChecker) throws Exception {
+		// File path completion on <?xml-model href="..." ?>
+		DOMDocument xmlDocument = request.getXMLDocument();
+		XMLModel xmlModel = XMLModel.findXMLModel(request.getNode(), xmlDocument);
+		if (xmlModel == null) {
+			return;
+		}
+		DOMRange hrefNode = xmlModel.getHrefNode();
+		if (hrefNode == null) {
+			return;
+		}
+		addFileCompletionItems(xmlDocument, hrefNode.getStart() + 1 /* increment to be after the quote */,
+				hrefNode.getEnd() - 1, request.getOffset(), XML_MODEL_HREF_FILE_PATH_EXPRESSION, response,
+				cancelChecker);
 	}
 
 	private static void addFileCompletionItems(DOMDocument xmlDocument, int startOffset, int endOffset,

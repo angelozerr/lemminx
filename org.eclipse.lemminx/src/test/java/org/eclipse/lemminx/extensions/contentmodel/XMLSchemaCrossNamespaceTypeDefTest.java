@@ -12,8 +12,11 @@
 package org.eclipse.lemminx.extensions.contentmodel;
 
 import static org.eclipse.lemminx.XMLAssert.assertHover;
+import static org.eclipse.lemminx.XMLAssert.c;
 import static org.eclipse.lemminx.XMLAssert.ll;
 import static org.eclipse.lemminx.XMLAssert.r;
+import static org.eclipse.lemminx.XMLAssert.te;
+import static org.eclipse.lemminx.XMLAssert.testCompletionFor;
 import static org.eclipse.lemminx.XMLAssert.testTypeDefinitionFor;
 
 import org.apache.xerces.impl.XMLEntityManager;
@@ -95,6 +98,32 @@ public class XMLSchemaCrossNamespaceTypeDefTest extends AbstractCacheBasedTest {
                         System.lineSeparator() + //
                         System.lineSeparator() + "Source: [product-export-benefits.xsd](" + schemaURI + ")",
                 r(4, 26, 4, 30));
+    }
+
+    @Test
+    public void issue1079ElementCompletionWithSchemaLocation() throws BadLocationException {
+        String xml = "<ExportDef xmlns=\"urn:Platform:Export\"\r\n" +
+                "           xmlns:benefits=\"urn:Product:Export:Benefits\"\r\n" +
+                "           xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" +
+                "           xsi:schemaLocation=\"urn:Platform:Export xsd/issue-1079/export-model.xsd\">\r\n" +
+                "  <|\r\n" +
+                "</ExportDef>";
+        testCompletionFor(xml, null, "src/test/resources/test.xml", null,
+                c("benefits:QuestionValue", "<benefits:QuestionValue name=\"\" />"));
+    }
+
+    @Test
+    public void issue1079ElementCompletionWithoutImportSchemaLocation() throws BadLocationException {
+        // xs:import without schemaLocation — resolved only via xsi:schemaLocation
+        String xml = "<ExportDef xmlns=\"urn:Platform:Export\"\r\n" +
+                "           xmlns:benefits=\"urn:Product:Export:Benefits\"\r\n" +
+                "           xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" +
+                "           xsi:schemaLocation=\"urn:Platform:Export xsd/issue-1079/export-model-nolocation.xsd\r\n" +
+                "                               urn:Product:Export:Benefits xsd/issue-1079/product-export-benefits.xsd\">\r\n" +
+                "  <|\r\n" +
+                "</ExportDef>";
+        testCompletionFor(xml, null, "src/test/resources/test.xml", null,
+                c("benefits:QuestionValue", "<benefits:QuestionValue name=\"\" />"));
     }
 
     @Test
