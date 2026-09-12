@@ -100,6 +100,18 @@ public interface CMDocument {
 	}
 
 	/**
+	 * Returns the child element declarations of the xsi:type-derived type
+	 * for the given element. Used when the derived type is defined in this
+	 * schema but the element itself belongs to a different namespace.
+	 *
+	 * @param element the DOM element with xsi:type attribute.
+	 * @return the child element declarations, or empty if not applicable.
+	 */
+	default Collection<CMElementDeclaration> findXsiTypeDerivedElements(DOMElement element) {
+		return Collections.emptyList();
+	}
+
+	/**
 	 * Returns list of declared entities.
 	 *
 	 * @return list of declared entities.

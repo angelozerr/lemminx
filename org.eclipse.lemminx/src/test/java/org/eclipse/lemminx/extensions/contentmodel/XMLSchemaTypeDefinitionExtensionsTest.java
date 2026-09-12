@@ -211,4 +211,55 @@ public class XMLSchemaTypeDefinitionExtensionsTest extends AbstractCacheBasedTes
 				ll(targetSchemaURI, r(4, 5, 4, 16), r(21, 37, 21, 50)));
 	}
 
+	/**
+	 * See https://github.com/eclipse-lemminx/lemminx/issues/1787
+	 *
+	 * Test type definition on child elements inside xsi:type-derived types
+	 * across namespaces, with both a:ADerived and b:BDerived blocks present.
+	 */
+	@Test
+	public void xsiTypeDerivedChildAcrossNamespacesTypeDefinition() throws BadLocationException, MalformedURIException {
+		String xmlFile = "src/test/resources/xsd/xsi-type-derived/test.xml";
+		String aSchemaURI = XMLEntityManager.expandSystemId("xsd/xsi-type-derived/a.xsd",
+				"src/test/resources/test.xml", true);
+		String bSchemaURI = XMLEntityManager.expandSystemId("xsd/xsi-type-derived/b.xsd",
+				"src/test/resources/test.xml", true);
+
+		XMLLanguageService xmlLanguageService = new XMLLanguageService();
+
+		// Type definition on <a:Title> inside xsi:type="a:ADerived" — with both blocks
+		String xmlA = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + //
+				"<m:Root xmlns:m=\"http://main\"\n" + //
+				"        xmlns:a=\"http://a\"\n" + //
+				"        xmlns:b=\"http://b\"\n" + //
+				"        xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" + //
+				"        xsi:schemaLocation=\"http://main main.xsd\">\n" + //
+				"  <m:Data xsi:type=\"a:ADerived\">\n" + //
+				"    <a:Tit|le/>\n" + //
+				"  </m:Data>\n" + //
+				"  <m:Data xsi:type=\"b:BDerived\">\n" + //
+				"    <b:Title/>\n" + //
+				"  </m:Data>\n" + //
+				"</m:Root>";
+		testTypeDefinitionFor(xmlLanguageService, xmlA, xmlFile,
+				ll(aSchemaURI, r(7, 5, 7, 12), r(12, 37, 12, 44)));
+
+		// Type definition on <b:Title> inside xsi:type="b:BDerived" — with both blocks
+		String xmlB = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + //
+				"<m:Root xmlns:m=\"http://main\"\n" + //
+				"        xmlns:a=\"http://a\"\n" + //
+				"        xmlns:b=\"http://b\"\n" + //
+				"        xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" + //
+				"        xsi:schemaLocation=\"http://main main.xsd\">\n" + //
+				"  <m:Data xsi:type=\"a:ADerived\">\n" + //
+				"    <a:Title/>\n" + //
+				"  </m:Data>\n" + //
+				"  <m:Data xsi:type=\"b:BDerived\">\n" + //
+				"    <b:Tit|le/>\n" + //
+				"  </m:Data>\n" + //
+				"</m:Root>";
+		testTypeDefinitionFor(xmlLanguageService, xmlB, xmlFile,
+				ll(bSchemaURI, r(10, 5, 10, 12), r(12, 37, 12, 44)));
+	}
+
 }

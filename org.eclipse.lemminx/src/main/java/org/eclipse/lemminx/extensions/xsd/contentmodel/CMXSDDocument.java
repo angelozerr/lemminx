@@ -179,15 +179,24 @@ public class CMXSDDocument implements CMDocument, XSElementDeclHelper {
 	@Override
 	public CMElementDeclaration findCMElement(DOMElement element, String namespace) {
 		List<DOMElement> paths = new ArrayList<>();
-		while (element != null && (namespace == null || namespace.equals(element.getNamespaceURI()))) {
-			paths.add(0, element);
-			element = element.getParentNode() instanceof DOMElement ? (DOMElement) element.getParentNode() : null;
+		DOMElement excludedParent = element;
+		while (excludedParent != null && (namespace == null || namespace.equals(excludedParent.getNamespaceURI()))) {
+			paths.add(0, excludedParent);
+			excludedParent = excludedParent.getParentNode() instanceof DOMElement
+					? (DOMElement) excludedParent.getParentNode()
+					: null;
 		}
 		CMXSDElementDeclaration declaration = null;
 		for (int i = 0; i < paths.size(); i++) {
 			DOMElement elt = paths.get(i);
 			if (i == 0) {
-				declaration = (CMXSDElementDeclaration) findElementDeclaration(elt.getLocalName(), namespace);
+				// When the parent has xsi:type, prefer resolving through the
+				// derived type's particles — the local element declaration
+				// carries the correct documentation and type information.
+				declaration = findCMElementFromXsiType(excludedParent, elt.getLocalName());
+				if (declaration == null) {
+					declaration = (CMXSDElementDeclaration) findElementDeclaration(elt.getLocalName(), namespace);
+				}
 			} else {
 				declaration = (CMXSDElementDeclaration) declaration.findCMElement(elt.getLocalName(), namespace);
 			}
@@ -210,6 +219,87 @@ public class CMXSDDocument implements CMDocument, XSElementDeclHelper {
 			}
 		}
 		return declaration;
+	}
+
+	/**
+	 * When the element's parent is in a different namespace and has an xsi:type
+	 * attribute, resolve the derived type and find the child element declaration
+	 * within it.
+	 *
+	 * @param xsiTypeParent the parent element with xsi:type (may be null).
+	 * @param childName     the local name of the child element to find.
+	 * @return the element declaration, or null if not found.
+	 */
+	private CMXSDElementDeclaration findCMElementFromXsiType(DOMElement xsiTypeParent, String childName) {
+		if (xsiTypeParent == null) {
+			return null;
+		}
+		XSTypeDefinition xsiType = findXsiType(xsiTypeParent);
+		if (xsiType == null || xsiType.getTypeCategory() != XSTypeDefinition.COMPLEX_TYPE) {
+			return null;
+		}
+		XSParticle particle = ((XSComplexTypeDefinition) xsiType).getParticle();
+		if (particle == null) {
+			return null;
+		}
+		XSElementDeclaration elemDecl = findElementInParticle(particle, childName);
+		if (elemDecl != null) {
+			return (CMXSDElementDeclaration) getXSDElement(elemDecl);
+		}
+		return null;
+	}
+
+	/**
+	 * Returns all child element declarations from the xsi:type-derived complex
+	 * type. Used by completion to propose child elements when the parent element
+	 * uses an xsi:type from a different namespace.
+	 */
+	@Override
+	public Collection<CMElementDeclaration> findXsiTypeDerivedElements(DOMElement element) {
+		XSTypeDefinition xsiType = findXsiType(element);
+		if (xsiType == null || xsiType.getTypeCategory() != XSTypeDefinition.COMPLEX_TYPE) {
+			return Collections.emptyList();
+		}
+		XSParticle particle = ((XSComplexTypeDefinition) xsiType).getParticle();
+		if (particle == null) {
+			return Collections.emptyList();
+		}
+		Collection<CMElementDeclaration> elements = new ArrayList<>();
+		collectElementsFromParticle(particle, elements);
+		return elements;
+	}
+
+	/**
+	 * Recursively collects all element declarations from the given particle tree.
+	 */
+	private void collectElementsFromParticle(XSParticle particle, Collection<CMElementDeclaration> elements) {
+		XSTerm term = particle.getTerm();
+		if (term.getType() == XSConstants.ELEMENT_DECLARATION) {
+			elements.add(getXSDElement((XSElementDeclaration) term));
+		} else if (term.getType() == XSConstants.MODEL_GROUP) {
+			XSObjectList particles = ((XSModelGroup) term).getParticles();
+			for (int i = 0; i < particles.getLength(); i++) {
+				collectElementsFromParticle((XSParticle) particles.item(i), elements);
+			}
+		}
+	}
+
+	private static XSElementDeclaration findElementInParticle(XSParticle particle, String name) {
+		XSTerm term = particle.getTerm();
+		if (term.getType() == XSConstants.ELEMENT_DECLARATION) {
+			if (name.equals(((XSElementDeclaration) term).getName())) {
+				return (XSElementDeclaration) term;
+			}
+		} else if (term.getType() == XSConstants.MODEL_GROUP) {
+			XSObjectList particles = ((XSModelGroup) term).getParticles();
+			for (int i = 0; i < particles.getLength(); i++) {
+				XSElementDeclaration found = findElementInParticle((XSParticle) particles.item(i), name);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		return null;
 	}
 
 	private XSTypeDefinition findXsiType(DOMElement element) {
