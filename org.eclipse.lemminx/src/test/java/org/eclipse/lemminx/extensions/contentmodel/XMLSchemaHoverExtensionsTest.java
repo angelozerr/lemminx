@@ -12,6 +12,7 @@
  */
 package org.eclipse.lemminx.extensions.contentmodel;
 
+import static org.eclipse.lemminx.XMLAssert.assertHover;
 import static org.eclipse.lemminx.XMLAssert.r;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -26,7 +27,9 @@ import org.eclipse.lemminx.dom.DOMElement;
 import org.eclipse.lemminx.dom.DOMNode;
 import org.eclipse.lemminx.dom.DOMText;
 import org.eclipse.lemminx.dom.LineIndentInfo;
+import org.eclipse.lemminx.extensions.contentmodel.model.ContentModelManager;
 import org.eclipse.lemminx.extensions.contentmodel.participants.ContentModelHoverParticipant;
+import org.eclipse.lemminx.extensions.contentmodel.settings.ContentModelSettings;
 import org.eclipse.lemminx.extensions.xsi.XSISchemaModel;
 import org.eclipse.lemminx.services.XMLLanguageService;
 import org.eclipse.lemminx.services.extensions.hover.IHoverRequest;
@@ -458,6 +461,66 @@ public class XMLSchemaHoverExtensionsTest extends AbstractCacheBasedTest {
 						System.lineSeparator() + //
 						System.lineSeparator() + "Source: [xsitype-ns.xsd](" + schemaURI + ")", //
 				r(4, 5, 4, 16));
+	}
+
+	/**
+	 * See https://github.com/eclipse-lemminx/lemminx/issues/1787
+	 *
+	 * Test hover on child elements inside xsi:type-derived types across
+	 * namespaces, with both a:ADerived and b:BDerived blocks present
+	 * in the same document.
+	 */
+	@Test
+	public void testHoverXSITypeDerivedChildAcrossNamespaces() throws BadLocationException, MalformedURIException {
+		String aSchemaURI = getXMLSchemaFileURI("xsi-type-derived/a.xsd");
+		String bSchemaURI = getXMLSchemaFileURI("xsi-type-derived/b.xsd");
+
+		XMLLanguageService xmlLanguageService = new XMLLanguageService();
+		ContentModelSettings settings = new ContentModelSettings();
+		settings.setUseCache(true);
+
+		// Hover on <a:Title> inside xsi:type="a:ADerived" — with both Data blocks present
+		// Only main.xsd is in schemaLocation; a.xsd and b.xsd are transitively imported
+		String xmlA = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + //
+				"<m:Root xmlns:m=\"http://main\"\n" + //
+				"        xmlns:a=\"http://a\"\n" + //
+				"        xmlns:b=\"http://b\"\n" + //
+				"        xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" + //
+				"        xsi:schemaLocation=\"http://main main.xsd\">\n" + //
+				"  <m:Data xsi:type=\"a:ADerived\">\n" + //
+				"    <a:Tit|le/>\n" + //
+				"  </m:Data>\n" + //
+				"  <m:Data xsi:type=\"b:BDerived\">\n" + //
+				"    <b:Title/>\n" + //
+				"  </m:Data>\n" + //
+				"</m:Root>";
+		XMLAssert.assertHover(xmlLanguageService, xmlA, null,
+				"src/test/resources/xsd/xsi-type-derived/test.xml",
+				"Documentation for Title from namespace a" + //
+						System.lineSeparator() + //
+						System.lineSeparator() + "Source: [a.xsd](" + aSchemaURI + ")",
+				r(7, 5, 7, 12), settings);
+
+		// Hover on <b:Title> inside xsi:type="b:BDerived" — with both Data blocks present
+		String xmlB = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + //
+				"<m:Root xmlns:m=\"http://main\"\n" + //
+				"        xmlns:a=\"http://a\"\n" + //
+				"        xmlns:b=\"http://b\"\n" + //
+				"        xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" + //
+				"        xsi:schemaLocation=\"http://main main.xsd\">\n" + //
+				"  <m:Data xsi:type=\"a:ADerived\">\n" + //
+				"    <a:Title/>\n" + //
+				"  </m:Data>\n" + //
+				"  <m:Data xsi:type=\"b:BDerived\">\n" + //
+				"    <b:Tit|le/>\n" + //
+				"  </m:Data>\n" + //
+				"</m:Root>";
+		XMLAssert.assertHover(xmlLanguageService, xmlB, null,
+				"src/test/resources/xsd/xsi-type-derived/test.xml",
+				"Documentation for Title from namespace b" + //
+						System.lineSeparator() + //
+						System.lineSeparator() + "Source: [b.xsd](" + bSchemaURI + ")",
+				r(10, 5, 10, 12), settings);
 	}
 
 	private static void assertHover(String value, String expectedHoverLabel, Range expectedHoverRange)

@@ -31,6 +31,7 @@ import org.eclipse.lemminx.extensions.contentmodel.participants.completion.Attri
 import org.eclipse.lemminx.extensions.contentmodel.participants.completion.AttributeValueCompletionResolver;
 import org.eclipse.lemminx.extensions.contentmodel.participants.completion.ContentModelElementCompletionItem;
 import org.eclipse.lemminx.extensions.contentmodel.utils.XMLGenerator;
+import org.eclipse.lemminx.extensions.xsi.XSISchemaModel;
 import org.eclipse.lemminx.services.data.DataEntryField;
 import org.eclipse.lemminx.services.extensions.completion.AttributeCompletionItem;
 import org.eclipse.lemminx.services.extensions.completion.CompletionParticipantAdapter;
@@ -93,6 +94,8 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 					parentElement.getNamespaceURI());
 
 			String defaultPrefix = null;
+			boolean foundXsiTypeChildren = false;
+			String xsiTypeNs = getXsiTypeNamespace(parentElement);
 			for (CMDocument cmDocument : cmRootDocuments) {
 				CMElementDeclaration cmElement = cmDocument.findCMElement(parentElement,
 						parentElement.getNamespaceURI());
@@ -100,6 +103,35 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 					defaultPrefix = parentElement.getPrefix();
 					fillWithPossibleElementDeclaration(parentElement, cmElement, defaultPrefix, contentModelManager,
 							request, response);
+					// Check if the regular path already resolved xsi:type
+					// children (happens when the parent's schema imports the
+					// derived type's schema).
+					if (xsiTypeNs != null && !foundXsiTypeChildren) {
+						Collection<CMElementDeclaration> possible = cmElement
+								.getPossibleElements(parentElement, request.getOffset());
+						for (CMElementDeclaration pe : possible) {
+							if (xsiTypeNs.equals(pe.getNamespace())) {
+								foundXsiTypeChildren = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+			// Handle cross-namespace xsi:type only when the regular path
+			// did not already resolve the derived type's children.
+			if (!foundXsiTypeChildren && xsiTypeNs != null
+					&& !xsiTypeNs.equals(parentElement.getNamespaceURI())) {
+				Collection<CMDocument> xsiTypeDocs = contentModelManager.findCMDocument(
+						document, xsiTypeNs);
+				for (CMDocument cmDocument : xsiTypeDocs) {
+					Collection<CMElementDeclaration> derivedElements = cmDocument
+							.findXsiTypeDerivedElements(parentElement);
+					if (!derivedElements.isEmpty()) {
+						String xsiPrefix = parentElement.getPrefix(xsiTypeNs);
+						fillWithChildrenElementDeclaration(parentElement, null, derivedElements,
+								xsiPrefix, true, request, response);
+					}
 				}
 			}
 			if (parentElement.isDocumentElement()) {
@@ -486,5 +518,34 @@ public class ContentModelCompletionParticipant extends CompletionParticipantAdap
 	private static void addResolveData(ICompletionRequest request, CompletionItem item, String participantId) {
 		JsonObject data = DataEntryField.createCompletionData(request, participantId);
 		item.setData(data);
+	}
+
+	/**
+	 * Returns the namespace URI of the type referenced by the xsi:type attribute
+	 * on the given element, or null if there is no cross-namespace xsi:type.
+	 *
+	 * @param element the DOM element to inspect.
+	 * @return the namespace URI of the xsi:type value's prefix, or null.
+	 */
+	private static String getXsiTypeNamespace(DOMElement element) {
+		org.w3c.dom.NamedNodeMap attrs = element.getAttributes();
+		if (attrs == null) {
+			return null;
+		}
+		for (int i = 0; i < attrs.getLength(); i++) {
+			org.w3c.dom.Node attr = attrs.item(i);
+			if ("type".equals(attr.getLocalName())
+					&& XSISchemaModel.XSI_WEBSITE.equals(attr.getNamespaceURI())) {
+				String value = attr.getNodeValue();
+				if (value == null) {
+					return null;
+				}
+				int colonIndex = value.indexOf(':');
+				if (colonIndex != -1) {
+					return element.getNamespaceURI(value.substring(0, colonIndex));
+				}
+			}
+		}
+		return null;
 	}
 }

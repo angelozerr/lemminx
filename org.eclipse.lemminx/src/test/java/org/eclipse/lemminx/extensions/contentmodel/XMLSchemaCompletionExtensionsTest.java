@@ -1684,6 +1684,55 @@ public class XMLSchemaCompletionExtensionsTest extends BaseFileTempTest {
 				c("derivedProp", "<derivedProp></derivedProp>"));
 	}
 
+	/**
+	 * See https://github.com/eclipse-lemminx/lemminx/issues/1787
+	 *
+	 * Test completion inside xsi:type-derived types across namespaces,
+	 * with both a:ADerived and b:BDerived blocks present.
+	 */
+	@Test
+	public void xsiTypeDerivedChildCompletionAcrossNamespaces() throws BadLocationException {
+		XMLLanguageService xmlLanguageService = new XMLLanguageService();
+
+		// Completion inside <m:Data xsi:type="a:ADerived"> should suggest a:Title — with both blocks
+		String xmlA = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + //
+				"<m:Root xmlns:m=\"http://main\"\n" + //
+				"        xmlns:a=\"http://a\"\n" + //
+				"        xmlns:b=\"http://b\"\n" + //
+				"        xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" + //
+				"        xsi:schemaLocation=\"http://main main.xsd\">\n" + //
+				"  <m:Data xsi:type=\"a:ADerived\">\n" + //
+				"    <|\n" + //
+				"  </m:Data>\n" + //
+				"  <m:Data xsi:type=\"b:BDerived\">\n" + //
+				"    <b:Title/>\n" + //
+				"  </m:Data>\n" + //
+				"</m:Root>";
+		testCompletionFor(xmlLanguageService, xmlA, null, null,
+				"src/test/resources/xsd/xsi-type-derived/test.xml",
+				1 + 4 /* CDATA and Comments */, true,
+				c("a:Title", "<a:Title></a:Title>"));
+
+		// Completion inside <m:Data xsi:type="b:BDerived"> should suggest b:Title — with both blocks
+		String xmlB = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + //
+				"<m:Root xmlns:m=\"http://main\"\n" + //
+				"        xmlns:a=\"http://a\"\n" + //
+				"        xmlns:b=\"http://b\"\n" + //
+				"        xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" + //
+				"        xsi:schemaLocation=\"http://main main.xsd\">\n" + //
+				"  <m:Data xsi:type=\"a:ADerived\">\n" + //
+				"    <a:Title/>\n" + //
+				"  </m:Data>\n" + //
+				"  <m:Data xsi:type=\"b:BDerived\">\n" + //
+				"    <|\n" + //
+				"  </m:Data>\n" + //
+				"</m:Root>";
+		testCompletionFor(xmlLanguageService, xmlB, null, null,
+				"src/test/resources/xsd/xsi-type-derived/test.xml",
+				1 + 4 /* CDATA and Comments */, true,
+				c("b:Title", "<b:Title></b:Title>"));
+	}
+
 	// Tests for https://github.com/redhat-developer/vscode-xml/issues/1079
 
 	@Test
