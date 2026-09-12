@@ -270,6 +270,22 @@ public class XSDValidationExtensionsTest extends AbstractCacheBasedTest {
 	}
 
 	@Test
+	public void src_ct_2_1() throws BadLocationException {
+		String xml = "<?xml version=\"1.1\" ?>\r\n" + //
+				"<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">\r\n" + //
+				"	<xs:element name=\"childA\">\r\n" + //
+				"		<xs:complexType>\r\n" + //
+				"			<xs:simpleContent>\r\n" + //
+				"				<xs:restriction base=\"xs:string\" />\r\n" + //
+				"			</xs:simpleContent>\r\n" + //
+				"			<xs:attributeGroup ref=\"\" />\r\n" + //
+				"		</xs:complexType>\r\n" + //
+				"	</xs:element>\r\n" + //
+				"</xs:schema>";
+		testDiagnosticsFor(xml, d(5, 25, 5, 36, XSDErrorCode.src_ct_2_1));
+	}
+
+	@Test
 	public void src_resolve() throws BadLocationException {
 		String xml = "<?xml version=\"1.1\"?>\r\n" + //
 				"<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"\r\n" + //

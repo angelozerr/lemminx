@@ -56,6 +56,7 @@ public enum XSDErrorCode implements IXMLErrorCode {
 	sch_props_correct_2("sch-props-correct.2"), //
 	schema_reference_4("schema_reference.4"), //
 	src_ct_1("src-ct.1"), //
+	src_ct_2_1("src-ct.2.1"), //
 	src_import_1_2("src-import.1.2"), //
 	src_element_3("src-element.3"), //
 	src_resolve_4_2("src-resolve.4.2"), //
@@ -158,6 +159,7 @@ public enum XSDErrorCode implements IXMLErrorCode {
 			return XMLPositionUtility.selectAttributeValueFromGivenValue(attrName, offset, document);
 		}
 		case src_ct_1:
+		case src_ct_2_1:
 			return XMLPositionUtility.selectAttributeValueAt("base", offset, document);
 		case src_resolve_4_2: {
 			String attrValue = getString(arguments[2]);
