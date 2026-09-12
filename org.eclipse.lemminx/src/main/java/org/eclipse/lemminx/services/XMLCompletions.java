@@ -567,7 +567,7 @@ public class XMLCompletions {
 		int offset;
 		try {
 			offset = xmlDocument.offsetAt(position);
-			if (offset - 2 < 0) { // There is not enough content for autoClose
+			if (offset - 2 < 0) {
 				return null;
 			}
 		} catch (BadLocationException e) {
@@ -577,107 +577,150 @@ public class XMLCompletions {
 		if (offset <= 0) {
 			return null;
 		}
-		char c = xmlDocument.getTextSequence().charAt(offset - 1);
-		char cBefore = xmlDocument.getTextSequence().charAt(offset - 2);
-		String snippet = null;
 		if (XMLPositionUtility.isInAttributeValue(xmlDocument, position)) {
 			return null;
 		}
-		if (c == '>') { // Case: <a>|
-			DOMNode node = xmlDocument.findNodeBefore(offset);
-			if (!(node instanceof DOMElement)) {
+		CharSequence text = xmlDocument.getTextSequence();
+		char c = text.charAt(offset - 1);
+		char cBefore = text.charAt(offset - 2);
+
+		if (c == '>') {
+			// Case: <a>| - insert closing tag
+			return doAutoInsertClosingTag(xmlDocument, offset);
+		}
+		if (cBefore == '<' && c == '/') {
+			// Case: <a> </| - complete end tag name
+			return doAutoCompleteEndTag(xmlDocument, offset);
+		}
+		// Case: <a/| or <a/|> - convert to self-closing tag
+		return doAutoSelfClose(xmlDocument, offset, position, completionSettings);
+	}
+
+	/**
+	 * Handles auto-close when '>' is typed after a start tag (e.g. <a>|).
+	 * Inserts the matching closing tag (e.g. $0</a>).
+	 */
+	private AutoCloseTagResponse doAutoInsertClosingTag(DOMDocument xmlDocument, int offset) {
+		DOMNode node = xmlDocument.findNodeBefore(offset);
+		if (!(node instanceof DOMElement)) {
+			return null;
+		}
+		DOMElement element = (DOMElement) node;
+		if (!element.isSelfClosed() && element.hasTagName()
+				&& !isEmptyElement(element.getTagName()) && element.getStart() < offset
+				&& (!element.hasEndTag() || (element.getTagName().equals(element.getParentNode().getNodeName())
+						&& !isBalanced(element)))) {
+			return new AutoCloseTagResponse("$0</" + element.getTagName() + ">");
+		}
+		return null;
+	}
+
+	/**
+	 * Handles auto-close when '</' is typed (e.g. <a> </|).
+	 * Completes the end tag name (e.g. a>$0).
+	 */
+	private AutoCloseTagResponse doAutoCompleteEndTag(DOMDocument xmlDocument, int offset) {
+		DOMNode node = xmlDocument.findNodeBefore(offset);
+		while (node != null && (node.isClosed() || (node.isElement() && ((DOMElement) node).isOrphanEndTag()))) {
+			node = node.getParentNode();
+		}
+		if (node != null && node.isElement() && ((DOMElement) node).getTagName() != null) {
+			return new AutoCloseTagResponse(((DOMElement) node).getTagName() + ">$0");
+		}
+		return null;
+	}
+
+	/**
+	 * Handles auto-close when '/' is typed inside a start tag to convert it
+	 * to a self-closing tag (e.g. <a/| or <a/|></a>).
+	 * Removes the now-redundant end tag when applicable.
+	 */
+	private AutoCloseTagResponse doAutoSelfClose(DOMDocument xmlDocument, int offset, Position position,
+			XMLCompletionSettings completionSettings) {
+		DOMNode node = xmlDocument.findNodeBefore(offset);
+		if (!node.isElement() || node.getNodeName() == null) {
+			return null;
+		}
+		DOMElement element = (DOMElement) node;
+		Integer slashOffset = element.endsWith('/', offset);
+		if (element.isInEndTag(offset) || slashOffset == null) {
+			return null;
+		}
+		DOMAttr lastAttr = element.getLastAttr();
+		if (lastAttr != null && slashOffset < lastAttr.getEnd()) {
+			return null;
+		}
+		CharSequence text = xmlDocument.getTextSequence();
+		boolean closeBracketAfterSlash = offset < text.length() && text.charAt(offset) == '>';
+
+		if (!closeBracketAfterSlash) {
+			// Case: <a/| (no '>' after slash)
+			if (element.isStartTagClosed()) {
 				return null;
 			}
-			DOMElement element = ((DOMElement) node);
-			if (node != null && node.isElement() && !element.isSelfClosed() && element.hasTagName()
-					&& !isEmptyElement(((DOMElement) node).getTagName()) && node.getStart() < offset
-					&& (!element.hasEndTag() || (element.getTagName().equals(node.getParentNode().getNodeName())
-							&& !isBalanced(node)))) {
-				snippet = "$0</" + ((DOMElement) node).getTagName() + ">";
-
+			if (element.hasEndTag() && completionSettings.isAutoCloseRemovesContent()) {
+				// Case: <a/| </a> - remove content and end tag
+				Position end = toPosition(xmlDocument, element.getEnd());
+				if (end == null) {
+					return null;
+				}
+				return new AutoCloseTagResponse(">$0", new Range(position, end));
 			}
-		} else if (cBefore == '<' && c == '/') { // Case: <a> </|
-			DOMNode node = xmlDocument.findNodeBefore(offset);
-			while (node != null && (node.isClosed() || (node.isElement() && ((DOMElement) node).isOrphanEndTag()))) {
-				node = node.getParentNode();
-			}
-			if (node != null && node.isElement() && ((DOMElement) node).getTagName() != null) {
-				snippet = ((DOMElement) node).getTagName() + ">$0";
-			}
-		} else {
-			DOMNode node = xmlDocument.findNodeBefore(offset);
-			if (node.isElement() && node.getNodeName() != null) {
-				DOMElement element1 = (DOMElement) node;
+			return new AutoCloseTagResponse(">$0");
+		}
 
-				Integer slashOffset = element1.endsWith('/', offset);
-				Position end = null;
-				if (!element1.isInEndTag(offset) && slashOffset != null) { // The typed characted was '/'
-					DOMAttr lastAttr = element1.getLastAttr();
-					if (lastAttr != null) {
-						if (slashOffset < lastAttr.getEnd()) { // slash in attribute value
-							return null;
-						}
-					}
-					CharSequence text = xmlDocument.getTextSequence();
-					// After the slash is a close bracket
-					boolean closeBracketAfterSlash = offset < text.length() ? text.charAt(offset) == '>' : false;
+		// '>' exists after slash: find and remove the redundant end tag
+		DOMNode nextSibling = node.getNextSibling();
 
-					// Case: <a/| ...
-					if (closeBracketAfterSlash == false) { // no '>' after slash
-						if (element1.isStartTagClosed()) { // tag has closing '>', but slash is in incorrect area (not
-															// directly before the '>')
-							return null;
-						}
-						snippet = ">$0";
-						if (element1.hasEndTag() && completionSettings.isAutoCloseRemovesContent()) { // Case: <a/| </a>
-							try {
-								end = xmlDocument.positionAt(element1.getEnd());
-							} catch (BadLocationException e) {
+		// Case: <a/|></a> - next sibling is an orphan end tag, remove it
+		if (nextSibling != null && nextSibling.isElement()) {
+			DOMElement orphanEndTag = (DOMElement) nextSibling;
+			if (!orphanEndTag.hasStartTag() && node.getNodeName().equals(orphanEndTag.getNodeName())) {
+				Position end = toPosition(xmlDocument, orphanEndTag.getEnd());
+				if (end == null) {
+					return null;
+				}
+				return new AutoCloseTagResponse(">$0", new Range(position, end));
+			}
+		}
+
+		// Case: nested elements with the same name.
+		// Ex: <a> <a/|> </a> </a>    (2 levels)
+		// Ex: <a><a><a/|></a></a></a> (3 levels)
+		// Walk up the ancestor chain (parents with the same tag name)
+		// to verify there is an orphan end tag that will replace the
+		// removed one. Then remove only the immediate parent's end tag.
+		if (nextSibling == null) {
+			DOMElement parentElement = node.getParentElement();
+			if (parentElement != null && node.getNodeName().equals(parentElement.getTagName())) {
+				DOMElement ancestor = parentElement;
+				while (ancestor != null && node.getNodeName().equals(ancestor.getTagName())) {
+					DOMNode nodeAfterAncestor = ancestor.getNextSibling();
+					if (nodeAfterAncestor != null && nodeAfterAncestor.isElement()) {
+						DOMElement elementAfterAncestor = (DOMElement) nodeAfterAncestor;
+						if (ancestor.getTagName().equals(elementAfterAncestor.getTagName())
+								&& !elementAfterAncestor.hasStartTag()) {
+							Position end = toPosition(xmlDocument, parentElement.getEnd());
+							if (end == null) {
 								return null;
 							}
-						}
-					} else {
-						DOMNode nextSibling = node.getNextSibling();
-						// If there is text in between the tags it will skip this
-						if (nextSibling != null && nextSibling.isElement()) { // Case: <a/|></a>
-							DOMElement element2 = (DOMElement) nextSibling;
-							if (!element2.hasStartTag() && node.getNodeName().equals(element2.getNodeName())) {
-								try {
-									snippet = ">$0";
-									end = xmlDocument.positionAt(element2.getEnd());
-								} catch (BadLocationException e) {
-									return null;
-								}
-							}
-						} else if (nextSibling == null) { // Case: <a> <a/|> </a> </a>
-							DOMElement parentElement = node.getParentElement();
-							if (parentElement != null && node.getNodeName().equals(parentElement.getTagName())) {
-								DOMNode nodeAfterParent = parentElement.getNextSibling();
-								if (nodeAfterParent != null && nodeAfterParent.isElement()) {
-									DOMElement elementAfterParent = (DOMElement) nodeAfterParent;
-									if (parentElement.getTagName().equals(elementAfterParent.getTagName())
-											&& !elementAfterParent.hasStartTag()) {
-										try {
-											snippet = ">$0";
-											end = xmlDocument.positionAt(parentElement.getEnd());
-										} catch (BadLocationException e) {
-											return null;
-										}
-									}
-								}
-							}
+							return new AutoCloseTagResponse(">$0", new Range(position, end));
 						}
 					}
-					if (snippet != null && end != null) {
-						return new AutoCloseTagResponse(snippet, new Range(position, end));
-					}
+					ancestor = ancestor.getParentElement();
 				}
 			}
 		}
-		if (snippet == null) {
+
+		return null;
+	}
+
+	private static Position toPosition(DOMDocument xmlDocument, int offset) {
+		try {
+			return xmlDocument.positionAt(offset);
+		} catch (BadLocationException e) {
 			return null;
 		}
-		return new AutoCloseTagResponse(snippet);
 	}
 
 	// ---------------- Tags completion
