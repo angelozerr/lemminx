@@ -201,6 +201,22 @@ public class XSDValidationExtensionsTest extends AbstractCacheBasedTest {
 	}
 
 	@Test
+	public void emptyElementNameNoNPE() throws BadLocationException {
+		// Test for https://github.com/eclipse-lemminx/lemminx/issues/437
+		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" + //
+				"<xs:schema \r\n" + //
+				"	xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">\r\n" + //
+				"	<xs:complexType name=\"testType\">\r\n" + //
+				"		<xs:all>\r\n" + //
+				"			<xs:element name=\"\" minOccurs=\"1\" maxOccurs=\"2\" type=\"xs:string\"/>\r\n" + //
+				"		</xs:all>\r\n" + //
+				"	</xs:complexType>\r\n" + //
+				"</xs:schema>";
+		testDiagnosticsFor(xml, d(5, 20, 5, 22, XSDErrorCode.s4s_att_invalid_value),
+				d(5, 4, 5, 14, XSDErrorCode.src_element_2_1));
+	}
+
+	@Test
 	public void s4s_elt_invalid_content_3WithClosingTag() throws BadLocationException {
 		String xml = "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" elementFormDefault=\"qualified\">\r\n" + //
 				"	<xs:element name=\"project\" type=\"xs:string\"></xs:element>\r\n" + //
