@@ -176,6 +176,16 @@ public class XMLCompletionTest {
 	}
 
 	@Test
+	public void testAutoCloseTagCompletionWithNestedSameNameElements() {
+		// 3 levels: <a><a><a/|></a></a></a> - should remove parent's end tag
+		assertAutoCloseEndTagCompletionWithRange("<a><a><a/|></a></a></a>", ">$0", r(0, 9, 0, 14));
+		// 4 levels: <a><a><a><a/|></a></a></a></a>
+		assertAutoCloseEndTagCompletionWithRange("<a><a><a><a/|></a></a></a></a>", ">$0", r(0, 12, 0, 17));
+		// 3 levels with spaces
+		assertAutoCloseEndTagCompletionWithRange("<a> <a> <a/|> </a> </a> </a>", ">$0", r(0, 11, 0, 17));
+	}
+
+	@Test
 	public void testAutoCloseTagCompletionWithSlashAtBadLocations() {
 		assertAutoCloseEndTagCompletionWithRange("<a zz=\"a/|\"></a>", null, null);
 		assertAutoCloseEndTagCompletionWithRange("<a zz=/|\"aa\"> </a>", null, null);
