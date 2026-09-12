@@ -109,6 +109,9 @@ public class XSDValidator {
 			grammarPreparser.preparseGrammar(XMLGrammarDescription.XML_SCHEMA, source);
 		} catch (IOException | CancellationException | XMLParseException exception) {
 			// ignore error
+		} catch (NullPointerException e) {
+			// Xerces can throw NPE for invalid XSD constructs
+			// (ex: empty element name), see issue #437
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Unexpected XSDValidator error", e);
 		} finally {
