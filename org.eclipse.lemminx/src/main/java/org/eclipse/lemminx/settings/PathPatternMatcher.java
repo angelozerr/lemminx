@@ -16,8 +16,12 @@ import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PathPatternMatcher {
+
+	private static final Logger LOGGER = Logger.getLogger(PathPatternMatcher.class.getName());
 
 	private transient PathMatcher pathMatcher;
 	private String pattern;
@@ -55,11 +59,18 @@ public class PathPatternMatcher {
 		if (pathMatcher == null) {
 			char c = pattern.charAt(0);
 			String glob = pattern;
-			if (c != '*' && c != '?' && c != '/') {
-				// in case of pattern like this pattern="myFile*.xml", we must add '**/' before
+			if (c != '/' && !(c == '*' && pattern.length() >= 2 && pattern.charAt(1) == '*')) {
+				// Add '**/' prefix so the pattern matches in any directory.
+				// Skip only for absolute paths (starting with '/') or patterns
+				// already starting with '**' (which cross directory boundaries).
 				glob = "**/" + glob;
 			}
-			pathMatcher = FileSystems.getDefault().getPathMatcher("glob:" + glob);
+			try {
+				pathMatcher = FileSystems.getDefault().getPathMatcher("glob:" + glob);
+			} catch (Exception e) {
+				LOGGER.log(Level.WARNING, "Invalid glob pattern: " + pattern, e);
+				return false;
+			}
 		}
 		try {
 			return pathMatcher.matches(Paths.get(uri));
