@@ -79,6 +79,28 @@ public class XML2XMLSchemaGeneratorTest extends AbstractCacheBasedTest {
 	}
 
 	@Test
+	public void schemaWithJoinContentLines() throws IOException {
+		String xml = "<note>\r\n" + //
+				"	<to>Tove</to>\r\n" + //
+				"	<from>Jani</from>\r\n" + //
+				"</note>";
+		String xsd = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + lineSeparator() + //
+				"<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" + lineSeparator() + //
+				"  <xs:element name=\"note\">" + lineSeparator() + //
+				"    <xs:complexType>" + lineSeparator() + //
+				"      <xs:sequence>" + lineSeparator() + //
+				"        <xs:element name=\"to\" type=\"xs:string\" />" + lineSeparator() + //
+				"        <xs:element name=\"from\" type=\"xs:string\" />" + lineSeparator() + //
+				"      </xs:sequence>" + lineSeparator() + //
+				"    </xs:complexType>" + lineSeparator() + //
+				"  </xs:element>" + lineSeparator() + //
+				"</xs:schema>";
+		SharedSettings settings = new SharedSettings();
+		settings.getFormattingSettings().setJoinContentLines(true);
+		assertGrammarGenerator(xml, new XMLSchemaGeneratorSettings(), settings, xsd);
+	}
+
+	@Test
 	public void schemaWithNS() throws IOException {
 		String xml = "<note xmlns=\"https://www.w3schools.com\">\r\n" + //
 				"	<to>Tove</to>\r\n" + //
